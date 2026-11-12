@@ -1,0 +1,290 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#103b30">
+  <meta name="description" content="يقين - رفيقك إلى الله، القرآن الكريم ومواقيت الصلاة والأذكار">
+  <title>يقين | رفيقك إلى الله</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+  <header class="top-header">
+    <div class="brand">
+      <div class="brand-icon">☪</div>
+      <div>
+        <h1>يَقِين</h1>
+        <p>رفيقك إلى الله</p>
+      </div>
+    </div>
+    <button class="notification-btn" aria-label="التنبيهات">🔔</button>
+  </header>
+
+  <main>
+
+    <!-- الرئيسية -->
+    <section id="home" class="page active">
+
+      <div class="welcome">
+        <p id="gregorian-date">مرحباً بك في يقين</p>
+        <h2>السلام عليكم ورحمة الله 🌙</h2>
+        <p id="hijri-date">نسأل الله أن يجعل يومك مباركاً</p>
+      </div>
+
+      <!-- مواقيت الصلاة -->
+      <div class="prayer-card">
+        <div class="section-heading">
+          <h2>🕌 مواقيت الصلاة</h2>
+          <span id="city-name">المقطم - القاهرة</span>
+        </div>
+
+        <div class="next-prayer">
+          <p>الصلاة القادمة</p>
+          <h2 id="next-prayer-name">الفجر</h2>
+          <div id="countdown">--:--:--</div>
+          <p>الوقت المتبقي للصلاة</p>
+        </div>
+
+        <div class="prayer-times">
+          <div class="prayer-item">
+            <span>🌅</span>
+            <p>الفجر</p>
+            <strong id="fajr-time">--:--</strong>
+          </div>
+
+          <div class="prayer-item">
+            <span>☀️</span>
+            <p>الظهر</p>
+            <strong id="dhuhr-time">--:--</strong>
+          </div>
+
+          <div class="prayer-item">
+            <span>🌤️</span>
+            <p>العصر</p>
+            <strong id="asr-time">--:--</strong>
+          </div>
+
+          <div class="prayer-item">
+            <span>🌇</span>
+            <p>المغرب</p>
+            <strong id="maghrib-time">--:--</strong>
+          </div>
+
+          <div class="prayer-item">
+            <span>🌙</span>
+            <p>العشاء</p>
+            <strong id="isha-time">--:--</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- القرآن -->
+      <div class="feature-card">
+        <div class="feature-icon">📖</div>
+        <div>
+          <h3>القرآن الكريم</h3>
+          <p>اقرأ واستمع إلى كتاب الله</p>
+        </div>
+        <button onclick="showPage('quran')">افتح ←</button>
+      </div>
+
+      <!-- الأذكار -->
+      <div class="feature-card">
+        <div class="feature-icon">📿</div>
+        <div>
+          <h3>الأذكار اليومية</h3>
+          <p>أذكار الصباح والمساء والنوم</p>
+        </div>
+        <button onclick="showPage('azkar')">افتح ←</button>
+      </div>
+
+      <!-- رمضان -->
+      <div class="feature-card">
+        <div class="feature-icon">🌙</div>
+        <div>
+          <h3>رمضان 2027</h3>
+          <p>الإمساكية والسحور ومدفع الإفطار</p>
+        </div>
+        <button onclick="showPage('ramadan')">افتح ←</button>
+      </div>
+
+      <!-- خدمات أخرى -->
+      <div class="feature-card">
+        <div class="feature-icon">🧭</div>
+        <div>
+          <h3>القبلة والسبحة</h3>
+          <p>اتجاه القبلة والتسبيح</p>
+        </div>
+        <button onclick="showPage('more')">افتح ←</button>
+      </div>
+
+    </section>
+
+    <!-- القرآن الكريم -->
+    <section id="quran" class="page">
+      <h2>📖 القرآن الكريم</h2>
+      <p>كتاب الله الكريم</p>
+
+      <div class="content-card">
+        <h3>اختر القارئ</h3>
+        <select id="quran-reader">
+          <option value="mishary">مشاري راشد العفاسي</option>
+          <option value="tablawi">محمد محمود الطبلاوي</option>
+          <option value="abdulbasit">عبد الباسط عبد الصمد</option>
+          <option value="abdurrahman">عبد الرحمن مسعد</option>
+        </select>
+      </div>
+
+      <div class="content-card">
+        <h3>المصحف الشريف</h3>
+        <p>القرآن الكريم كاملاً - 114 سورة</p>
+        <div id="surah-list"></div>
+      </div>
+
+      <div class="content-card">
+        <h3>🎧 الابتهالات</h3>
+        <p>الشيخ سيد النقشبندي</p>
+        <div id="nasheed-player"></div>
+      </div>
+    </section>
+
+    <!-- الأذكار -->
+    <section id="azkar" class="page">
+      <h2>📿 الأذكار اليومية</h2>
+
+      <div class="feature-card">
+        <button onclick="loadAzkar('morning')">أذكار الصباح</button>
+      </div>
+
+      <div class="feature-card">
+        <button onclick="loadAzkar('evening')">أذكار المساء</button>
+      </div>
+
+      <div class="feature-card">
+        <button onclick="loadAzkar('sleep')">أذكار النوم</button>
+      </div>
+
+      <div class="feature-card">
+        <button onclick="loadAzkar('prayer')">أذكار بعد الصلاة</button>
+      </div>
+
+      <div id="azkar-content"></div>
+    </section>
+
+    <!-- الصلاة -->
+    <section id="prayer" class="page">
+      <h2>🕌 الصلاة والأذان</h2>
+
+      <div class="content-card">
+        <h3>إعدادات الأذان</h3>
+        <label>
+          <input type="checkbox" id="adhan-enabled" checked>
+          تفعيل تنبيهات الأذان
+        </label>
+        <br><br>
+        <label>
+          <input type="checkbox" id="iqama-enabled" checked>
+          تفعيل تنبيه الإقامة
+        </label>
+      </div>
+
+      <div class="content-card">
+        <h3>المدينة</h3>
+        <p>المقطم - القاهرة - مصر</p>
+        <p>إمكانية تغيير المدينة من الإعدادات قريباً</p>
+      </div>
+    </section>
+
+    <!-- رمضان -->
+    <section id="ramadan" class="page">
+      <h2>🌙 رمضان 2027</h2>
+
+      <div class="content-card">
+        <h3>إمساكية شهر رمضان</h3>
+        <p>مواعيد السحور والإمساك والإفطار والصلاة.</p>
+        <div id="ramadan-calendar"></div>
+      </div>
+
+      <div class="content-card">
+        <h3>🍲 تنبيه السحور</h3>
+        <p>تذكير قبل موعد الفجر للاستعداد للسحور.</p>
+        <input type="number" id="suhoor-minutes"
+          value="30" min="5" max="120">
+        <span>دقيقة قبل الفجر</span>
+      </div>
+
+      <div class="content-card">
+        <h3>💥 مدفع الإفطار</h3>
+        <p>تنبيه وقت أذان المغرب والإفطار.</p>
+      </div>
+
+      <div class="content-card">
+        <h3>💥 مدفع الإمساك</h3>
+        <p>تنبيه قبل الفجر بموعد الإمساك.</p>
+      </div>
+    </section>
+
+    <!-- المزيد -->
+    <section id="more" class="page">
+      <h2>المزيد من الخدمات</h2>
+
+      <div class="feature-card">
+        <h3>🧭 اتجاه القبلة</h3>
+      </div>
+
+      <div class="feature-card">
+        <h3>📿 السبحة الإلكترونية</h3>
+      </div>
+
+      <div class="feature-card">
+        <h3>⚙️ الإعدادات</h3>
+      </div>
+
+      <div class="content-card">
+        <h3>يَقِين</h3>
+        <p>رفيقك إلى الله</p>
+        <p>نسأل الله أن يتقبل منا ومنكم صالح الأعمال.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- شريط التنقل السفلي -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" onclick="showPage('home')">
+      <span>🏠</span>
+      <small>الرئيسية</small>
+    </button>
+
+    <button class="nav-item" onclick="showPage('quran')">
+      <span>📖</span>
+      <small>القرآن</small>
+    </button>
+
+    <button class="nav-item" onclick="showPage('prayer')">
+      <span>🕌</span>
+      <small>الصلاة</small>
+    </button>
+
+    <button class="nav-item" onclick="showPage('azkar')">
+      <span>📿</span>
+      <small>الأذكار</small>
+    </button>
+
+    <button class="nav-item" onclick="showPage('more')">
+      <span>☰</span>
+      <small>المزيد</small>
+    </button>
+  </nav>
+
+  <script src="js/app.js"></script>
+  <script src="js/quran.js"></script>
+  <script src="js/azkar.js"></script>
+  <script src="js/prayer.js"></script>
+  <script src="js/ramadan.js"></script>
+
+</body>
+</html>
