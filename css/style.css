@@ -353,3 +353,84 @@ main {
     font-size: 29px;
   }
 }
+
+/* Yaqeen Global Time */
+#yaqeen-timezone {
+  padding: 18px;
+  margin: 20px auto;
+  max-width: 600px;
+  direction: rtl;
+}
+
+.timezone-card {
+  background: linear-gradient(145deg, #123d35, #176653);
+  color: #ffffff;
+  padding: 25px 18px;
+  border-radius: 22px;
+  text-align: center;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.timezone-card h2 {
+  font-size: 23px;
+  margin-bottom: 20px;
+}
+
+.timezone-card p {
+  margin: 12px 0;
+}
+
+#yaqeen-clock {
+  font-size: 38px;
+  font-weight: bold;
+  direction: ltr;
+  margin: 15px 0;
+  letter-spacing: 2px;
+}
+
+#yaqeen-date {
+  font-size: 15px;
+  margin-bottom: 25px;
+  color: #e4f4e9;
+}
+
+#yaqeen-zone {
+  display: block;
+  width: 100%;
+  padding: 13px;
+  margin: 12px 0;
+  border: none;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #123d35;
+  font-size: 15px;
+  direction: ltr;
+}
+
+.timezone-card label {
+  display: block;
+  font-size: 14px;
+  margin-top: 20px;
+}
+
+#yaqeen-zone-name {
+  font-size: 13px;
+  color: #d5eee2;
+}
+
+.timezone-card small {
+  display: block;
+  line-height: 1.8;
+  color: #e4f4e9;
+  margin-top: 15px;
+}
+
+@media (max-width: 480px) {
+  #yaqeen-timezone {
+    padding: 12px;
+  }
+
+  #yaqeen-clock {
+    font-size: 32px;
+  }
+}
