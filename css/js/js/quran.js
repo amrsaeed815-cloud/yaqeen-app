@@ -5,12 +5,12 @@
   const surahList = document.getElementById("surah-list");
   const readerSelect = document.getElementById("quran-reader");
 
-  const readers = {
-    mishary: "ar.alafasy",
-    tablawi: "ar.tablawi",
-    abdulbasit: "ar.abdulbasit",
-    abdurrahman: "ar.abdurrahmaan",
-  };
+const readers = {
+  mishary: "ar.alafasy",
+  husary: "ar.husary",
+  abdulbasit: "ar.abdulbasit",
+  sudais: "ar.sudais"
+};
 
   let audio = new Audio();
   let currentSurah = 0;
