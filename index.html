@@ -24,20 +24,17 @@
 
 <main>
 
-  <!-- الرئيسية -->
   <section id="home" class="page active">
-
     <div class="welcome">
       <p id="gregorian-date">مرحباً بك في يقين</p>
       <h2>السلام عليكم ورحمة الله</h2>
       <p id="hijri-date">نسأل الله أن يجعل يومك مباركاً</p>
     </div>
 
-    <!-- بطاقة الصلاة -->
     <div class="prayer-card">
       <div class="section-heading">
         <h2>🕌 مواقيت الصلاة</h2>
-        <span id="city-name">المقطم - القاهرة</span>
+        <span id="city-name">القاهرة - مصر</span>
       </div>
 
       <div class="next-prayer">
@@ -82,7 +79,6 @@
     </div>
 
     <div class="features-grid">
-
       <button class="feature-card" onclick="showPage('quran')">
         <span class="feature-icon">📖</span>
         <h3>القرآن الكريم</h3>
@@ -110,7 +106,6 @@
         <p>خدماتك الإسلامية</p>
         <span class="feature-link">افتح الآن ←</span>
       </button>
-
     </div>
 
     <div class="daily-message">
@@ -120,10 +115,8 @@
         <p>ألا بذكر الله تطمئن القلوب</p>
       </div>
     </div>
-
   </section>
 
-  <!-- القرآن -->
   <section id="quran" class="page">
     <div class="page-heading">
       <span>📖</span>
@@ -154,7 +147,6 @@
     </div>
   </section>
 
-  <!-- الأذكار -->
   <section id="azkar" class="page">
     <div class="page-heading">
       <span>📿</span>
@@ -163,24 +155,15 @@
     </div>
 
     <div class="azkar-menu">
-      <button class="feature-card" onclick="loadAzkar('morning')">
-        🌅 أذكار الصباح
-      </button>
-      <button class="feature-card" onclick="loadAzkar('evening')">
-        🌇 أذكار المساء
-      </button>
-      <button class="feature-card" onclick="loadAzkar('sleep')">
-        🌙 أذكار النوم
-      </button>
-      <button class="feature-card" onclick="loadAzkar('prayer')">
-        🕌 أذكار بعد الصلاة
-      </button>
+      <button class="feature-card" onclick="loadAzkar('morning')">🌅 أذكار الصباح</button>
+      <button class="feature-card" onclick="loadAzkar('evening')">🌇 أذكار المساء</button>
+      <button class="feature-card" onclick="loadAzkar('sleep')">🌙 أذكار النوم</button>
+      <button class="feature-card" onclick="loadAzkar('prayer')">🕌 أذكار بعد الصلاة</button>
     </div>
 
     <div id="azkar-content"></div>
   </section>
 
-  <!-- الصلاة -->
   <section id="prayer" class="page">
     <div class="page-heading">
       <span>🕌</span>
@@ -203,12 +186,11 @@
 
     <div class="content-card">
       <h3>المدينة</h3>
-      <p id="prayer-city">المقطم - القاهرة - مصر</p>
-      <p>إعدادات المدينة ومواقيت الصلاة</p>
+      <p id="prayer-city">القاهرة - مصر</p>
+      <p>مواقيت الصلاة حسب توقيت المدينة</p>
     </div>
   </section>
 
-  <!-- رمضان -->
   <section id="ramadan" class="page">
     <div class="page-heading">
       <span>🌙</span>
@@ -225,8 +207,7 @@
     <div class="content-card">
       <h3>🍲 تنبيه السحور</h3>
       <p>تذكير قبل موعد الفجر للاستعداد للسحور</p>
-      <input type="number" id="suhoor-minutes"
-        value="30" min="5" max="120">
+      <input type="number" id="suhoor-minutes" value="30" min="5" max="120">
       <span>دقيقة قبل الفجر</span>
     </div>
 
@@ -241,7 +222,6 @@
     </div>
   </section>
 
-  <!-- المزيد -->
   <section id="more" class="page">
     <div class="page-heading">
       <span>✨</span>
@@ -278,7 +258,6 @@
 
 </main>
 
-<!-- شريط التنقل -->
 <nav class="bottom-nav">
   <button class="nav-item active" onclick="showPage('home')">
     <span>⌂</span>
@@ -311,22 +290,3 @@
 
 </body>
 </html>
-<script src="prayer.js"></script>
-
-<section class="prayer-section" dir="rtl">
-  <h2>🕌 مواقيت الصلاة</h2>
-  <p>مواقيت الصلاة اليومية</p>
-
-  <div id="prayer-times">
-    جاري تحميل مواقيت الصلاة...
-  </div>
-</section>
-
-<section class="prayer-section" dir="rtl">
-  <h2>🕌 مواقيت الصلاة</h2>
-  <p>مواقيت الصلاة اليومية</p>
-
-  <div id="prayer-times">
-    جاري تحميل مواقيت الصلاة...
-  </div>
-</section>
