@@ -1,13 +1,15 @@
 
 :root {
-  --green: #103b30;
-  --green-light: #1d5947;
-  --gold: #d8b66a;
-  --cream: #f7f5ef;
-  --white: #ffffff;
-  --text: #20372f;
-  --muted: #84938a;
-  --shadow: 0 8px 25px rgba(16, 59, 48, .08);
+  --green: #102D38;
+  --green-light: #164653;
+  --gold: #E5B85C;
+  --cream: #080B10;
+  --white: #111923;
+  --text: #E7EEF2;
+  --muted: #91A4B1;
+  --shadow: 0 8px 25px rgba(0, 0, 0, .35);
+  --turquoise: #43C6D9;
+  --blue: #182D43;
 }
 
 * {
@@ -16,11 +18,17 @@
   padding: 0;
 }
 
+html {
+  background: #080B10;
+  color-scheme: dark;
+}
+
 body {
   font-family: Tahoma, Arial, sans-serif;
-  background: var(--cream);
+  background: #080B10;
   color: var(--text);
   padding-bottom: 95px;
+  min-height: 100vh;
 }
 
 button, select, input {
@@ -32,13 +40,15 @@ button {
 }
 
 .top-header {
-  background: var(--green);
+  background: #0D1721;
   color: white;
   padding: 18px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  border-bottom: 1px solid rgba(67,198,217,.2);
   border-radius: 0 0 25px 25px;
+  box-shadow: var(--shadow);
 }
 
 .brand {
@@ -56,6 +66,7 @@ button {
   border-radius: 16px;
   color: var(--gold);
   font-size: 29px;
+  background: #14232E;
 }
 
 .brand h1 {
@@ -66,14 +77,14 @@ button {
 
 .brand p {
   font-size: 11px;
-  color: #d7e4dc;
+  color: #A7C4CF;
   margin-top: 4px;
 }
 
 .notification-btn {
-  background: rgba(255,255,255,.12);
-  border: 0;
-  color: white;
+  background: #192B3A;
+  border: 1px solid rgba(67,198,217,.2);
+  color: var(--turquoise);
   border-radius: 14px;
   width: 43px;
   height: 43px;
@@ -117,15 +128,16 @@ main {
 }
 
 .welcome h2 {
-  color: var(--green);
+  color: var(--gold);
   font-size: 23px;
   margin-bottom: 10px;
 }
 
 .prayer-card {
-  background: linear-gradient(145deg, #103b30, #1d5947);
-  color: white;
+  background: linear-gradient(145deg, #102D38, #164653);
+  color: var(--text);
   padding: 20px 15px;
+  border: 1px solid rgba(67,198,217,.22);
   border-radius: 25px;
   box-shadow: var(--shadow);
   position: relative;
@@ -168,7 +180,7 @@ main {
 }
 
 .next-prayer p {
-  color: #d6e5dc;
+  color: #C0D5DD;
   font-size: 13px;
   margin: 7px;
 }
@@ -183,7 +195,7 @@ main {
   font-weight: bold;
   letter-spacing: 2px;
   margin: 10px 0;
-  color: white;
+  color: var(--turquoise);
   direction: ltr;
 }
 
@@ -191,7 +203,7 @@ main {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 5px;
-  background: rgba(255,255,255,.1);
+  background: rgba(0,0,0,.2);
   padding: 12px 5px;
   border-radius: 17px;
   position: relative;
@@ -209,7 +221,7 @@ main {
 .prayer-item p {
   font-size: 11px;
   margin: 7px 0;
-  color: #e1eae5;
+  color: #C0D5DD;
 }
 
 .prayer-item strong {
@@ -224,7 +236,7 @@ main {
 }
 
 .section-title h2 {
-  color: var(--green);
+  color: var(--gold);
   font-size: 19px;
 }
 
@@ -241,19 +253,20 @@ main {
 }
 
 .feature-card {
-  background: white;
-  border: 1px solid #eeeae0;
+  background: linear-gradient(145deg, #121E2A, #101923);
+  border: 1px solid rgba(67,198,217,.16);
   border-radius: 20px;
   padding: 17px 13px;
   text-align: right;
   color: var(--text);
   box-shadow: var(--shadow);
   min-width: 0;
-  transition: transform .2s;
+  transition: transform .2s, border-color .2s;
 }
 
 .feature-card:active {
   transform: scale(.97);
+  border-color: var(--turquoise);
 }
 
 .features-grid .feature-card {
@@ -263,7 +276,8 @@ main {
 .feature-icon {
   width: 48px;
   height: 48px;
-  background: #f2f0e5;
+  background: #193344;
+  border: 1px solid rgba(67,198,217,.18);
   border-radius: 15px;
   display: grid;
   place-items: center;
@@ -272,7 +286,7 @@ main {
 }
 
 .feature-card h3 {
-  color: var(--green);
+  color: var(--turquoise);
   font-size: 15px;
   margin-bottom: 7px;
 }
@@ -284,7 +298,7 @@ main {
 }
 
 .feature-link {
-  color: #b08b40;
+  color: var(--gold);
   font-size: 12px;
   font-weight: bold;
 }
@@ -296,8 +310,8 @@ main {
   margin-top: 20px;
   padding: 18px;
   border-radius: 19px;
-  background: #eeeadd;
-  border: 1px solid #e5dec9;
+  background: #152431;
+  border: 1px solid rgba(229,184,92,.22);
 }
 
 .daily-message > span {
@@ -305,14 +319,14 @@ main {
 }
 
 .daily-message h3 {
-  color: var(--green);
+  color: var(--gold);
   font-size: 14px;
   margin-bottom: 6px;
 }
 
 .daily-message p {
   font-size: 12px;
-  color: #7d806d;
+  color: #A7B8C1;
 }
 
 .page-heading {
@@ -325,7 +339,7 @@ main {
 }
 
 .page-heading h2 {
-  color: var(--green);
+  color: var(--gold);
   margin: 10px 0;
 }
 
@@ -335,8 +349,8 @@ main {
 }
 
 .content-card {
-  background: white;
-  border: 1px solid #eeeae0;
+  background: #111B26;
+  border: 1px solid rgba(67,198,217,.15);
   padding: 20px;
   margin-bottom: 15px;
   border-radius: 20px;
@@ -344,12 +358,12 @@ main {
 }
 
 .content-card h3 {
-  color: var(--green);
+  color: var(--turquoise);
   margin-bottom: 12px;
 }
 
 .content-card p {
-  color: var(--muted);
+  color: #A7B8C1;
   font-size: 13px;
   line-height: 1.9;
 }
@@ -360,8 +374,9 @@ main {
   padding: 13px;
   margin-top: 12px;
   border-radius: 12px;
-  border: 1px solid #deded4;
-  background: #faf9f5;
+  border: 1px solid #294354;
+  background: #0B131D;
+  color: var(--text);
 }
 
 .azkar-menu {
@@ -374,7 +389,7 @@ main {
 .azkar-menu .feature-card {
   text-align: center;
   font-weight: bold;
-  color: var(--green);
+  color: var(--turquoise);
   min-height: 90px;
 }
 
@@ -384,15 +399,15 @@ main {
 }
 
 .content-card input[type="checkbox"] {
-  accent-color: var(--green);
+  accent-color: var(--turquoise);
   width: 18px;
   height: 18px;
   vertical-align: middle;
 }
 
 .about-card {
-  background: var(--green);
-  color: white;
+  background: linear-gradient(145deg, #102D38, #101923);
+  color: var(--text);
   text-align: center;
 }
 
@@ -402,7 +417,7 @@ main {
 }
 
 .about-card p {
-  color: white;
+  color: #D0DEE4;
 }
 
 .bottom-nav {
@@ -410,11 +425,12 @@ main {
   bottom: 0;
   left: 0;
   width: 100%;
-  background: white;
+  background: #0D1721;
   display: flex;
   justify-content: space-around;
   padding: 10px 4px calc(10px + env(safe-area-inset-bottom));
-  box-shadow: 0 -5px 25px rgba(0,0,0,.07);
+  box-shadow: 0 -5px 25px rgba(0,0,0,.4);
+  border-top: 1px solid rgba(67,198,217,.2);
   border-radius: 20px 20px 0 0;
   z-index: 100;
 }
@@ -422,7 +438,7 @@ main {
 .nav-item {
   border: 0;
   background: transparent;
-  color: #9ba59f;
+  color: #8195A2;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -439,7 +455,7 @@ main {
 }
 
 .nav-item.active {
-  color: var(--green);
+  color: var(--turquoise);
   font-weight: bold;
 }
 
@@ -462,7 +478,9 @@ main {
 }
 
 .prayer-section {
-  background: #fff;
+  background: #111B26;
+  border: 1px solid rgba(67,198,217,.18);
+  color: var(--text);
   padding: 20px;
   margin: 20px 0;
   border-radius: 16px;
@@ -471,7 +489,7 @@ main {
 }
 
 .prayer-section h2 {
-  color: #176b50;
+  color: var(--turquoise);
   margin-bottom: 10px;
 }
 
@@ -482,12 +500,29 @@ main {
   margin-top: 20px;
 }
 
-.prayer-card {
-  background: #f0f7f3;
+#prayer-times > div {
+  background: #192A39;
   padding: 16px;
+  border: 1px solid rgba(67,198,217,.18);
   border-radius: 12px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: #176b50;
+  color: var(--gold);
+}
+
+/* تحسين عرض القوائم والحقول */
+select option {
+  background: #111B26;
+  color: #E7EEF2;
+}
+
+input,
+select {
+  color-scheme: dark;
+}
+
+::selection {
+  background: #236274;
+  color: white;
 }
