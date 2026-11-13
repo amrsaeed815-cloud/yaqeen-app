@@ -68,3 +68,7 @@
 
 })();
 container.innerHTML = "";
+container.innerHTML = "";
+const title = document.createElement("p");
+title.textContent = "جميع المواقيت بتوقيت القاهرة - مصر 🇪🇬";
+container.appendChild(title);
