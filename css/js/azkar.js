@@ -4,40 +4,179 @@
 
   const azkar = {
     morning: [
-      { text: "أَصْبَحْنَا وَأَصْبَحَ الْمُلْكُ لِلَّهِ، وَالْحَمْدُ لِلَّهِ، لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ", count: 1 },
-      { text: "آية الكرسي: اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ، لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ...", count: 1 },
-      { text: "قُلْ هُوَ اللَّهُ أَحَدٌ، اللَّهُ الصَّمَدُ، لَمْ يَلِدْ وَلَمْ يُولَدْ، وَلَمْ يَكُن لَّهُ كُفُوًا أَحَدٌ", count: 3 },
-      { text: "قُلْ أَعُوذُ بِرَبِّ الْفَلَقِ", count: 3 },
-      { text: "قُلْ أَعُوذُ بِرَبِّ النَّاسِ", count: 3 },
-      { text: "اللَّهُمَّ بِكَ أَصْبَحْنَا، وَبِكَ أَمْسَيْنَا، وَبِكَ نَحْيَا، وَبِكَ نَمُوتُ، وَإِلَيْكَ النُّشُورُ", count: 1 },
-      { text: "سُبْحَانَ اللَّهِ وَبِحَمْدِهِ", count: 100 },
-      { text: "رَضِيتُ بِاللَّهِ رَبًّا، وَبِالْإِسْلَامِ دِينًا، وَبِمُحَمَّدٍ ﷺ نَبِيًّا", count: 3 }
+      {
+        text: "أَعُوذُ بِاللَّهِ مِنَ الشَّيْطَانِ الرَّجِيمِ\nاللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ ۚ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ ۚ لَهُ مَا فِي السَّمَاوَاتِ وَمَا فِي الْأَرْضِ ۗ مَنْ ذَا الَّذِي يَشْفَعُ عِنْدَهُ إِلَّا بِإِذْنِهِ ۚ يَعْلَمُ مَا بَيْنَ أَيْدِيهِمْ وَمَا خَلْفَهُمْ ۖ وَلَا يُحِيطُونَ بِشَيْءٍ مِنْ عِلْمِهِ إِلَّا بِمَا شَاءَ ۚ وَسِعَ كُرْسِيُّهُ السَّمَاوَاتِ وَالْأَرْضَ ۖ وَلَا يَئُودُهُ حِفْظُهُمَا ۚ وَهُوَ الْعَلِيُّ الْعَظِيمُ",
+        count: 1, source: "آية الكرسي - البقرة: 255"
+      },
+      {
+        text: "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ\nقُلْ هُوَ اللَّهُ أَحَدٌ ۝ اللَّهُ الصَّمَدُ ۝ لَمْ يَلِدْ وَلَمْ يُولَدْ ۝ وَلَمْ يَكُن لَّهُ كُفُوًا أَحَدٌ",
+        count: 3, source: "سورة الإخلاص"
+      },
+      {
+        text: "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ\nقُلْ أَعُوذُ بِرَبِّ الْفَلَقِ ۝ مِنْ شَرِّ مَا خَلَقَ ۝ وَمِنْ شَرِّ غَاسِقٍ إِذَا وَقَبَ ۝ وَمِنْ شَرِّ النَّفَّاثَاتِ فِي الْعُقَدِ ۝ وَمِنْ شَرِّ حَاسِدٍ إِذَا حَسَدَ",
+        count: 3, source: "سورة الفلق"
+      },
+      {
+        text: "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ\nقُلْ أَعُوذُ بِرَبِّ النَّاسِ ۝ مَلِكِ النَّاسِ ۝ إِلَٰهِ النَّاسِ ۝ مِنْ شَرِّ الْوَسْوَاسِ الْخَنَّاسِ ۝ الَّذِي يُوَسْوِسُ فِي صُدُورِ النَّاسِ ۝ مِنَ الْجِنَّةِ وَالنَّاسِ",
+        count: 3, source: "سورة الناس"
+      },
+      {
+        text: "أَصْبَحْنَا وَأَصْبَحَ الْمُلْكُ لِلَّهِ، وَالْحَمْدُ لِلَّهِ، لَا إِلَٰهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ، رَبِّ أَسْأَلُكَ خَيْرَ مَا فِي هَذَا الْيَوْمِ وَخَيْرَ مَا بَعْدَهُ، وَأَعُوذُ بِكَ مِنْ شَرِّ مَا فِي هَذَا الْيَوْمِ وَشَرِّ مَا بَعْدَهُ، رَبِّ أَعُوذُ بِكَ مِنَ الْكَسَلِ وَسُوءِ الْكِبَرِ، رَبِّ أَعُوذُ بِكَ مِنْ عَذَابٍ فِي النَّارِ وَعَذَابٍ فِي الْقَبْرِ",
+        count: 1
+      },
+      {
+        text: "اللَّهُمَّ بِكَ أَصْبَحْنَا، وَبِكَ أَمْسَيْنَا، وَبِكَ نَحْيَا، وَبِكَ نَمُوتُ، وَإِلَيْكَ النُّشُورُ",
+        count: 1
+      },
+      {
+        text: "اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَٰهَ إِلَّا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ، وَأَبُوءُ بِذَنْبِي، فَاغْفِرْ لِي، فَإِنَّهُ لَا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ",
+        count: 1, source: "سيد الاستغفار"
+      },
+      {
+        text: "رَضِيتُ بِاللَّهِ رَبًّا، وَبِالْإِسْلَامِ دِينًا، وَبِمُحَمَّدٍ ﷺ نَبِيًّا",
+        count: 3
+      },
+      {
+        text: "اللَّهُمَّ إِنِّي أَسْأَلُكَ الْعَفْوَ وَالْعَافِيَةَ فِي الدُّنْيَا وَالْآخِرَةِ، اللَّهُمَّ إِنِّي أَسْأَلُكَ الْعَفْوَ وَالْعَافِيَةَ فِي دِينِي وَدُنْيَايَ وَأَهْلِي وَمَالِي، اللَّهُمَّ اسْتُرْ عَوْرَاتِي وَآمِنْ رَوْعَاتِي، اللَّهُمَّ احْفَظْنِي مِنْ بَيْنِ يَدَيَّ وَمِنْ خَلْفِي وَعَنْ يَمِينِي وَعَنْ شِمَالِي وَمِنْ فَوْقِي، وَأَعُوذُ بِعَظَمَتِكَ أَنْ أُغْتَالَ مِنْ تَحْتِي",
+        count: 1
+      },
+      {
+        text: "بِسْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ وَهُوَ السَّمِيعُ الْعَلِيمُ",
+        count: 3
+      },
+      {
+        text: "اللَّهُمَّ عَافِنِي فِي بَدَنِي، اللَّهُمَّ عَافِنِي فِي سَمْعِي، اللَّهُمَّ عَافِنِي فِي بَصَرِي، لَا إِلَٰهَ إِلَّا أَنْتَ. اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنَ الْكُفْرِ وَالْفَقْرِ، وَأَعُوذُ بِكَ مِنْ عَذَابِ الْقَبْرِ، لَا إِلَٰهَ إِلَّا أَنْتَ",
+        count: 3
+      },
+      {
+        text: "سُبْحَانَ اللَّهِ وَبِحَمْدِهِ",
+        count: 100
+      }
     ],
 
     evening: [
-      { text: "أَمْسَيْنَا وَأَمْسَى الْمُلْكُ لِلَّهِ، وَالْحَمْدُ لِلَّهِ، لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ", count: 1 },
-      { text: "آية الكرسي", count: 1 },
-      { text: "قُلْ هُوَ اللَّهُ أَحَدٌ", count: 3 },
-      { text: "قُلْ أَعُوذُ بِرَبِّ الْفَلَقِ", count: 3 },
-      { text: "قُلْ أَعُوذُ بِرَبِّ النَّاسِ", count: 3 },
-      { text: "اللَّهُمَّ بِكَ أَمْسَيْنَا، وَبِكَ أَصْبَحْنَا، وَبِكَ نَحْيَا، وَبِكَ نَمُوتُ، وَإِلَيْكَ الْمَصِيرُ", count: 1 },
-      { text: "سُبْحَانَ اللَّهِ وَبِحَمْدِهِ", count: 100 }
+      {
+        text: "أَعُوذُ بِاللَّهِ مِنَ الشَّيْطَانِ الرَّجِيمِ\nاللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ ۚ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ ۚ لَهُ مَا فِي السَّمَاوَاتِ وَمَا فِي الْأَرْضِ ۗ مَنْ ذَا الَّذِي يَشْفَعُ عِنْدَهُ إِلَّا بِإِذْنِهِ ۚ يَعْلَمُ مَا بَيْنَ أَيْدِيهِمْ وَمَا خَلْفَهُمْ ۖ وَلَا يُحِيطُونَ بِشَيْءٍ مِنْ عِلْمِهِ إِلَّا بِمَا شَاءَ ۚ وَسِعَ كُرْسِيُّهُ السَّمَاوَاتِ وَالْأَرْضَ ۖ وَلَا يَئُودُهُ حِفْظُهُمَا ۚ وَهُوَ الْعَلِيُّ الْعَظِيمُ",
+        count: 1, source: "آية الكرسي - البقرة: 255"
+      },
+      {
+        text: "قُلْ هُوَ اللَّهُ أَحَدٌ ۝ اللَّهُ الصَّمَدُ ۝ لَمْ يَلِدْ وَلَمْ يُولَدْ ۝ وَلَمْ يَكُن لَّهُ كُفُوًا أَحَدٌ",
+        count: 3, source: "سورة الإخلاص"
+      },
+      {
+        text: "قُلْ أَعُوذُ بِرَبِّ الْفَلَقِ ۝ مِنْ شَرِّ مَا خَلَقَ ۝ وَمِنْ شَرِّ غَاسِقٍ إِذَا وَقَبَ ۝ وَمِنْ شَرِّ النَّفَّاثَاتِ فِي الْعُقَدِ ۝ وَمِنْ شَرِّ حَاسِدٍ إِذَا حَسَدَ",
+        count: 3, source: "سورة الفلق"
+      },
+      {
+        text: "قُلْ أَعُوذُ بِرَبِّ النَّاسِ ۝ مَلِكِ النَّاسِ ۝ إِلَٰهِ النَّاسِ ۝ مِنْ شَرِّ الْوَسْوَاسِ الْخَنَّاسِ ۝ الَّذِي يُوَسْوِسُ فِي صُدُورِ النَّاسِ ۝ مِنَ الْجِنَّةِ وَالنَّاسِ",
+        count: 3, source: "سورة الناس"
+      },
+      {
+        text: "أَمْسَيْنَا وَأَمْسَى الْمُلْكُ لِلَّهِ، وَالْحَمْدُ لِلَّهِ، لَا إِلَٰهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ، رَبِّ أَسْأَلُكَ خَيْرَ مَا فِي هَذِهِ اللَّيْلَةِ وَخَيْرَ مَا بَعْدَهَا، وَأَعُوذُ بِكَ مِنْ شَرِّ مَا فِي هَذِهِ اللَّيْلَةِ وَشَرِّ مَا بَعْدَهَا، رَبِّ أَعُوذُ بِكَ مِنَ الْكَسَلِ وَسُوءِ الْكِبَرِ، رَبِّ أَعُوذُ بِكَ مِنْ عَذَابٍ فِي النَّارِ وَعَذَابٍ فِي الْقَبْرِ",
+        count: 1
+      },
+      {
+        text: "اللَّهُمَّ بِكَ أَمْسَيْنَا، وَبِكَ أَصْبَحْنَا، وَبِكَ نَحْيَا، وَبِكَ نَمُوتُ، وَإِلَيْكَ الْمَصِيرُ",
+        count: 1
+      },
+      {
+        text: "اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَٰهَ إِلَّا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ، وَأَبُوءُ بِذَنْبِي، فَاغْفِرْ لِي، فَإِنَّهُ لَا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ",
+        count: 1, source: "سيد الاستغفار"
+      },
+      {
+        text: "رَضِيتُ بِاللَّهِ رَبًّا، وَبِالْإِسْلَامِ دِينًا، وَبِمُحَمَّدٍ ﷺ نَبِيًّا",
+        count: 3
+      },
+      {
+        text: "بِسْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ وَهُوَ السَّمِيعُ الْعَلِيمُ",
+        count: 3
+      },
+      {
+        text: "أَعُوذُ بِكَلِمَاتِ اللَّهِ التَّامَّاتِ مِنْ شَرِّ مَا خَلَقَ",
+        count: 3
+      },
+      {
+        text: "سُبْحَانَ اللَّهِ وَبِحَمْدِهِ",
+        count: 100
+      }
     ],
 
     sleep: [
-      { text: "بِاسْمِكَ اللَّهُمَّ أَمُوتُ وَأَحْيَا", count: 1 },
-      { text: "آية الكرسي", count: 1 },
-      { text: "سُبْحَانَ اللَّهِ", count: 33 },
-      { text: "الْحَمْدُ لِلَّهِ", count: 33 },
-      { text: "اللَّهُ أَكْبَرُ", count: 34 }
+      {
+        text: "بِاسْمِكَ اللَّهُمَّ أَمُوتُ وَأَحْيَا",
+        count: 1
+      },
+      {
+        text: "آية الكرسي: اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ ۚ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ ۚ لَهُ مَا فِي السَّمَاوَاتِ وَمَا فِي الْأَرْضِ ۗ مَنْ ذَا الَّذِي يَشْفَعُ عِنْدَهُ إِلَّا بِإِذْنِهِ ۚ يَعْلَمُ مَا بَيْنَ أَيْدِيهِمْ وَمَا خَلْفَهُمْ ۖ وَلَا يُحِيطُونَ بِشَيْءٍ مِنْ عِلْمِهِ إِلَّا بِمَا شَاءَ ۚ وَسِعَ كُرْسِيُّهُ السَّمَاوَاتِ وَالْأَرْضَ ۖ وَلَا يَئُودُهُ حِفْظُهُمَا ۚ وَهُوَ الْعَلِيُّ الْعَظِيمُ",
+        count: 1
+      },
+      {
+        text: "قُلْ هُوَ اللَّهُ أَحَدٌ ۝ اللَّهُ الصَّمَدُ ۝ لَمْ يَلِدْ وَلَمْ يُولَدْ ۝ وَلَمْ يَكُن لَّهُ كُفُوًا أَحَدٌ",
+        count: 3, source: "سورة الإخلاص"
+      },
+      {
+        text: "قُلْ أَعُوذُ بِرَبِّ الْفَلَقِ ۝ مِنْ شَرِّ مَا خَلَقَ ۝ وَمِنْ شَرِّ غَاسِقٍ إِذَا وَقَبَ ۝ وَمِنْ شَرِّ النَّفَّاثَاتِ فِي الْعُقَدِ ۝ وَمِنْ شَرِّ حَاسِدٍ إِذَا حَسَدَ",
+        count: 3, source: "سورة الفلق"
+      },
+      {
+        text: "قُلْ أَعُوذُ بِرَبِّ النَّاسِ ۝ مَلِكِ النَّاسِ ۝ إِلَٰهِ النَّاسِ ۝ مِنْ شَرِّ الْوَسْوَاسِ الْخَنَّاسِ ۝ الَّذِي يُوَسْوِسُ فِي صُدُورِ النَّاسِ ۝ مِنَ الْجِنَّةِ وَالنَّاسِ",
+        count: 3, source: "سورة الناس"
+      },
+      {
+        text: "اللَّهُمَّ قِنِي عَذَابَكَ يَوْمَ تَبْعَثُ عِبَادَكَ",
+        count: 3
+      },
+      {
+        text: "سُبْحَانَ اللَّهِ",
+        count: 33
+      },
+      {
+        text: "الْحَمْدُ لِلَّهِ",
+        count: 33
+      },
+      {
+        text: "اللَّهُ أَكْبَرُ",
+        count: 34
+      },
+      {
+        text: "بِاسْمِكَ رَبِّي وَضَعْتُ جَنْبِي، وَبِكَ أَرْفَعُهُ، فَإِنْ أَمْسَكْتَ نَفْسِي فَارْحَمْهَا، وَإِنْ أَرْسَلْتَهَا فَاحْفَظْهَا بِمَا تَحْفَظُ بِهِ عِبَادَكَ الصَّالِحِينَ",
+        count: 1
+      }
     ],
 
     prayer: [
-      { text: "أَسْتَغْفِرُ اللَّهَ", count: 3 },
-      { text: "اللَّهُمَّ أَنْتَ السَّلَامُ وَمِنْكَ السَّلَامُ، تَبَارَكْتَ يَا ذَا الْجَلَالِ وَالْإِكْرَامِ", count: 1 },
-      { text: "سُبْحَانَ اللَّهِ", count: 33 },
-      { text: "الْحَمْدُ لِلَّهِ", count: 33 },
-      { text: "اللَّهُ أَكْبَرُ", count: 33 }
+      {
+        text: "أَسْتَغْفِرُ اللَّهَ",
+        count: 3
+      },
+      {
+        text: "اللَّهُمَّ أَنْتَ السَّلَامُ وَمِنْكَ السَّلَامُ، تَبَارَكْتَ يَا ذَا الْجَلَالِ وَالْإِكْرَامِ",
+        count: 1
+      },
+      {
+        text: "لَا إِلَٰهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ، اللَّهُمَّ لَا مَانِعَ لِمَا أَعْطَيْتَ، وَلَا مُعْطِيَ لِمَا مَنَعْتَ، وَلَا يَنْفَعُ ذَا الْجَدِّ مِنْكَ الْجَدُّ",
+        count: 1
+      },
+      {
+        text: "سُبْحَانَ اللَّهِ",
+        count: 33
+      },
+      {
+        text: "الْحَمْدُ لِلَّهِ",
+        count: 33
+      },
+      {
+        text: "اللَّهُ أَكْبَرُ",
+        count: 33
+      },
+      {
+        text: "لَا إِلَٰهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ",
+        count: 1
+      },
+      {
+        text: "آية الكرسي: اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ ۚ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ ۚ لَهُ مَا فِي السَّمَاوَاتِ وَمَا فِي الْأَرْضِ ۗ مَنْ ذَا الَّذِي يَشْفَعُ عِنْدَهُ إِلَّا بِإِذْنِهِ ۚ يَعْلَمُ مَا بَيْنَ أَيْدِيهِمْ وَمَا خَلْفَهُمْ ۖ وَلَا يُحِيطُونَ بِشَيْءٍ مِنْ عِلْمِهِ إِلَّا بِمَا شَاءَ ۚ وَسِعَ كُرْسِيُّهُ السَّمَاوَاتِ وَالْأَرْضَ ۖ وَلَا يَئُودُهُ حِفْظُهُمَا ۚ وَهُوَ الْعَلِيُّ الْعَظِيمُ",
+        count: 1
+      }
     ]
   };
 
@@ -49,100 +188,145 @@
   };
 
   let currentCategory = "morning";
-  let currentList = [];
-  let currentIndex = 0;
-  let currentCount = 0;
 
-  function renderAzkar() {
+  function renderAzkar(category) {
     const container = document.getElementById("azkar-content");
 
     if (!container) {
-      console.error("لم يتم العثور على azkar-content");
+      console.error("لم يتم العثور على العنصر azkar-content");
       return;
     }
 
-    if (!currentList.length) return;
+    const list = azkar[category];
 
-    const item = currentList[currentIndex];
-    container.innerHTML = "";
+    if (!list) return;
 
-    const card = document.createElement("div");
-    card.className = "content-card azkar-card";
+    currentCategory = category;
+    container.replaceChildren();
 
-    const heading = document.createElement("h3");
-    heading.textContent = titles[currentCategory];
+    const heading = document.createElement("h2");
+    heading.className = "azkar-section-title";
+    heading.textContent = titles[category];
+    container.appendChild(heading);
 
-    const progress = document.createElement("p");
-    progress.textContent =
-      "الذكر " + (currentIndex + 1) + " من " + currentList.length;
+    const summary = document.createElement("p");
+    summary.className = "azkar-summary";
+    summary.textContent = "ابدأ الذكر، واضغط على العداد بعد كل تسبيحة 🤍";
+    container.appendChild(summary);
 
-    const text = document.createElement("div");
-    text.className = "azkar-text";
-    text.textContent = item.text;
+    const progressText = document.createElement("p");
+    progressText.className = "azkar-progress";
+    container.appendChild(progressText);
 
-    const counter = document.createElement("h2");
-    counter.textContent = currentCount + " / " + item.count;
+    const progressBar = document.createElement("div");
+    progressBar.className = "azkar-progress-track";
 
-    const countButton = document.createElement("button");
-    countButton.className = "feature-card";
-    countButton.textContent = "📿 اضغط للتسبيح";
+    const progressFill = document.createElement("div");
+    progressFill.className = "azkar-progress-fill";
 
-    countButton.addEventListener("click", function () {
-      if (currentCount < item.count) {
-        currentCount++;
-      }
+    progressBar.appendChild(progressFill);
+    container.appendChild(progressBar);
 
-      counter.textContent = currentCount + " / " + item.count;
+    const cards = [];
 
-      if (currentCount >= item.count) {
-        countButton.textContent = "✓ اكتمل الذكر";
-        countButton.disabled = true;
-      }
+    function updateProgress() {
+      const completed = cards.filter(card => card.done).length;
+      const percentage = Math.round((completed / list.length) * 100);
+
+      progressText.textContent =
+        "اكتملت " + completed + " من " + list.length + " أذكار (" + percentage + "%)";
+
+      progressFill.style.width = percentage + "%";
+    }
+
+    list.forEach((item, index) => {
+      const card = document.createElement("div");
+      card.className = "content-card azkar-card";
+
+      const number = document.createElement("span");
+      number.className = "azkar-number";
+      number.textContent = "الذكر رقم " + (index + 1);
+
+      const text = document.createElement("div");
+      text.className = "azkar-text";
+      text.textContent = item.text;
+
+      const source = document.createElement("p");
+      source.className = "azkar-source";
+      source.textContent = item.source || "ذكر من أذكار السنة";
+
+      const counter = document.createElement("h3");
+      counter.className = "azkar-counter";
+      counter.textContent = "0 / " + item.count;
+
+      const countButton = document.createElement("button");
+      countButton.type = "button";
+      countButton.className = "feature-card azkar-count-button";
+      countButton.textContent = "📿 اضغط للتسبيح";
+
+      const resetButton = document.createElement("button");
+      resetButton.type = "button";
+      resetButton.className = "feature-card azkar-reset-button";
+      resetButton.textContent = "↻ إعادة العداد";
+
+      const state = {
+        count: 0,
+        done: false
+      };
+
+      countButton.addEventListener("click", function () {
+        if (state.count >= item.count) return;
+
+        state.count++;
+        counter.textContent = state.count + " / " + item.count;
+
+        if (state.count >= item.count) {
+          state.done = true;
+          countButton.textContent = "✓ اكتمل الذكر";
+          countButton.disabled = true;
+          card.classList.add("azkar-completed");
+        }
+
+        updateProgress();
+      });
+
+      resetButton.addEventListener("click", function () {
+        state.count = 0;
+        state.done = false;
+
+        counter.textContent = "0 / " + item.count;
+        countButton.textContent = "📿 اضغط للتسبيح";
+        countButton.disabled = false;
+        card.classList.remove("azkar-completed");
+
+        updateProgress();
+      });
+
+      card.append(
+        number,
+        text,
+        source,
+        counter,
+        countButton,
+        resetButton
+      );
+
+      container.appendChild(card);
+      cards.push(state);
     });
 
-    const nextButton = document.createElement("button");
-    nextButton.className = "feature-card";
-    nextButton.textContent = "الذكر التالي ←";
+    updateProgress();
 
-    nextButton.addEventListener("click", function () {
-      if (currentIndex < currentList.length - 1) {
-        currentIndex++;
-        currentCount = 0;
-        renderAzkar();
-      } else {
-        container.innerHTML =
-          "<div class='content-card'><h3>ما شاء الله 🤍</h3><p>أتممت أذكار هذا القسم.</p><button onclick='loadAzkar(\"" +
-          currentCategory +
-          "\")'>إعادة الأذكار</button></div>";
-      }
-    });
-
-    card.append(
-      heading,
-      progress,
-      text,
-      counter,
-      countButton,
-      nextButton
-    );
-
-    container.appendChild(card);
+    const finish = document.createElement("p");
+    finish.className = "azkar-finish";
+    finish.textContent = "🤍 تقبل الله منك صالح الأعمال";
+    container.appendChild(finish);
   }
 
   window.loadAzkar = function (category) {
-    if (!azkar[category]) {
-      console.error("قسم الأذكار غير موجود:", category);
-      return;
-    }
-
-    currentCategory = category;
-    currentList = azkar[category];
-    currentIndex = 0;
-    currentCount = 0;
-
-    renderAzkar();
+    renderAzkar(category);
   };
 
-  console.log("تم تحميل ملف الأذكار بنجاح 📿");
+  console.log("تم تحميل أذكار تطبيق يقين بنجاح 📿");
 
 })();
