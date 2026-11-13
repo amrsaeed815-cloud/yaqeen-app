@@ -72,3 +72,10 @@ container.innerHTML = "";
 const title = document.createElement("p");
 title.textContent = "جميع المواقيت بتوقيت القاهرة - مصر 🇪🇬";
 container.appendChild(title);
+"&method=5";
+const url =
+  "https://api.aladhan.com/v1/timingsByCity?city=" +
+  encodeURIComponent(city) +
+  "&country=" +
+  encodeURIComponent(country) +
+  "&method=5&timezonestring=Africa/Cairo";
