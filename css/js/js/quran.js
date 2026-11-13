@@ -4,153 +4,108 @@
 
   const surahList = document.getElementById("surah-list");
   const readerSelect = document.getElementById("quran-reader");
-  const player = document.getElementById("quran-player");
-  const surahName = document.getElementById("surah-name");
-  const versesContainer = document.getElementById("quran-verses");
-
-  let currentSurah = 1;
 
   const readers = {
     mishary: "ar.alafasy",
-    alafasy: "ar.alafasy",
-    abdulbasit: "ar.abdulbasitmurattal",
-    "ar.alafasy": "ar.alafasy",
-    "ar.abdulbasitmurattal": "ar.abdulbasitmurattal"
+    tablawi: "ar.tablawi",
+    abdulbasit: "ar.abdulbasit",
+    abdurrahman: "ar.abdurrahmaan",
   };
 
-  function getReader() {
-    if (!readerSelect) return "ar.alafasy";
+  let audio = new Audio();
+  let currentSurah = 0;
+  let surahs = [];
 
-    const value = (readerSelect.value || "").toLowerCase();
-    const text = (
-      readerSelect.options[readerSelect.selectedIndex]?.text || ""
-    ).toLowerCase();
+  audio.preload = "none";
 
-    if (readers[value]) return readers[value];
-
-    if (text.includes("مشاري") || text.includes("العفاسي")) {
-      return "ar.alafasy";
-    }
-
-    if (text.includes("عبد الباسط")) {
-      return "ar.abdulbasitmurattal";
-    }
-
-    return "ar.alafasy";
-  }
-
-  async function loadSurahList() {
+  async function loadSurahs() {
     if (!surahList) return;
 
-    surahList.innerHTML = "<option>جاري تحميل سور القرآن...</option>";
+    surahList.innerHTML = "<p>جاري تحميل سور القرآن الكريم...</p>";
 
     try {
-      const response = await fetch(
-        "https://api.alquran.cloud/v1/surah"
-      );
+      const response = await fetch("https://api.alquran.cloud/v1/surah");
 
-      if (!response.ok) throw new Error("تعذر تحميل السور");
+      if (!response.ok) throw new Error("Network error");
 
       const result = await response.json();
+
+      if (result.code !== 200) throw new Error("API error");
+
+      surahs = result.data;
 
       surahList.innerHTML = "";
 
-      result.data.forEach(function (surah) {
-        const option = document.createElement("option");
-        option.value = surah.number;
-        option.textContent =
-          surah.number + " - سورة " + surah.name;
-        surahList.appendChild(option);
+      surahs.forEach(function (surah) {
+        const card = document.createElement("div");
+        card.className = "surah-item";
+
+        const info = document.createElement("div");
+        info.innerHTML =
+          "<strong>" + surah.number + ". " +
+          surah.name + "</strong><br>";
+
+        const details = document.createElement("small");
+        details.textContent =
+          surah.revelationType === "Meccan"
+            ? "مكية"
+            : "مدنية";
+
+        info.appendChild(details);
+
+        const playButton = document.createElement("button");
+        playButton.type = "button";
+        playButton.textContent = "▶ استماع";
+
+        playButton.addEventListener("click", function () {
+          playSurah(surah.number);
+        });
+
+        card.appendChild(info);
+        card.appendChild(playButton);
+
+        surahList.appendChild(card);
       });
 
-      surahList.value = "1";
-      loadSurah(1);
-
     } catch (error) {
+      console.error("Quran loading error:", error);
       surahList.innerHTML =
-        '<option value="">تعذر تحميل القرآن، حاول مرة أخرى</option>';
-      console.error(error);
+        "<p>تعذر تحميل السور. تأكد من اتصال الإنترنت وحاول مرة أخرى.</p>";
     }
   }
 
-  async function loadSurah(number) {
-    currentSurah = Number(number);
+  function playSurah(surahNumber) {
+    const reader = readerSelect
+      ? readerSelect.value
+      : "mishary";
 
-    if (!versesContainer) return;
+    const edition = readers[reader] || readers.mishary;
 
-    versesContainer.innerHTML = "جاري تحميل الآيات...";
+    const url =
+      "https://cdn.islamic.network/quran/audio-surah/128/" +
+      edition + "/" + surahNumber + ".mp3";
 
-    try {
-      const response = await fetch(
-        "https://api.alquran.cloud/v1/surah/" +
-        currentSurah + "/quran-uthmani"
-      );
+    currentSurah = surahNumber;
 
-      if (!response.ok) throw new Error("تعذر تحميل السورة");
+    audio.src = url;
+    audio.load();
 
-      const result = await response.json();
-      const surah = result.data;
-
-      if (surahName) {
-        surahName.textContent = "سورة " + surah.name;
-      }
-
-      versesContainer.innerHTML = "";
-
-      surah.ayahs.forEach(function (ayah) {
-        const span = document.createElement("span");
-        span.className = "quran-ayah";
-        span.textContent =
-          ayah.text + " ۞ ";
-
-        versesContainer.appendChild(span);
-      });
-
-      loadAudio();
-
-    } catch (error) {
-      versesContainer.textContent =
-        "حدث خطأ أثناء تحميل السورة. تأكد من الاتصال بالإنترنت.";
-      console.error(error);
-    }
-  }
-
-  async function loadAudio() {
-    if (!player) return;
-
-    const edition = getReader();
-
-    try {
-      const response = await fetch(
-        "https://api.alquran.cloud/v1/surah/" +
-        currentSurah + "/" + edition
-      );
-
-      if (!response.ok) throw new Error("تعذر تحميل التلاوة");
-
-      const result = await response.json();
-
-      if (result.data && result.data.audio) {
-        player.src = result.data.audio;
-        player.load();
-      }
-
-    } catch (error) {
-      console.error("خطأ في تحميل التلاوة:", error);
-    }
-  }
-
-  if (surahList) {
-    surahList.addEventListener("change", function () {
-      if (this.value) loadSurah(this.value);
+    audio.play().catch(function (error) {
+      console.error("Audio error:", error);
+      alert("تعذر تشغيل السورة. حاول مرة أخرى.");
     });
   }
 
-  if (readerSelect) {
-    readerSelect.addEventListener("change", loadAudio);
-  }
+  audio.addEventListener("ended", function () {
+    if (currentSurah < 114) {
+      playSurah(currentSurah + 1);
+    }
+  });
 
-  document.addEventListener("DOMContentLoaded", loadSurahList);
+  audio.addEventListener("error", function () {
+    console.error("تعذر تحميل الملف الصوتي");
+  });
 
-  window.loadQuranSurah = loadSurah;
+  document.addEventListener("DOMContentLoaded", loadSurahs);
+
 })();
