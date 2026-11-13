@@ -5,7 +5,7 @@
   const azkar = {
     morning: [
       { text: "أَصْبَحْنَا وَأَصْبَحَ الْمُلْكُ لِلَّهِ، وَالْحَمْدُ لِلَّهِ، لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ", count: 1 },
-      { text: "آية الكرسي", count: 1 },
+      { text: "آية الكرسي: اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ، لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ...", count: 1 },
       { text: "قُلْ هُوَ اللَّهُ أَحَدٌ، اللَّهُ الصَّمَدُ، لَمْ يَلِدْ وَلَمْ يُولَدْ، وَلَمْ يَكُن لَّهُ كُفُوًا أَحَدٌ", count: 3 },
       { text: "قُلْ أَعُوذُ بِرَبِّ الْفَلَقِ", count: 3 },
       { text: "قُلْ أَعُوذُ بِرَبِّ النَّاسِ", count: 3 },
@@ -42,10 +42,10 @@
   };
 
   const titles = {
-    morning: "أذكار الصباح",
-    evening: "أذكار المساء",
-    sleep: "أذكار النوم",
-    prayer: "أذكار بعد الصلاة"
+    morning: "🌅 أذكار الصباح",
+    evening: "🌇 أذكار المساء",
+    sleep: "🌙 أذكار النوم",
+    prayer: "🕌 أذكار بعد الصلاة"
   };
 
   let currentCategory = "morning";
@@ -55,7 +55,13 @@
 
   function renderAzkar() {
     const container = document.getElementById("azkar-content");
-    if (!container || !currentList.length) return;
+
+    if (!container) {
+      console.error("لم يتم العثور على azkar-content");
+      return;
+    }
+
+    if (!currentList.length) return;
 
     const item = currentList[currentIndex];
     container.innerHTML = "";
@@ -67,7 +73,8 @@
     heading.textContent = titles[currentCategory];
 
     const progress = document.createElement("p");
-    progress.textContent = "الذكر " + (currentIndex + 1) + " من " + currentList.length;
+    progress.textContent =
+      "الذكر " + (currentIndex + 1) + " من " + currentList.length;
 
     const text = document.createElement("div");
     text.className = "azkar-text";
@@ -81,7 +88,10 @@
     countButton.textContent = "📿 اضغط للتسبيح";
 
     countButton.addEventListener("click", function () {
-      if (currentCount < item.count) currentCount++;
+      if (currentCount < item.count) {
+        currentCount++;
+      }
+
       counter.textContent = currentCount + " / " + item.count;
 
       if (currentCount >= item.count) {
@@ -100,23 +110,39 @@
         currentCount = 0;
         renderAzkar();
       } else {
-        container.innerHTML = "<div class='content-card'><h3>ما شاء الله 🤍</h3><p>أتممت أذكار هذا القسم.</p></div>";
+        container.innerHTML =
+          "<div class='content-card'><h3>ما شاء الله 🤍</h3><p>أتممت أذكار هذا القسم.</p><button onclick='loadAzkar(\"" +
+          currentCategory +
+          "\")'>إعادة الأذكار</button></div>";
       }
     });
 
-    card.append(heading, progress, text, counter, countButton, nextButton);
+    card.append(
+      heading,
+      progress,
+      text,
+      counter,
+      countButton,
+      nextButton
+    );
+
     container.appendChild(card);
   }
 
   window.loadAzkar = function (category) {
-    if (!azkar[category]) return;
+    if (!azkar[category]) {
+      console.error("قسم الأذكار غير موجود:", category);
+      return;
+    }
 
     currentCategory = category;
     currentList = azkar[category];
     currentIndex = 0;
     currentCount = 0;
+
     renderAzkar();
   };
 
-})();
+  console.log("تم تحميل ملف الأذكار بنجاح 📿");
 
+})();
