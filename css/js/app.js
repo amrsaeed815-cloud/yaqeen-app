@@ -19,21 +19,23 @@
 
     if (selectedPage) {
       selectedPage.classList.add("active");
-      window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
-    const buttons = Array.from(navItems);
-    const selectedButton = buttons.find(function (button) {
-      return button.getAttribute("onclick") &&
-        button.getAttribute("onclick").includes("'" + pageId + "'");
+    navItems.forEach(function (item) {
+      const action = item.getAttribute("onclick");
+
+      if (action && action.includes("'" + pageId + "'")) {
+        item.classList.add("active");
+      }
     });
 
-    if (selectedButton) {
-      selectedButton.classList.add("active");
-    }
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
   };
 
-  // التاريخ الميلادي
+  // عرض التاريخ الميلادي والهجري
   function updateDates() {
     const now = new Date();
 
@@ -51,32 +53,45 @@
 
     if (hijri) {
       try {
-        hijri.textContent = now.toLocaleDateString("ar-EG-u-ca-islamic", {
-          year: "numeric",
+        hijri.textContent = new Intl.DateTimeFormat("ar-SA-u-ca-islamic", {
+          day: "numeric",
           month: "long",
-          day: "numeric"
-        });
+          year: "numeric"
+        }).format(now);
       } catch (error) {
-        hijri.textContent = "أهلاً بك في يقين";
+        hijri.textContent = "نسأل الله أن يجعل يومك مباركاً";
       }
     }
   }
 
-  // تشغيل الساعة
-  function updateClock() {
-    const countdown = document.getElementById("countdown");
+  // زر التنبيهات
+  function setupNotifications() {
+    const button = document.querySelector(".notification-btn");
 
-    if (!countdown) return;
+    if (!button) return;
 
-    countdown.textContent = new Date().toLocaleTimeString("ar-EG");
+    button.addEventListener("click", async function () {
+      if (!("Notification" in window)) {
+        alert("المتصفح لا يدعم التنبيهات");
+        return;
+      }
+
+      const permission = await Notification.requestPermission();
+
+      if (permission === "granted") {
+        new Notification("يَقِين ☪", {
+          body: "أهلاً بك في تطبيق يقين، رفيقك إلى الله"
+        });
+      } else {
+        alert("لم يتم السماح بالتنبيهات");
+      }
+    });
   }
 
-  // تهيئة التطبيق
+  // تشغيل التطبيق
   document.addEventListener("DOMContentLoaded", function () {
     updateDates();
-    updateClock();
-
-    setInterval(updateClock, 1000);
+    setupNotifications();
   });
 
 })();
