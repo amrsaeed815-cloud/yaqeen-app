@@ -5,35 +5,62 @@
   const surahList = document.getElementById("surah-list");
   const readerSelect = document.getElementById("quran-reader");
 
-const readers = {
-  mishary: "ar.alafasy",
-  husary: "ar.husary",
-  abdulbasit: "ar.abdulbasit",
-  sudais: "ar.sudais"
-};
+  // القراء وجودة الصوت الصحيحة
+  const readers = {
+    mishary: {
+      edition: "ar.alafasy",
+      bitrate: 128
+    },
+    husary: {
+      edition: "ar.husary",
+      bitrate: 128
+    },
+    abdulbasit: {
+      edition: "ar.abdulbasit",
+      bitrate: 192
+    },
+    sudais: {
+      edition: "ar.sudais",
+      bitrate: 192
+    }
+  };
 
-  let audio = new Audio();
+  const audio = new Audio();
+  audio.preload = "none";
+
   let currentSurah = 0;
   let surahs = [];
+  let audioErrorShown = false;
 
-  audio.preload = "none";
+  function showAudioError(message) {
+    if (audioErrorShown) return;
+
+    audioErrorShown = true;
+    alert(message || "تعذر تشغيل السورة. تأكد من الإنترنت وحاول مرة أخرى.");
+  }
 
   async function loadSurahs() {
     if (!surahList) return;
 
-    surahList.innerHTML = "<p>جاري تحميل سور القرآن الكريم...</p>";
+    surahList.innerHTML =
+      "<p>جاري تحميل سور القرآن الكريم...</p>";
 
     try {
-      const response = await fetch("https://api.alquran.cloud/v1/surah");
+      const response = await fetch(
+        "https://api.alquran.cloud/v1/surah"
+      );
 
-      if (!response.ok) throw new Error("Network error");
+      if (!response.ok) {
+        throw new Error("Network error");
+      }
 
       const result = await response.json();
 
-      if (result.code !== 200) throw new Error("API error");
+      if (result.code !== 200) {
+        throw new Error("API error");
+      }
 
       surahs = result.data;
-
       surahList.innerHTML = "";
 
       surahs.forEach(function (surah) {
@@ -41,9 +68,10 @@ const readers = {
         card.className = "surah-item";
 
         const info = document.createElement("div");
-        info.innerHTML =
-          "<strong>" + surah.number + ". " +
-          surah.name + "</strong><br>";
+
+        const name = document.createElement("strong");
+        name.textContent =
+          surah.number + ". " + surah.name;
 
         const details = document.createElement("small");
         details.textContent =
@@ -51,6 +79,8 @@ const readers = {
             ? "مكية"
             : "مدنية";
 
+        info.appendChild(name);
+        info.appendChild(document.createElement("br"));
         info.appendChild(details);
 
         const playButton = document.createElement("button");
@@ -69,31 +99,49 @@ const readers = {
 
     } catch (error) {
       console.error("Quran loading error:", error);
+
       surahList.innerHTML =
         "<p>تعذر تحميل السور. تأكد من اتصال الإنترنت وحاول مرة أخرى.</p>";
     }
   }
 
-  function playSurah(surahNumber) {
-    const reader = readerSelect
+  async function playSurah(surahNumber) {
+    const readerKey = readerSelect
       ? readerSelect.value
       : "mishary";
 
-    const edition = readers[reader] || readers.mishary;
+    const reader = readers[readerKey] || readers.mishary;
 
     const url =
-      "https://cdn.islamic.network/quran/audio-surah/128/" +
-      edition + "/" + surahNumber + ".mp3";
+      "https://cdn.islamic.network/quran/audio-surah/" +
+      reader.bitrate + "/" +
+      reader.edition + "/" +
+      surahNumber + ".mp3";
 
     currentSurah = surahNumber;
+    audioErrorShown = false;
 
+    audio.pause();
     audio.src = url;
     audio.load();
 
-    audio.play().catch(function (error) {
-      console.error("Audio error:", error);
-      alert("تعذر تشغيل السورة. حاول مرة أخرى.");
-    });
+    try {
+      await audio.play();
+
+      console.log(
+        "Playing:",
+        reader.edition,
+        "Surah:",
+        surahNumber
+      );
+
+    } catch (error) {
+      console.error("Audio playback error:", error);
+
+      showAudioError(
+        "تعذر تشغيل السورة. تأكد من اتصال الإنترنت أو جرّب قارئاً آخر."
+      );
+    }
   }
 
   audio.addEventListener("ended", function () {
@@ -103,9 +151,17 @@ const readers = {
   });
 
   audio.addEventListener("error", function () {
-    console.error("تعذر تحميل الملف الصوتي");
+    console.error(
+      "Audio file could not be loaded:",
+      audio.src
+    );
+
+    showAudioError(
+      "ملف صوت السورة غير متاح حالياً. حاول مرة أخرى."
+    );
   });
 
-  document.addEventListener("DOMContentLoaded", loadSurahs);
+  // تحميل السور
+  loadSurahs();
 
 })();
