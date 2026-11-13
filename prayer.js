@@ -11,71 +11,156 @@
     Isha: "العشاء"
   };
 
-  async function loadPrayerTimes(city = "Cairo", country = "Egypt") {
-    const container = document.getElementById("prayer-times");
+  const elements = {
+    Fajr: "fajr-time",
+    Dhuhr: "dhuhr-time",
+    Asr: "asr-time",
+    Maghrib: "maghrib-time",
+    Isha: "isha-time"
+  };
 
-    if (!container) return;
+  let prayerTimes = {};
+  let countdownTimer = null;
+  let currentDate = "";
 
-    container.innerHTML = "جاري تحميل مواقيت الصلاة...";
+  function formatTime(time) {
+    if (!time) return "--:--";
+
+    const cleanTime = time.split(" ")[0];
+    const parts = cleanTime.split(":");
+
+    return parts[0] + ":" + parts[1];
+  }
+
+  function getToday() {
+    const now = new Date();
+    return [
+      now.getDate(),
+      now.getMonth() + 1,
+      now.getFullYear()
+    ].join("-");
+  }
+
+  async function loadPrayerTimes() {
+    const city = "Cairo";
+    const country = "Egypt";
 
     try {
-      const url =
-        "https://api.aladhan.com/v1/timingsByCity?city=" +
-        encodeURIComponent(city) +
-        "&country=" +
-        encodeURIComponent(country) +
-        "&method=5";
+      const response = await fetch(
+        "https://api.aladhan.com/v1/timingsByCity/" +
+        encodeURIComponent(getToday()) +
+        "?city=" + city +
+        "&country=" + country +
+        "&method=5"
+      );
 
-      const response = await fetch(url);
-
-      if (!response.ok) {
-        throw new Error("تعذر تحميل المواقيت");
-      }
+      if (!response.ok) throw new Error("Network error");
 
       const result = await response.json();
-      const timings = result.data.timings;
 
-      container.innerHTML = "";
+      if (result.code !== 200) {
+        throw new Error("Prayer times unavailable");
+      }
 
-      Object.keys(prayerNames).forEach(function (key) {
-        const item = document.createElement("div");
-        item.className = "prayer-card";
+      prayerTimes = result.data.timings;
 
-        const name = document.createElement("span");
-        name.textContent = prayerNames[key];
+      Object.keys(elements).forEach(function (prayer) {
+        const element = document.getElementById(elements[prayer]);
 
-        const time = document.createElement("strong");
-        time.textContent = timings[key];
-
-        item.appendChild(name);
-        item.appendChild(time);
-
-        container.appendChild(item);
+        if (element) {
+          element.textContent = formatTime(prayerTimes[prayer]);
+        }
       });
 
+      const cityName = document.getElementById("city-name");
+      const prayerCity = document.getElementById("prayer-city");
+
+      if (cityName) cityName.textContent = "القاهرة - مصر";
+      if (prayerCity) prayerCity.textContent = "القاهرة - مصر";
+
+      currentDate = getToday();
+      updateNextPrayer();
+
+      if (countdownTimer) clearInterval(countdownTimer);
+
+      countdownTimer = setInterval(function () {
+        if (currentDate !== getToday()) {
+          loadPrayerTimes();
+        } else {
+          updateNextPrayer();
+        }
+      }, 1000);
+
     } catch (error) {
-      container.textContent =
-        "تعذر تحميل مواقيت الصلاة. حاول مرة أخرى.";
-      console.error(error);
+      console.error("Prayer times error:", error);
+
+      const cityName = document.getElementById("city-name");
+      if (cityName) cityName.textContent = "تعذر تحميل المواقيت";
     }
   }
 
-  window.loadPrayerTimes = loadPrayerTimes;
+  function updateNextPrayer() {
+    if (!prayerTimes.Fajr) return;
 
-  document.addEventListener("DOMContentLoaded", function () {
-    loadPrayerTimes();
-  });
+    const now = new Date();
+    const prayers = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
+
+    let nextPrayer = null;
+    let nextTime = null;
+
+    for (const prayer of prayers) {
+      const parts = formatTime(prayerTimes[prayer]).split(":");
+
+      const prayerDate = new Date();
+      prayerDate.setHours(
+        Number(parts[0]),
+        Number(parts[1]),
+        0,
+        0
+      );
+
+      if (prayerDate > now) {
+        nextPrayer = prayer;
+        nextTime = prayerDate;
+        break;
+      }
+    }
+
+    if (!nextPrayer) {
+      nextPrayer = "Fajr";
+      nextTime = new Date();
+      nextTime.setDate(nextTime.getDate() + 1);
+
+      const parts = formatTime(prayerTimes.Fajr).split(":");
+      nextTime.setHours(
+        Number(parts[0]),
+        Number(parts[1]),
+        0,
+        0
+      );
+    }
+
+    const nameElement = document.getElementById("next-prayer-name");
+    const countdownElement = document.getElementById("countdown");
+
+    if (nameElement) {
+      nameElement.textContent = prayerNames[nextPrayer];
+    }
+
+    if (countdownElement) {
+      const difference = Math.max(0, nextTime - now);
+
+      const hours = Math.floor(difference / 3600000);
+      const minutes = Math.floor((difference % 3600000) / 60000);
+      const seconds = Math.floor((difference % 60000) / 1000);
+
+      countdownElement.textContent =
+        String(hours).padStart(2, "0") + ":" +
+        String(minutes).padStart(2, "0") + ":" +
+        String(seconds).padStart(2, "0");
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", loadPrayerTimes);
 
 })();
-container.innerHTML = "";
-container.innerHTML = "";
-const title = document.createElement("p");
-title.textContent = "جميع المواقيت بتوقيت القاهرة - مصر 🇪🇬";
-container.appendChild(title);
-"&method=5";
-const url =
-  "https://api.aladhan.com/v1/timingsByCity?city=" +
-  encodeURIComponent(city) +
-  "&country=" +
-  encodeURIComponent(country) +
-  "&method=5&timezonestring=Africa/Cairo";
