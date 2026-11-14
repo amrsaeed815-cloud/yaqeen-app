@@ -2,15 +2,32 @@
 (function () {
   "use strict";
 
-  const STORAGE_KEY = "yaqeen_timezone";
+  const STORAGE_KEY = "yaqeen_timezone_v2";
 
+  // تحديد المنطقة الزمنية الصحيحة من الجهاز
   const detectedZone =
     Intl.DateTimeFormat().resolvedOptions().timeZone ||
     "Africa/Cairo";
 
-  let selectedZone =
-    localStorage.getItem(STORAGE_KEY) || detectedZone;
+  function isValidZone(zone) {
+    try {
+      new Intl.DateTimeFormat("en", {
+        timeZone: zone
+      });
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
 
+  // استخدام المنطقة الزمنية المحفوظة أو المكتشفة
+  let selectedZone = localStorage.getItem(STORAGE_KEY);
+
+  if (!selectedZone || !isValidZone(selectedZone)) {
+    selectedZone = detectedZone;
+  }
+
+  // قائمة المناطق الزمنية
   function getZones() {
     if (typeof Intl.supportedValuesOf === "function") {
       return Intl.supportedValuesOf("timeZone");
@@ -27,14 +44,7 @@
       "Asia/Amman",
       "Asia/Jerusalem",
       "Asia/Istanbul",
-      "Asia/Karachi",
-      "Asia/Kolkata",
-      "Asia/Dhaka",
-      "Asia/Tokyo",
-      "Asia/Shanghai",
-      "Asia/Singapore",
-      "Asia/Bangkok",
-      "Australia/Sydney",
+      "Europe/Amsterdam",
       "Europe/London",
       "Europe/Paris",
       "Europe/Berlin",
@@ -45,23 +55,27 @@
       "America/Denver",
       "America/Los_Angeles",
       "America/Toronto",
-      "America/Sao_Paulo",
-      "Pacific/Auckland"
+      "Asia/Tokyo",
+      "Asia/Shanghai",
+      "Asia/Singapore",
+      "Australia/Sydney"
     ];
   }
 
+  // عرض الساعة بنظام 24 ساعة
   function getLocalTime() {
-    return new Intl.DateTimeFormat("ar", {
+    return new Intl.DateTimeFormat("ar-EG", {
       timeZone: selectedZone,
       hour: "2-digit",
       minute: "2-digit",
       second: "2-digit",
-      hour12: true
+      hourCycle: "h23"
     }).format(new Date());
   }
 
+  // عرض التاريخ
   function getLocalDate() {
-    return new Intl.DateTimeFormat("ar", {
+    return new Intl.DateTimeFormat("ar-EG", {
       timeZone: selectedZone,
       weekday: "long",
       year: "numeric",
@@ -70,20 +84,26 @@
     }).format(new Date());
   }
 
+  // إنشاء واجهة التوقيت
   function createInterface() {
-    if (document.getElementById("yaqeen-timezone")) return;
+    if (document.getElementById("yaqeen-timezone")) {
+      return;
+    }
 
     const section = document.createElement("section");
+
     section.id = "yaqeen-timezone";
     section.dir = "rtl";
 
     section.innerHTML = `
       <div class="timezone-card">
+
         <h2>🌍 التوقيت العالمي</h2>
 
         <p>الوقت المحلي</p>
 
         <div id="yaqeen-clock"></div>
+
         <div id="yaqeen-date"></div>
 
         <label for="yaqeen-zone">
@@ -96,8 +116,9 @@
 
         <small>
           يتم تطبيق التوقيت الصيفي والشتوي تلقائياً
-          حسب قواعد المنطقة الزمنية المختارة.
+          حسب المنطقة الزمنية المختارة.
         </small>
+
       </div>
     `;
 
@@ -107,52 +128,85 @@
 
     const select = section.querySelector("#yaqeen-zone");
 
-    getZones().forEach(function (zone) {
+    const zones = getZones();
+
+    zones.forEach(function (zone) {
       const option = document.createElement("option");
+
       option.value = zone;
       option.textContent = zone.replace(/_/g, " ");
+
       select.appendChild(option);
     });
 
-    if (!getZones().includes(selectedZone)) {
-      selectedZone = detectedZone;
+    // إضافة المنطقة الحالية لو مش موجودة في القائمة
+    if (!zones.includes(selectedZone)) {
+      const option = document.createElement("option");
+
+      option.value = selectedZone;
+      option.textContent = selectedZone;
+
+      select.appendChild(option);
     }
 
     select.value = selectedZone;
 
+    // تغيير المنطقة الزمنية
     select.addEventListener("change", function () {
+      if (!isValidZone(this.value)) {
+        return;
+      }
+
       selectedZone = this.value;
+
       localStorage.setItem(STORAGE_KEY, selectedZone);
+
       updateClock();
     });
 
     updateClock();
+
+    // تحديث الساعة كل ثانية
     setInterval(updateClock, 1000);
   }
 
+  // تحديث الساعة والتاريخ
   function updateClock() {
     const clock = document.getElementById("yaqeen-clock");
     const date = document.getElementById("yaqeen-date");
     const zone = document.getElementById("yaqeen-zone-name");
 
-    if (clock) clock.textContent = getLocalTime();
-    if (date) date.textContent = getLocalDate();
+    if (clock) {
+      clock.textContent = getLocalTime();
+    }
+
+    if (date) {
+      date.textContent = getLocalDate();
+    }
 
     if (zone) {
-      zone.textContent = "المنطقة الزمنية: " + selectedZone;
+      zone.textContent =
+        "المنطقة الزمنية: " + selectedZone;
     }
   }
 
+  // إتاحة بيانات التوقيت لباقي ملفات التطبيق
   window.YaqeenTime = {
     getTimezone: function () {
       return selectedZone;
     },
+
     getTime: getLocalTime,
+
     getDate: getLocalDate
   };
 
+  // تشغيل التطبيق
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", createInterface);
+    document.addEventListener(
+      "DOMContentLoaded",
+      createInterface
+    );
   } else {
     createInterface();
   }
