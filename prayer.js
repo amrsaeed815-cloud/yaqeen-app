@@ -1,4 +1,4 @@
-```javascript
+
 (function () {
   "use strict";
 
@@ -6,6 +6,9 @@
   const CITY = "Cairo";
   const COUNTRY = "Egypt";
   const METHOD = 5;
+
+  const CACHE_KEY = "yaqeen_prayer_times";
+  const RETRY_INTERVAL = 60000;
 
   const prayerNames = {
     Fajr: "الفجر",
@@ -35,13 +38,10 @@
   });
 
   let prayerTimes = {};
-  let countdownTimer = null;
   let currentDate = "";
   let loading = false;
   let lastAttempt = 0;
-
-  const RETRY_INTERVAL = 60000;
-  const CACHE_KEY = "yaqeen_prayer_times";
+  let countdownTimer = null;
 
   function getCairoParts(date) {
     const result = {};
@@ -84,13 +84,34 @@
 
     return (
       String(Number(match[1])).padStart(2, "0") +
-      ":" + match[2]
+      ":" +
+      match[2]
     );
+  }
+
+  function isValidTimings(timings) {
+    return Object.keys(elements).every(function (prayer) {
+      const time = timings && timings[prayer];
+
+      if (typeof time !== "string") return false;
+
+      const match = time.match(/^(\d{1,2}):(\d{2})/);
+
+      if (!match) return false;
+
+      return Number(match[1]) <= 23 &&
+        Number(match[2]) <= 59;
+    });
   }
 
   function cairoTimeToDate(year, month, day, hour, minute) {
     const target = Date.UTC(
-      year, month - 1, day, hour, minute, 0
+      year,
+      month - 1,
+      day,
+      hour,
+      minute,
+      0
     );
 
     let guess = target;
@@ -117,7 +138,11 @@
     const p = getCairoParts(new Date());
 
     const date = new Date(
-      Date.UTC(p.year, p.month - 1, p.day + dayOffset)
+      Date.UTC(
+        p.year,
+        p.month - 1,
+        p.day + dayOffset
+      )
     );
 
     const parts = formatTime(time).split(":");
@@ -151,24 +176,17 @@
     updateCityName("القاهرة - مصر");
   }
 
-  function isValidTimings(timings) {
-    return Object.keys(elements).every(function (prayer) {
-      return (
-        timings &&
-        typeof timings[prayer] === "string" &&
-        /^\d{1,2}:\d{2}/.test(timings[prayer])
-      );
-    });
-  }
-
-  function saveCache(timings, date) {
+  function saveCache() {
     try {
-      localStorage.setItem(CACHE_KEY, JSON.stringify({
-        date: date,
-        timings: timings
-      }));
+      localStorage.setItem(
+        CACHE_KEY,
+        JSON.stringify({
+          date: currentDate,
+          timings: prayerTimes
+        })
+      );
     } catch (error) {
-      console.warn("Could not save prayer cache:", error);
+      console.warn("Prayer cache save error:", error);
     }
   }
 
@@ -189,11 +207,10 @@
         updatePrayerCards();
         updateNextPrayer();
 
-        console.log("Prayer times loaded from cache.");
         return true;
       }
     } catch (error) {
-      console.warn("Prayer cache unavailable:", error);
+      console.warn("Prayer cache error:", error);
     }
 
     return false;
@@ -205,32 +222,23 @@
     loading = true;
     lastAttempt = Date.now();
 
-    try {
-      const date = getApiDate();
+    const controller = new AbortController();
+    const timeout = setTimeout(function () {
+      controller.abort();
+    }, 15000);
 
+    try {
       const url =
         "https://api.aladhan.com/v1/timingsByCity/" +
-        date +
+        getApiDate() +
         "?city=" + encodeURIComponent(CITY) +
         "&country=" + encodeURIComponent(COUNTRY) +
         "&method=" + METHOD;
 
-      const controller = new AbortController();
-
-      const timeout = setTimeout(function () {
-        controller.abort();
-      }, 15000);
-
-      let response;
-
-      try {
-        response = await fetch(url, {
-          cache: "no-store",
-          signal: controller.signal
-        });
-      } finally {
-        clearTimeout(timeout);
-      }
+      const response = await fetch(url, {
+        cache: "no-store",
+        signal: controller.signal
+      });
 
       if (!response.ok) {
         throw new Error("HTTP error: " + response.status);
@@ -241,47 +249,44 @@
       if (
         result.code !== 200 ||
         !result.data ||
-        !result.data.timings
+        !isValidTimings(result.data.timings)
       ) {
-        throw new Error("Prayer times unavailable");
+        throw new Error("Invalid prayer times response");
       }
 
-      const timings = result.data.timings;
-
-      if (!isValidTimings(timings)) {
-        throw new Error("Invalid prayer times received");
-      }
-
-      prayerTimes = timings;
+      prayerTimes = result.data.timings;
       currentDate = getToday();
 
-      saveCache(timings, currentDate);
+      saveCache();
 
       updatePrayerCards();
       updateNextPrayer();
 
-      console.log("Prayer times loaded successfully.");
+      console.log("تم تحميل مواقيت الصلاة بنجاح.");
 
     } catch (error) {
       console.error("Prayer times error:", error);
 
-      if (!prayerTimes.Fajr || currentDate !== getToday()) {
-        const restored = loadCache();
+      if (
+        !prayerTimes.Fajr ||
+        currentDate !== getToday()
+      ) {
+        prayerTimes = {};
+        loadCache();
+      }
 
-        if (!restored) {
-          updateCityName("تعذر تحميل المواقيت");
-        }
+      if (!prayerTimes.Fajr) {
+        updateCityName("تعذر تحميل المواقيت");
       }
 
     } finally {
+      clearTimeout(timeout);
       loading = false;
     }
-
-    startCountdown();
   }
 
   function updateNextPrayer() {
-    if (!prayerTimes.Fajr) return;
+    if (!isValidTimings(prayerTimes)) return;
 
     const now = new Date();
 
@@ -298,7 +303,8 @@
 
     for (const prayer of prayers) {
       const prayerDate = getPrayerDate(
-        prayerTimes[prayer], 0
+        prayerTimes[prayer],
+        0
       );
 
       if (prayerDate > now) {
@@ -310,7 +316,10 @@
 
     if (!nextPrayer) {
       nextPrayer = "Fajr";
-      nextTime = getPrayerDate(prayerTimes.Fajr, 1);
+      nextTime = getPrayerDate(
+        prayerTimes.Fajr,
+        1
+      );
     }
 
     const nameElement =
@@ -325,13 +334,18 @@
 
     if (countdownElement) {
       const difference = Math.max(
-        0, nextTime.getTime() - now.getTime()
+        0,
+        nextTime.getTime() - now.getTime()
       );
 
-      const hours = Math.floor(difference / 3600000);
+      const hours = Math.floor(
+        difference / 3600000
+      );
+
       const minutes = Math.floor(
         (difference % 3600000) / 60000
       );
+
       const seconds = Math.floor(
         (difference % 60000) / 1000
       );
@@ -347,7 +361,7 @@
     if (countdownTimer) return;
 
     countdownTimer = setInterval(function () {
-      if (currentDate !== getToday()) {
+      if (currentDate && currentDate !== getToday()) {
         prayerTimes = {};
         currentDate = "";
         loadPrayerTimes();
@@ -378,4 +392,3 @@
   }
 
 })();
-```
