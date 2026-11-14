@@ -1,10 +1,11 @@
-
+```javascript
 (function () {
   "use strict";
 
   const TIME_ZONE = "Africa/Cairo";
   const CITY = "Cairo";
   const COUNTRY = "Egypt";
+  const METHOD = 5;
 
   const prayerNames = {
     Fajr: "الفجر",
@@ -38,6 +39,9 @@
   let currentDate = "";
   let loading = false;
   let lastAttempt = 0;
+
+  const RETRY_INTERVAL = 60000;
+  const CACHE_KEY = "yaqeen_prayer_times";
 
   function getCairoParts(date) {
     const result = {};
@@ -147,6 +151,54 @@
     updateCityName("القاهرة - مصر");
   }
 
+  function isValidTimings(timings) {
+    return Object.keys(elements).every(function (prayer) {
+      return (
+        timings &&
+        typeof timings[prayer] === "string" &&
+        /^\d{1,2}:\d{2}/.test(timings[prayer])
+      );
+    });
+  }
+
+  function saveCache(timings, date) {
+    try {
+      localStorage.setItem(CACHE_KEY, JSON.stringify({
+        date: date,
+        timings: timings
+      }));
+    } catch (error) {
+      console.warn("Could not save prayer cache:", error);
+    }
+  }
+
+  function loadCache() {
+    try {
+      const cached = JSON.parse(
+        localStorage.getItem(CACHE_KEY)
+      );
+
+      if (
+        cached &&
+        cached.date === getToday() &&
+        isValidTimings(cached.timings)
+      ) {
+        prayerTimes = cached.timings;
+        currentDate = cached.date;
+
+        updatePrayerCards();
+        updateNextPrayer();
+
+        console.log("Prayer times loaded from cache.");
+        return true;
+      }
+    } catch (error) {
+      console.warn("Prayer cache unavailable:", error);
+    }
+
+    return false;
+  }
+
   async function loadPrayerTimes() {
     if (loading) return;
 
@@ -161,14 +213,27 @@
         date +
         "?city=" + encodeURIComponent(CITY) +
         "&country=" + encodeURIComponent(COUNTRY) +
-        "&method=5";
+        "&method=" + METHOD;
 
-      const response = await fetch(url, {
-        cache: "no-store"
-      });
+      const controller = new AbortController();
+
+      const timeout = setTimeout(function () {
+        controller.abort();
+      }, 15000);
+
+      let response;
+
+      try {
+        response = await fetch(url, {
+          cache: "no-store",
+          signal: controller.signal
+        });
+      } finally {
+        clearTimeout(timeout);
+      }
 
       if (!response.ok) {
-        throw new Error("Network error: " + response.status);
+        throw new Error("HTTP error: " + response.status);
       }
 
       const result = await response.json();
@@ -183,14 +248,14 @@
 
       const timings = result.data.timings;
 
-      for (const prayer of Object.keys(elements)) {
-        if (!timings[prayer]) {
-          throw new Error("Missing prayer time: " + prayer);
-        }
+      if (!isValidTimings(timings)) {
+        throw new Error("Invalid prayer times received");
       }
 
       prayerTimes = timings;
       currentDate = getToday();
+
+      saveCache(timings, currentDate);
 
       updatePrayerCards();
       updateNextPrayer();
@@ -200,27 +265,19 @@
     } catch (error) {
       console.error("Prayer times error:", error);
 
-      updateCityName("تعذر تحميل المواقيت");
+      if (!prayerTimes.Fajr || currentDate !== getToday()) {
+        const restored = loadCache();
+
+        if (!restored) {
+          updateCityName("تعذر تحميل المواقيت");
+        }
+      }
 
     } finally {
       loading = false;
     }
 
-    if (!countdownTimer) {
-      countdownTimer = setInterval(function () {
-        if (
-          currentDate !== getToday() ||
-          (
-            Object.keys(prayerTimes).length === 0 &&
-            Date.now() - lastAttempt >= 60000
-          )
-        ) {
-          loadPrayerTimes();
-        } else {
-          updateNextPrayer();
-        }
-      }, 1000);
-    }
+    startCountdown();
   }
 
   function updateNextPrayer() {
@@ -286,7 +343,31 @@
     }
   }
 
+  function startCountdown() {
+    if (countdownTimer) return;
+
+    countdownTimer = setInterval(function () {
+      if (currentDate !== getToday()) {
+        prayerTimes = {};
+        currentDate = "";
+        loadPrayerTimes();
+        return;
+      }
+
+      updateNextPrayer();
+
+      if (
+        !loading &&
+        Date.now() - lastAttempt >= RETRY_INTERVAL
+      ) {
+        loadPrayerTimes();
+      }
+    }, 1000);
+  }
+
   function init() {
+    loadCache();
+    startCountdown();
     loadPrayerTimes();
   }
 
@@ -297,3 +378,4 @@
   }
 
 })();
+```
