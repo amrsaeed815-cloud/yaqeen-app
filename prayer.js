@@ -22,7 +22,7 @@
     Isha: "isha-time"
   };
 
-  const cairoFormatter = new Intl.DateTimeFormat("en-GB", {
+  const formatter = new Intl.DateTimeFormat("en-GB", {
     timeZone: TIME_ZONE,
     year: "numeric",
     month: "2-digit",
@@ -37,12 +37,12 @@
   let countdownTimer = null;
   let currentDate = "";
   let loading = false;
+  let lastAttempt = 0;
 
   function getCairoParts(date) {
-    const parts = cairoFormatter.formatToParts(date);
     const result = {};
 
-    parts.forEach(function (part) {
+    formatter.formatToParts(date).forEach(function (part) {
       if (part.type !== "literal") {
         result[part.type] = Number(part.value);
       }
@@ -80,19 +80,13 @@
 
     return (
       String(Number(match[1])).padStart(2, "0") +
-      ":" +
-      match[2]
+      ":" + match[2]
     );
   }
 
   function cairoTimeToDate(year, month, day, hour, minute) {
     const target = Date.UTC(
-      year,
-      month - 1,
-      day,
-      hour,
-      minute,
-      0
+      year, month - 1, day, hour, minute, 0
     );
 
     let guess = target;
@@ -118,24 +112,27 @@
   function getPrayerDate(time, dayOffset) {
     const p = getCairoParts(new Date());
 
-    const calendarDate = new Date(
+    const date = new Date(
       Date.UTC(p.year, p.month - 1, p.day + dayOffset)
     );
 
-    const year = calendarDate.getUTCFullYear();
-    const month = calendarDate.getUTCMonth() + 1;
-    const day = calendarDate.getUTCDate();
-
-    const formatted = formatTime(time);
-    const parts = formatted.split(":");
+    const parts = formatTime(time).split(":");
 
     return cairoTimeToDate(
-      year,
-      month,
-      day,
+      date.getUTCFullYear(),
+      date.getUTCMonth() + 1,
+      date.getUTCDate(),
       Number(parts[0]),
       Number(parts[1])
     );
+  }
+
+  function updateCityName(name) {
+    const cityName = document.getElementById("city-name");
+    const prayerCity = document.getElementById("prayer-city");
+
+    if (cityName) cityName.textContent = name;
+    if (prayerCity) prayerCity.textContent = name;
   }
 
   function updatePrayerCards() {
@@ -147,17 +144,14 @@
       }
     });
 
-    const cityName = document.getElementById("city-name");
-    const prayerCity = document.getElementById("prayer-city");
-
-    if (cityName) cityName.textContent = "القاهرة - مصر";
-    if (prayerCity) prayerCity.textContent = "القاهرة - مصر";
+    updateCityName("القاهرة - مصر");
   }
 
   async function loadPrayerTimes() {
     if (loading) return;
 
     loading = true;
+    lastAttempt = Date.now();
 
     try {
       const date = getApiDate();
@@ -179,24 +173,34 @@
 
       const result = await response.json();
 
-      if (result.code !== 200 || !result.data || !result.data.timings) {
+      if (
+        result.code !== 200 ||
+        !result.data ||
+        !result.data.timings
+      ) {
         throw new Error("Prayer times unavailable");
       }
 
-      prayerTimes = result.data.timings;
+      const timings = result.data.timings;
+
+      for (const prayer of Object.keys(elements)) {
+        if (!timings[prayer]) {
+          throw new Error("Missing prayer time: " + prayer);
+        }
+      }
+
+      prayerTimes = timings;
       currentDate = getToday();
 
       updatePrayerCards();
       updateNextPrayer();
 
+      console.log("Prayer times loaded successfully.");
+
     } catch (error) {
       console.error("Prayer times error:", error);
 
-      const cityName = document.getElementById("city-name");
-
-      if (cityName) {
-        cityName.textContent = "تعذر تحميل المواقيت";
-      }
+      updateCityName("تعذر تحميل المواقيت");
 
     } finally {
       loading = false;
@@ -204,7 +208,13 @@
 
     if (!countdownTimer) {
       countdownTimer = setInterval(function () {
-        if (currentDate !== getToday()) {
+        if (
+          currentDate !== getToday() ||
+          (
+            Object.keys(prayerTimes).length === 0 &&
+            Date.now() - lastAttempt >= 60000
+          )
+        ) {
           loadPrayerTimes();
         } else {
           updateNextPrayer();
@@ -230,7 +240,9 @@
     let nextTime = null;
 
     for (const prayer of prayers) {
-      const prayerDate = getPrayerDate(prayerTimes[prayer], 0);
+      const prayerDate = getPrayerDate(
+        prayerTimes[prayer], 0
+      );
 
       if (prayerDate > now) {
         nextPrayer = prayer;
@@ -244,19 +256,28 @@
       nextTime = getPrayerDate(prayerTimes.Fajr, 1);
     }
 
-    const nameElement = document.getElementById("next-prayer-name");
-    const countdownElement = document.getElementById("countdown");
+    const nameElement =
+      document.getElementById("next-prayer-name");
+
+    const countdownElement =
+      document.getElementById("countdown");
 
     if (nameElement) {
       nameElement.textContent = prayerNames[nextPrayer];
     }
 
     if (countdownElement) {
-      const difference = Math.max(0, nextTime.getTime() - now.getTime());
+      const difference = Math.max(
+        0, nextTime.getTime() - now.getTime()
+      );
 
       const hours = Math.floor(difference / 3600000);
-      const minutes = Math.floor((difference % 3600000) / 60000);
-      const seconds = Math.floor((difference % 60000) / 1000);
+      const minutes = Math.floor(
+        (difference % 3600000) / 60000
+      );
+      const seconds = Math.floor(
+        (difference % 60000) / 1000
+      );
 
       countdownElement.textContent =
         String(hours).padStart(2, "0") + ":" +
@@ -265,8 +286,14 @@
     }
   }
 
-  document.addEventListener("DOMContentLoaded", function () {
+  function init() {
     loadPrayerTimes();
-  });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
 
 })();
