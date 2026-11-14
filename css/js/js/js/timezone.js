@@ -62,16 +62,16 @@
     ];
   }
 
-  // عرض الساعة بنظام 24 ساعة
-  function getLocalTime() {
-    return new Intl.DateTimeFormat("ar-EG", {
-      timeZone: selectedZone,
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hourCycle: "h23"
-    }).format(new Date());
-  }
+// عرض الساعة بنظام 12 ساعة
+function getLocalTime() {
+  return new Intl.DateTimeFormat("ar-EG", {
+    timeZone: selectedZone,
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true
+  }).format(new Date());
+}
 
   // عرض التاريخ
   function getLocalDate() {
