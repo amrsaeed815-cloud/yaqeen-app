@@ -75,31 +75,30 @@
     ].join("-");
   }
 
-  
-function formatTime(time) {
-  if (!time) return "--:--";
+  // تحويل الوقت إلى نظام 12 ساعة
+  function formatTime(time) {
+    if (!time) return "--:--";
 
-  const match = String(time).match(/(\d{1,2}):(\d{2})/);
+    const match = String(time).match(/(\d{1,2}):(\d{2})/);
 
-  if (!match) return "--:--";
+    if (!match) return "--:--";
 
-  const hour = Number(match[1]);
-  const minute = match[2];
+    const hour = Number(match[1]);
+    const minute = match[2];
 
-  const displayHour = hour % 12 || 12;
+    const displayHour = hour % 12 || 12;
+    const period = hour < 12 ? "صباحًا" : "مساءً";
 
-  const period = hour < 12 ? "صباحًا" : "مساءً";
+    return (
+      String(displayHour).padStart(2, "0") +
+      ":" +
+      minute +
+      " " +
+      period
+    );
+  }
 
-  return (
-    String(displayHour).padStart(2, "0") +
-    ":" +
-    minute +
-    " " +
-    period
-  );
-}
-
-
+  // التحقق من صحة مواقيت الصلاة الأصلية القادمة من API
   function isValidTimings(timings) {
     return Object.keys(elements).every(function (prayer) {
       const time = timings && timings[prayer];
@@ -115,6 +114,7 @@ function formatTime(time) {
     });
   }
 
+  // تحويل وقت القاهرة إلى توقيت الجهاز
   function cairoTimeToDate(year, month, day, hour, minute) {
     const target = Date.UTC(
       year,
@@ -145,6 +145,7 @@ function formatTime(time) {
     return new Date(guess);
   }
 
+  // حساب موعد الصلاة من الوقت الأصلي دون استخدام formatTime
   function getPrayerDate(time, dayOffset) {
     const p = getCairoParts(new Date());
 
@@ -156,14 +157,16 @@ function formatTime(time) {
       )
     );
 
-    const parts = formatTime(time).split(":");
+    const match = String(time).match(/(\d{1,2}):(\d{2})/);
+
+    if (!match) return new Date(NaN);
 
     return cairoTimeToDate(
       date.getUTCFullYear(),
       date.getUTCMonth() + 1,
       date.getUTCDate(),
-      Number(parts[0]),
-      Number(parts[1])
+      Number(match[1]),
+      Number(match[2])
     );
   }
 
@@ -175,6 +178,7 @@ function formatTime(time) {
     if (prayerCity) prayerCity.textContent = name;
   }
 
+  // عرض مواقيت الصلاة
   function updatePrayerCards() {
     Object.keys(elements).forEach(function (prayer) {
       const element = document.getElementById(elements[prayer]);
@@ -187,6 +191,7 @@ function formatTime(time) {
     updateCityName("القاهرة - مصر");
   }
 
+  // حفظ المواقيت
   function saveCache() {
     try {
       localStorage.setItem(
@@ -201,6 +206,7 @@ function formatTime(time) {
     }
   }
 
+  // تحميل المواقيت المحفوظة
   function loadCache() {
     try {
       const cached = JSON.parse(
@@ -227,6 +233,7 @@ function formatTime(time) {
     return false;
   }
 
+  // تحميل مواقيت الصلاة من API
   async function loadPrayerTimes() {
     if (loading) return;
 
@@ -234,6 +241,7 @@ function formatTime(time) {
     lastAttempt = Date.now();
 
     const controller = new AbortController();
+
     const timeout = setTimeout(function () {
       controller.abort();
     }, 15000);
@@ -296,6 +304,7 @@ function formatTime(time) {
     }
   }
 
+  // تحديد الصلاة القادمة وحساب العد التنازلي
   function updateNextPrayer() {
     if (!isValidTimings(prayerTimes)) return;
 
@@ -325,8 +334,10 @@ function formatTime(time) {
       }
     }
 
+    // لو انتهت صلوات اليوم، الصلاة القادمة هي فجر الغد
     if (!nextPrayer) {
       nextPrayer = "Fajr";
+
       nextTime = getPrayerDate(
         prayerTimes.Fajr,
         1
@@ -368,6 +379,7 @@ function formatTime(time) {
     }
   }
 
+  // تشغيل العد التنازلي والتحديث التلقائي
   function startCountdown() {
     if (countdownTimer) return;
 
@@ -390,6 +402,7 @@ function formatTime(time) {
     }, 1000);
   }
 
+  // بدء تشغيل الملف
   function init() {
     loadCache();
     startCountdown();
