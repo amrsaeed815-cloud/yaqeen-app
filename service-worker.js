@@ -1,5 +1,5 @@
 
-const CACHE_NAME = "yaqeen-v1";
+const CACHE_NAME = "yaqeen-v2";
 
 const FILES_TO_CACHE = [
   "./",
