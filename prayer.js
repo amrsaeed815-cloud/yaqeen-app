@@ -10,7 +10,7 @@
   const CACHE_KEY = "yaqeen_prayer_times_v2";
   const RETRY_INTERVAL = 60000;
 
-  const ADHAN_FILE = "/Beautiful_adhan.ogg";
+const ADHAN_FILE = "./Beautiful_adhan.ogg";
   const ADHAN_ENABLED_KEY = "yaqeen_adhan_enabled";
   const ALERTS_KEY = "yaqeen_prayer_alerts";
 
