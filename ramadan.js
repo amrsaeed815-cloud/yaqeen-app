@@ -1,4 +1,3 @@
-
 (function () {
   "use strict";
 
@@ -40,6 +39,344 @@
   let loading = false;
   let countdownTimer = null;
   let notificationTimer = null;
+  let iftarAudioTimer = null;
+
+  // يجب إضافة ملف أذان المغرب داخل مجلد audio بهذا الاسم.
+  const MAGHRIB_ADHAN_FILE = "audio/naqshbandi-maghrib.mp3";
+  let iftarAudioEnabled = false;
+  let iftarAudioRunning = false;
+  let iftarAudioContext = null;
+
+  let settings = {
+    suhoorMinutes: SUHOOR_DEFAULT,
+    imsakMinutes: IMSAK_DEFAULT,
+    notificationsEnabled: false
+  };
+
+  let notifiedEvents = new Set();
+
+  // =========================================
+  // أدوات عامة
+  // =========================================
+
+  function getElement(id) {
+    return document.getElementById(id);
+  }
+
+  function pad(value) {
+    return String(value).padStart(2, "0");
+  }
+
+  function escapeHTML(value) {
+    return String(value).replace(/[&<>"']/g, function (char) {
+      return {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      }[char];
+    });
+  }
+
+  function getLocalDate(date) {
+    const parts = new Intl.DateTimeFormat("en-CA", {
+      timeZone: timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    }).formatToParts(date);
+
+    const values = {};
+
+    parts.forEach(function (part) {
+      if (part.type !== "literal") {
+        values[part.type] = part.value;
+      }
+    });
+
+    return (
+      values.year + "-" +
+      values.month + "-" +
+      values.day
+    );
+  }
+
+  function dateTime(dateString, timeString) {
+    const match = String(timeString || "").match(
+      /^(\d{1,2}):(\d{2})/
+    );
+
+    if (!match) return null;
+
+    const parts = dateString.split("-").map(Number);
+
+    const target = Date.UTC(
+      parts[0],
+      parts[1] - 1,
+      parts[2],
+      Number(match[1]),
+      Number(match[2])
+    );
+
+    let guess = target;
+
+    for (let i = 0; i < 4; i++) {
+      const formatted = new Intl.DateTimeFormat("en-GB", {
+        timeZone: timeZone,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hourCycle: "h23"
+      }).formatToParts(new Date(guess));
+
+      const values = {};
+
+      formatted.forEach(function (part) {
+        if (part.type !== "literal") {
+          values[part.type] = Number(part.value);
+        }
+      });
+
+      const represented = Date.UTC(
+        values.year,
+        values.month - 1,
+        values.day,
+        values.hour,
+        values.minute,
+        values.second
+      );
+
+      guess += target - represented;
+    }
+
+    return new Date(guess);
+  }
+
+  function formatTime(value) {
+    if (!value) return "--:--";
+
+    const match = String(value).match(
+      /^(\d{1,2}):(\d{2})/
+    );
+
+    if (!match) return "--:--";
+
+    const hour = Number(match[1]);
+
+    return (
+      pad(hour % 12 || 12) +
+      ":" + match[2] +
+      " " +
+      (hour < 12 ? "صباحًا" : "مساءً")
+    );
+  }
+
+  function formatDuration(milliseconds) {
+    const seconds = Math.max(
+      0,
+      Math.floor(milliseconds / 1000)
+    );
+
+    const days = Math.floor(seconds / 86400);
+    const hours = Math.floor((seconds % 86400) / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const remaining = seconds % 60;
+
+    if (days > 0) {
+      return (
+        days + " يوم " +
+        pad(hours) + ":" +
+        pad(minutes) + ":" +
+        pad(remaining)
+      );
+    }
+
+    return (
+      pad(hours) + ":" +
+      pad(minutes) + ":" +
+      pad(remaining)
+    );
+  }
+
+  // =========================================
+  // حفظ واسترجاع الإعدادات
+  // =========================================
+
+  function loadSettings() {
+    try {
+      const saved = JSON.parse(
+        localStorage.getItem(SETTINGS_KEY)
+      );
+
+      if (saved && typeof saved === "object") {
+        settings.suhoorMinutes = Math.min(
+          120,
+          Math.max(5, Number(saved.suhoorMinutes) || SUHOOR_DEFAULT)
+        );
+
+        settings.imsakMinutes = Math.min(
+          60,
+          Math.max(1, Number(saved.imsakMinutes) || IMSAK_DEFAULT)
+        );
+
+        settings.notificationsEnabled =
+          saved.notificationsEnabled === true;
+      }
+    } catch (error) {
+      console.warn("Ramadan settings error:", error);
+    }
+  }
+
+  function saveSettings() {
+    try {
+      localStorage.setItem(
+        SETTINGS_KEY,
+        JSON.stringify(settings)
+      );
+    } catch (error) {
+      console.warn("Ramadan settings save error:", error);
+    }
+  }
+
+  // =========================================
+  // تحديد الموقع
+  // =========================================
+
+  function useCoordinates(latitude, longitude) {
+    location = {
+      latitude: Number(latitude),
+      longitude: Number(longitude)
+    };
+
+    if (
+      !Number.isFinite(location.latitude) ||
+      !Number.isFinite(location.longitude) ||
+      Math.abs(location.latitude) > 90 ||
+      Math.abs(location.longitude) > 180
+    ) {
+      throw new Error("Invalid coordinates");
+    }
+
+    timeZone =
+      Intl.DateTimeFormat().resolvedOptions().timeZone ||
+      "UTC";
+  }
+
+  function detectLocation() {
+    return new Promise(function (resolve, reject) {
+      // الاستفادة من موقع ملف الصلاة إذا كان محفوظًا
+      try {
+        const saved = JSON.parse(
+          localStorage.getItem("yaqeen_prayer_times_v2")
+        );
+
+        if (
+          saved &&
+          saved.location &&
+          Number.isFinite(saved.location.latitude) &&
+          Number.isFinite(saved.location.longitude)
+        ) {
+          useCoordinates(
+            saved.location.latitude,
+            saved.location.longitude
+          );
+
+          resolve();
+          return;
+        }
+      } catch (error) {
+        console.warn("Prayer location cache error:", error);
+      }
+
+      if (!navigator.geolocation) {
+        reject(new Error("Geolocation unavailable"));
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        function (position) {
+          try {
+            useCoordinates(
+              position.coords.latitude,
+              position.coords.longitude
+            );
+
+            resolve();
+          } catch (error) {
+            reject(error);
+          }
+        },
+        function (error) {
+          reject(error);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 300000
+        }
+      );
+    });
+  } 
+ maximumAge: 600000
+
+ 
+استنى يا بطل، اكتشفت إن الجزء الثاني اللي ظهر في الرسالة السابقة حصل فيه اختلاف عن الملف الأصلي. **ما تكملش لصق الأجزاء السابقة** عشان ما يحصلش خطأ في التطبيق. هنبدأ من الأول، وهبعت لك النص مطابقًا للملف، جزءًا جزءًا.
+
+**الجزء الأول الصحيح من 5** — انسخه كاملًا:
+
+```javascript
+(function () {
+  "use strict";
+
+  // =========================================
+  // إعدادات رمضان - تطبيق يقين
+  // =========================================
+
+  const API = "https://api.aladhan.com/v1";
+  const METHOD = 5;
+
+  const CACHE_KEY = "yaqeen_ramadan_calendar_v1";
+  const SETTINGS_KEY = "yaqeen_ramadan_settings_v1";
+
+  const SUHOOR_DEFAULT = 30;
+  const IMSAK_DEFAULT = 10;
+
+  const HIJRI_MONTH = 9;
+  const RAMADAN_GREGORIAN_YEAR = 2027;
+
+  const prayerNames = {
+    Fajr: "الفجر",
+    Sunrise: "الشروق",
+    Dhuhr: "الظهر",
+    Asr: "العصر",
+    Maghrib: "المغرب",
+    Isha: "العشاء"
+  };
+
+  // =========================================
+  // حالة التطبيق
+  // =========================================
+
+  let location = null;
+  let timeZone = null;
+
+  let ramadanDays = [];
+  let ramadanHijriYear = null;
+
+  let loading = false;
+  let countdownTimer = null;
+  let notificationTimer = null;
+  let iftarAudioTimer = null;
+
+  // يجب إضافة ملف أذان المغرب داخل مجلد audio بهذا الاسم.
+  const MAGHRIB_ADHAN_FILE = "audio/naqshbandi-maghrib.mp3";
+  let iftarAudioEnabled = false;
+  let iftarAudioRunning = false;
+  let iftarAudioContext = null;
 
   let settings = {
     suhoorMinutes: SUHOOR_DEFAULT,
@@ -316,9 +653,9 @@
         }
       );
     });
-  }
+  }  
 
-  // =========================================
+    // =========================================
   // الاتصال بواجهة المواقيت
   // =========================================
 
@@ -526,6 +863,19 @@
         <p id="ramadan-event-description" style="text-align:center">
           جاري حساب الموعد القادم
         </p>
+
+        <div style="text-align:center;margin:12px 0">
+          <button
+            type="button"
+            id="ramadan-enable-iftar-audio"
+            class="feature-card"
+          >
+            🔊 تفعيل صوت مدفع الإفطار
+          </button>
+          <p id="ramadan-audio-status" style="font-size:13px">
+            فعّل الصوت مرة واحدة بعد فتح الصفحة حتى يسمح المتصفح بالتشغيل
+          </p>
+        </div>
       `;
 
       calendarCard.parentElement.parentElement.insertBefore(
@@ -601,7 +951,7 @@
     bindSettings();
   }
 
-  // =========================================
+    // =========================================
   // ربط إعدادات المستخدم
   // =========================================
 
@@ -613,6 +963,12 @@
     const permissionButton = getElement(
       "ramadan-notification-permission"
     );
+    const audioButton = getElement("ramadan-enable-iftar-audio");
+
+    if (audioButton && !audioButton.dataset.bound) {
+      audioButton.dataset.bound = "true";
+      audioButton.addEventListener("click", enableIftarAudio);
+    }
 
     if (suhoor && !suhoor.dataset.bound) {
       suhoor.dataset.bound = "true";
@@ -816,6 +1172,190 @@
   }
 
   // =========================================
+  // صوت مدفع الإفطار وأذان المغرب
+  // =========================================
+
+  function setAudioStatus(message) {
+    const status = getElement("ramadan-audio-status");
+    if (status) status.textContent = message;
+  }
+
+  async function enableIftarAudio() {
+    try {
+      const AudioContextClass =
+        window.AudioContext || window.webkitAudioContext;
+
+      if (AudioContextClass) {
+        if (!iftarAudioContext) {
+          iftarAudioContext = new AudioContextClass();
+        }
+
+        if (iftarAudioContext.state === "suspended") {
+          await iftarAudioContext.resume();
+        }
+      }
+
+      iftarAudioEnabled = true;
+      setAudioStatus(
+        "تم تفعيل الصوت. اترك صفحة يقين مفتوحة حتى موعد المغرب 🔔"
+      );
+
+      const button = getElement("ramadan-enable-iftar-audio");
+      if (button) button.textContent = "✅ صوت مدفع الإفطار مفعّل";
+
+    } catch (error) {
+      console.warn("Iftar audio activation error:", error);
+      setAudioStatus(
+        "لم يتم تفعيل الصوت. جرّب الضغط على الزر مرة أخرى."
+      );
+    }
+  }
+
+  function speakArabic(text, onEnd) {
+    if (!("speechSynthesis" in window)) {
+      if (typeof onEnd === "function") onEnd();
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "ar-EG";
+    utterance.rate = 0.95;
+    utterance.pitch = 1;
+
+    utterance.onend = function () {
+      if (typeof onEnd === "function") onEnd();
+    };
+
+        utterance.onerror = function (error) {
+      console.warn("Speech synthesis error:", error);
+      if (typeof onEnd === "function") onEnd();
+    };
+
+    window.speechSynthesis.speak(utterance);
+  }
+
+  function playCannonSound(onEnd) {
+    if (!iftarAudioContext) {
+      if (typeof onEnd === "function") onEnd();
+      return;
+    }
+
+    try {
+      const context = iftarAudioContext;
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+      const now = context.currentTime;
+
+      oscillator.type = "sawtooth";
+      oscillator.frequency.setValueAtTime(95, now);
+      oscillator.frequency.exponentialRampToValueAtTime(38, now + 0.7);
+
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.7, now + 0.025);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.1);
+
+      oscillator.connect(gain);
+      gain.connect(context.destination);
+
+      oscillator.start(now);
+      oscillator.stop(now + 1.15);
+
+      window.setTimeout(function () {
+        if (typeof onEnd === "function") onEnd();
+      }, 1200);
+
+    } catch (error) {
+      console.warn("Cannon sound error:", error);
+      if (typeof onEnd === "function") onEnd();
+    }
+  }
+
+  function playMaghribAdhan() {
+    const adhan = new Audio(MAGHRIB_ADHAN_FILE);
+    adhan.preload = "auto";
+    adhan.volume = 1;
+
+    adhan.play().then(function () {
+      setAudioStatus("يُشغّل الآن أذان المغرب 🌙");
+    }).catch(function (error) {
+      console.warn("Maghrib adhan playback error:", error);
+      setAudioStatus(
+        "انتهى صوت المدفع، لكن ملف أذان المغرب غير موجود أو لم يسمح المتصفح بتشغيله. أضف الملف: " +
+        MAGHRIB_ADHAN_FILE
+      );
+    });
+
+    adhan.addEventListener("ended", function () {
+      setAudioStatus("تقبل الله صيامكم وإفطاركم 🌙");
+    }, { once: true });
+  }
+
+  function runIftarAudio(day, maghrib) {
+    if (!iftarAudioEnabled || iftarAudioRunning) return;
+
+    const key = "yaqeen_iftar_audio_" + day.date;
+
+    try {
+      if (localStorage.getItem(key) === "done") return;
+      localStorage.setItem(key, "done");
+    } catch (error) {
+      console.warn("Iftar audio storage error:", error);
+    }
+
+    iftarAudioRunning = true;
+    setAudioStatus("لحظات وينطلق مدفع الإفطار...");
+
+    speakArabic(
+      "لحظات وينطلق مدفع الإفطار إيذانًا بانتهاء هذا اليوم",
+      function () {
+        speakArabic("مدفع الإفطار... اضرب!", function () {
+          playCannonSound(function () {
+            // انتظر حتى موعد المغرب إذا انتهى الإعلان مبكرًا.
+            const remaining = maghrib.getTime() - Date.now();
+
+            if (remaining > 0) {
+              window.setTimeout(playMaghribAdhan, remaining);
+            } else {
+              playMaghribAdhan();
+            }
+          });
+        });
+      }
+    );
+  }
+
+  function checkIftarAudio() {
+    if (!iftarAudioEnabled || !ramadanDays.length || iftarAudioRunning) {
+      return;
+    }
+
+    const now = Date.now();
+
+    ramadanDays.forEach(function (day) {
+      if (iftarAudioRunning) return;
+
+      const maghrib = dateTime(day.date, day.timings.Maghrib);
+      if (!maghrib) return;
+
+      const triggerTime = maghrib.getTime() - 5000;
+      const key = "yaqeen_iftar_audio_" + day.date;
+      let alreadyPlayed = false;
+
+      try {
+        alreadyPlayed = localStorage.getItem(key) === "done";
+      } catch (error) {
+        console.warn("Iftar audio check error:", error);
+      }
+
+      if (!alreadyPlayed && now >= triggerTime && now < maghrib.getTime()) {
+        runIftarAudio(day, maghrib);
+      }
+    });
+  }
+
+  // =========================================
   // تنبيهات المتصفح
   // =========================================
 
@@ -938,7 +1478,7 @@
           "اقترب موعد الفجر. لا تنسَ السحور.",
           suhoorKey
         );
-      }
+              }
 
       if (now >= imsakTime && now < new Date(imsakTime.getTime() + 60000)) {
         sendNotification(
@@ -990,6 +1530,10 @@
       clearInterval(notificationTimer);
     }
 
+    if (iftarAudioTimer) {
+      clearInterval(iftarAudioTimer);
+    }
+
     updateCountdown();
 
     countdownTimer = setInterval(function () {
@@ -1001,6 +1545,12 @@
     notificationTimer = setInterval(function () {
       checkNotifications();
     }, 15000);
+
+    checkIftarAudio();
+
+    iftarAudioTimer = setInterval(function () {
+      checkIftarAudio();
+    }, 1000);
   }
 
   // =========================================
@@ -1011,6 +1561,7 @@
     if (!document.hidden) {
       updateCountdown();
       checkNotifications();
+      checkIftarAudio();
     }
   });
 
