@@ -10,8 +10,9 @@ const FILES_TO_CACHE = [
   "./css/js/js/quran.js",
   "./css/js/js/js/timezone.js",
   "./prayer.js",
-  "./ramadan.js"
-];
+"./ramadan.js",
+"./icon-192.png",
+"./icon-512.png"];
 
 // تثبيت الملفات الأساسية
 self.addEventListener("install", (event) => {
