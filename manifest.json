@@ -1,0 +1,15 @@
+
+{
+  "id": "./",
+  "name": "يَقِين | رفيقك إلى الله",
+  "short_name": "يقين",
+  "description": "يقين - رفيقك إلى الله",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#080B10",
+  "theme_color": "#080B10"
+}
