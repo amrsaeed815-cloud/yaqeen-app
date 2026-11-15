@@ -10,6 +10,10 @@
   const CACHE_KEY = "yaqeen_prayer_times_v2";
   const RETRY_INTERVAL = 60000;
 
+  const ADHAN_FILE = "/Beautiful_adhan.ogg";
+  const ADHAN_ENABLED_KEY = "yaqeen_adhan_enabled";
+  const ALERTS_KEY = "yaqeen_prayer_alerts";
+
   const CAIRO = {
     latitude: 30.0444,
     longitude: 31.2357,
@@ -51,7 +55,10 @@
   let nextDayFajr = null;
   let nextDayFajrPromise = null;
 
-  let requestController = null;
+  let adhanEnabled = localStorage.getItem(ADHAN_ENABLED_KEY) !== "false";
+
+  let adhanAudio = null;
+  let alertStatus = null;
 
   // =====================================
   // أدوات التاريخ والتوقيت
@@ -104,7 +111,6 @@
 
   function apiDate(dateString) {
     const p = dateString.split("-");
-
     return p[2] + "-" + p[1] + "-" + p[0];
   }
 
@@ -213,13 +219,8 @@
     const cityElement = document.getElementById("city-name");
     const prayerCity = document.getElementById("prayer-city");
 
-    if (cityElement) {
-      cityElement.textContent = name;
-    }
-
-    if (prayerCity) {
-      prayerCity.textContent = name;
-    }
+    if (cityElement) cityElement.textContent = name;
+    if (prayerCity) prayerCity.textContent = name;
   }
 
   async function getCityName(lat, lon) {
@@ -404,14 +405,293 @@
 
   function updatePrayerCards() {
     Object.keys(elements).forEach(function (name) {
-      const element = document.getElementById(
-        elements[name]
-      );
+      const element = document.getElementById(elements[name]);
 
       if (element) {
         element.textContent = formatTime(timings[name]);
       }
     });
+  }
+
+  // =====================================
+  // نظام الأذان والصوت
+  // =====================================
+
+  function initializeAdhan() {
+    if (adhanAudio) return;
+
+    adhanAudio = new Audio(ADHAN_FILE);
+    adhanAudio.preload = "auto";
+
+    adhanAudio.addEventListener("error", function () {
+      console.error("تعذر تحميل ملف الأذان");
+      showAlertStatus("تعذر تحميل ملف الأذان. راجع مسار الصوت.");
+    });
+  }
+
+  function playAdhan() {
+    if (!adhanEnabled) return;
+
+    initializeAdhan();
+
+    adhanAudio.currentTime = 0;
+
+    const result = adhanAudio.play();
+
+    if (result && typeof result.catch === "function") {
+      result.catch(function (error) {
+        console.warn("Adhan playback error:", error);
+        showAlertStatus("المتصفح منع تشغيل الأذان. اضغط تجربة الأذان أولاً.");
+      });
+    }
+  }
+
+  function stopAdhan() {
+    if (!adhanAudio) return;
+
+    adhanAudio.pause();
+    adhanAudio.currentTime = 0;
+
+    showAlertStatus("تم إيقاف الأذان");
+  }
+
+  function testAdhan() {
+    initializeAdhan();
+    adhanEnabled = true;
+
+    localStorage.setItem(ADHAN_ENABLED_KEY, "true");
+
+    updateAdhanButton();
+
+    stopAdhan();
+
+    adhanAudio.play().then(function () {
+      showAlertStatus("يتم الآن تشغيل الأذان التجريبي");
+    }).catch(function (error) {
+      console.error("Test adhan error:", error);
+      showAlertStatus("تعذر تشغيل الصوت. تأكد من وجود الملف.");
+    });
+  }
+
+  function toggleAdhan() {
+    adhanEnabled = !adhanEnabled;
+
+    localStorage.setItem(
+      ADHAN_ENABLED_KEY,
+      String(adhanEnabled)
+    );
+
+    updateAdhanButton();
+
+    if (!adhanEnabled) {
+      stopAdhan();
+      showAlertStatus("تم إيقاف الأذان التلقائي");
+    } else {
+      showAlertStatus("تم تفعيل الأذان التلقائي");
+    }
+  }
+
+  // =====================================
+  // تنبيه قبل الصلاة بـ15 دقيقة
+  // =====================================
+
+  function getAlertHistory() {
+    try {
+      return JSON.parse(localStorage.getItem(ALERTS_KEY)) || {};
+    } catch (error) {
+      return {};
+    }
+  }
+
+  function saveAlertHistory(history) {
+    try {
+      localStorage.setItem(
+        ALERTS_KEY,
+        JSON.stringify(history)
+      );
+    } catch (error) {
+      console.warn("Alert history error:", error);
+    }
+  }
+
+  function speakPrePrayer(name, remainingMinutes) {
+    const message =
+      "اقتربت صلاة " + prayerNames[name] +
+      "، باقي " + remainingMinutes + " دقيقة";
+
+    showAlertStatus(message);
+
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+
+      const speech = new SpeechSynthesisUtterance(message);
+
+      speech.lang = "ar";
+      speech.rate = 0.9;
+      speech.pitch = 1;
+
+      window.speechSynthesis.speak(speech);
+    }
+  }
+
+  function showAlertStatus(message) {
+    if (alertStatus) {
+      alertStatus.textContent = message;
+    }
+  }
+
+  function processPrayerAlerts() {
+    if (!validTimings(timings) || !currentDate) return;
+
+    const now = new Date();
+    const today = getToday();
+
+    const history = getAlertHistory();
+
+    Object.keys(prayerNames).forEach(function (name) {
+      const prayerTime = localDateToUTC(
+        today,
+        timings[name]
+      );
+
+      const alertTime = new Date(
+        prayerTime.getTime() - 15 * 60 * 1000
+      );
+
+      const remaining = prayerTime.getTime() - now.getTime();
+
+      const alertKey = today + "_" + name + "_before";
+      const adhanKey = today + "_" + name + "_adhan";
+
+      // تنبيه قبل الصلاة
+      if (
+        now >= alertTime &&
+        now < prayerTime &&
+        !history[alertKey]
+      ) {
+        const minutes = Math.max(
+          1,
+          Math.ceil(remaining / 60000)
+        );
+
+        history[alertKey] = true;
+        saveAlertHistory(history);
+
+        speakPrePrayer(name, minutes);
+      }
+
+      // الأذان عند دخول وقت الصلاة
+      if (
+        now >= prayerTime &&
+        now.getTime() < prayerTime.getTime() + 60000 &&
+        !history[adhanKey]
+      ) {
+        history[adhanKey] = true;
+        saveAlertHistory(history);
+
+        if (adhanEnabled) {
+          showAlertStatus(
+            "حان الآن وقت صلاة " + prayerNames[name]
+          );
+
+          playAdhan();
+        }
+      }
+    });
+  }
+
+  // =====================================
+  // أزرار الأذان في التطبيق
+  // =====================================
+
+  function createAdhanControls() {
+    const prayerCard = document.querySelector(".prayer-card");
+
+    if (!prayerCard) return;
+
+    if (document.getElementById("yaqeen-adhan-controls")) {
+      return;
+    }
+
+    const controls = document.createElement("div");
+
+    controls.id = "yaqeen-adhan-controls";
+
+    controls.style.cssText = `
+      margin-top:20px;
+      padding:15px;
+      border-radius:14px;
+      background:rgba(16,59,48,0.07);
+      text-align:center;
+    `;
+
+    controls.innerHTML = `
+      <h3 style="margin:0 0 12px;color:#103b30">
+        🕌 إعدادات الأذان والتنبيهات
+      </h3>
+
+      <button id="yaqeen-adhan-toggle"
+        style="padding:11px 15px;margin:5px;border:0;
+        border-radius:9px;background:#103b30;color:white;
+        cursor:pointer">
+        تفعيل الأذان
+      </button>
+
+      <button id="yaqeen-adhan-test"
+        style="padding:11px 15px;margin:5px;border:0;
+        border-radius:9px;background:#b58b45;color:white;
+        cursor:pointer">
+        ▶ تجربة الأذان
+      </button>
+
+      <button id="yaqeen-adhan-stop"
+        style="padding:11px 15px;margin:5px;border:0;
+        border-radius:9px;background:#9b3333;color:white;
+        cursor:pointer">
+        ⏹ إيقاف الصوت
+      </button>
+
+      <p id="yaqeen-alert-status"
+        style="margin:12px 0 0;font-size:14px;color:#103b30">
+        تنبيهات الصلاة جاهزة
+      </p>
+
+      <p style="margin:8px 0 0;font-size:12px;color:#666">
+        سيتم التنبيه قبل كل صلاة بـ15 دقيقة
+      </p>
+    `;
+
+    prayerCard.appendChild(controls);
+
+    alertStatus = document.getElementById(
+      "yaqeen-alert-status"
+    );
+
+    document.getElementById(
+      "yaqeen-adhan-toggle"
+    ).addEventListener("click", toggleAdhan);
+
+    document.getElementById(
+      "yaqeen-adhan-test"
+    ).addEventListener("click", testAdhan);
+
+    document.getElementById(
+      "yaqeen-adhan-stop"
+    ).addEventListener("click", stopAdhan);
+
+    updateAdhanButton();
+  }
+
+  function updateAdhanButton() {
+    const button = document.getElementById(
+      "yaqeen-adhan-toggle"
+    );
+
+    if (!button) return;
+
+    button.textContent = adhanEnabled
+      ? "إيقاف الأذان التلقائي"
+      : "تفعيل الأذان";
   }
 
   // =====================================
@@ -607,6 +887,7 @@
 
       if (validTimings(timings)) {
         updateNextPrayer();
+        processPrayerAlerts();
       }
 
       if (
@@ -631,6 +912,7 @@
         loadPrayerTimes();
       } else {
         updateNextPrayer();
+        processPrayerAlerts();
       }
     }
   });
@@ -647,6 +929,9 @@
 
   function init() {
     updateCityName("جاري تحديد موقعك...");
+
+    createAdhanControls();
+    initializeAdhan();
 
     startCountdown();
 
