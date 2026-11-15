@@ -533,18 +533,40 @@
           جاري حساب الموعد القادم
         </p>
 
-        <div style="text-align:center;margin:12px 0">
+              <div style="text-align:center;margin:12px 0">
           <button
             type="button"
             id="ramadan-enable-iftar-audio"
             class="feature-card"
           >
-            🔊 تفعيل صوت مدفع الإفطار
+            🔊 تفعيل صوت المدافع
           </button>
+
           <p id="ramadan-audio-status" style="font-size:13px">
-            فعّل الصوت مرة واحدة بعد فتح الصفحة حتى يسمح المتصفح بالتشغيل
+            فعّل الصوت مرة واحدة بعد فتح الصفحة
           </p>
+
+          <hr>
+
+          <h4>💥 مدفع الإفطار</h4>
+          <button type="button" id="ramadan-preview-iftar" class="feature-card">
+            ▶️ معاينة مدفع الإفطار
+          </button>
+          <button type="button" id="ramadan-stop-iftar" class="feature-card">
+            ⏹️ إيقاف صوت الإفطار
+          </button>
+
+          <hr>
+
+          <h4>🌙 مدفع الإمساك</h4>
+          <button type="button" id="ramadan-preview-imsak" class="feature-card">
+            ▶️ معاينة مدفع الإمساك
+          </button>
+          <button type="button" id="ramadan-stop-imsak" class="feature-card">
+            ⏹️ إيقاف صوت الإمساك
+          </button>
         </div>
+      `;
       `;
 
       calendarCard.parentElement.parentElement.insertBefore(
