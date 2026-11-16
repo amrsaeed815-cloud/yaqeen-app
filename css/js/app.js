@@ -6,16 +6,41 @@
   // تطبيق يقين - الملف الرئيسي app.js
   // =====================================
 
-  // 1- التنقل بين صفحات التطبيق
-  window.showPage = function (pageId) {
-    const pages = document.querySelectorAll(".page");
-    const navItems = document.querySelectorAll(".nav-item");
+  let currentUtterance = null;
+  let currentPlayButton = null;
+  let currentStopButton = null;
 
-    pages.forEach(function (page) {
+  // إيقاف القراءة الصوتية
+  function stopAzkarReading() {
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+
+    if (currentPlayButton) {
+      currentPlayButton.disabled = false;
+      currentPlayButton.textContent = "🔊 استمع للذكر";
+    }
+
+    if (currentStopButton) {
+      currentStopButton.disabled = true;
+    }
+
+    currentUtterance = null;
+    currentPlayButton = null;
+    currentStopButton = null;
+  }
+
+  // التنقل بين صفحات التطبيق
+  window.showPage = function (pageId) {
+    if (pageId !== "azkar") {
+      stopAzkarReading();
+    }
+
+    document.querySelectorAll(".page").forEach(function (page) {
       page.classList.remove("active");
     });
 
-    navItems.forEach(function (item) {
+    document.querySelectorAll(".nav-item").forEach(function (item) {
       item.classList.remove("active");
     });
 
@@ -25,7 +50,7 @@
       selectedPage.classList.add("active");
     }
 
-    navItems.forEach(function (item) {
+    document.querySelectorAll(".nav-item").forEach(function (item) {
       const action = item.getAttribute("onclick");
 
       if (action && action.includes("'" + pageId + "'")) {
@@ -39,7 +64,7 @@
     });
   };
 
-  // 2- عرض التاريخ الميلادي والهجري
+  // التاريخ الميلادي والهجري
   function updateDates() {
     const now = new Date();
 
@@ -71,7 +96,7 @@
     }
   }
 
-  // 3- إعداد زر التنبيهات
+  // التنبيهات
   function setupNotifications() {
     const button = document.querySelector(".notification-btn");
 
@@ -95,10 +120,7 @@
     });
   }
 
-  // =====================================
-  // 4- نظام الأذكار والعدادات
-  // =====================================
-
+  // عناوين الأقسام
   const azkarTitles = {
     morning: "أذكار الصباح",
     evening: "أذكار المساء",
@@ -109,17 +131,80 @@
     adhan: "أذكار الأذان",
     mosque: "أذكار المسجد",
     home: "أذكار المنزل",
-    food: "أذكار الطعام",
+    food: "أذكار الطعام والشراب",
     general: "أذكار متنوعة"
   };
 
-  // عرض الأذكار
+  // تشغيل القراءة الصوتية
+  function speakAzkar(text, playButton, stopButton, status) {
+    if (!("speechSynthesis" in window)) {
+      status.textContent = "المتصفح لا يدعم القراءة الصوتية.";
+      return;
+    }
+
+    stopAzkarReading();
+
+    const cleanText = text.replace(/\n/g, " ");
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+
+    utterance.lang = "ar-SA";
+    utterance.rate = 0.85;
+    utterance.pitch = 1;
+    utterance.volume = 1;
+
+    const voices = window.speechSynthesis.getVoices();
+    const arabicVoice = voices.find(function (voice) {
+      return voice.lang && voice.lang.toLowerCase().startsWith("ar");
+    });
+
+    if (arabicVoice) {
+      utterance.voice = arabicVoice;
+    }
+
+    currentUtterance = utterance;
+    currentPlayButton = playButton;
+    currentStopButton = stopButton;
+
+    playButton.disabled = true;
+    playButton.textContent = "🔊 جاري القراءة...";
+    stopButton.disabled = false;
+    status.textContent = "جاري قراءة الذكر...";
+
+    utterance.onend = function () {
+      if (currentUtterance !== utterance) return;
+
+      playButton.disabled = false;
+      playButton.textContent = "🔊 استمع للذكر";
+      stopButton.disabled = true;
+      status.textContent = "انتهت القراءة.";
+      currentUtterance = null;
+      currentPlayButton = null;
+      currentStopButton = null;
+    };
+
+    utterance.onerror = function () {
+      if (currentUtterance !== utterance) return;
+
+      playButton.disabled = false;
+      playButton.textContent = "🔊 استمع للذكر";
+      stopButton.disabled = true;
+      status.textContent = "تعذرت القراءة الصوتية على هذا الجهاز.";
+      currentUtterance = null;
+      currentPlayButton = null;
+      currentStopButton = null;
+    };
+
+    window.speechSynthesis.speak(utterance);
+  }
+
+  // تحميل وعرض الأذكار
   window.loadAzkar = function (type) {
     const container = document.getElementById("azkar-content");
 
     if (!container) return;
 
-    // توحيد اسم أذكار بعد الصلاة
+    stopAzkarReading();
+
     if (type === "prayer") {
       type = "afterPrayer";
     }
@@ -132,8 +217,6 @@
       return;
     }
 
-    const list = data[type];
-
     container.replaceChildren();
 
     const heading = document.createElement("div");
@@ -144,13 +227,12 @@
 
     const description = document.createElement("p");
     description.textContent =
-      "اقرأ الذكر واضغط على زر التكرار حتى يكتمل العدد.";
+      "اقرأ الذكر أو استمع إليه واضغط على زر التسبيح لإكمال العدد.";
 
     heading.append(title, description);
     container.appendChild(heading);
 
-    // إنشاء بطاقات الأذكار
-    list.forEach(function (zekr) {
+    data[type].forEach(function (zekr) {
       const card = document.createElement("div");
       card.className = "content-card azkar-card";
 
@@ -179,15 +261,40 @@
       counter.textContent =
         "المتبقي: " + remaining + " من " + originalCount;
 
-      const button = document.createElement("button");
-      button.className = "azkar-repeat-btn";
-      button.type = "button";
-      button.textContent = "📿 تسبيح";
+      // زر الاستماع
+      const playButton = document.createElement("button");
+      playButton.type = "button";
+      playButton.className = "azkar-play-btn";
+      playButton.textContent = "🔊 استمع للذكر";
+
+      // زر إيقاف القراءة
+      const stopButton = document.createElement("button");
+      stopButton.type = "button";
+      stopButton.className = "azkar-stop-btn";
+      stopButton.textContent = "⏹ إيقاف";
+      stopButton.disabled = true;
 
       const status = document.createElement("p");
       status.className = "azkar-status";
 
-      button.addEventListener("click", function () {
+      playButton.addEventListener("click", function () {
+        speakAzkar(zekr.text || "", playButton, stopButton, status);
+      });
+
+      stopButton.addEventListener("click", function () {
+        if (currentPlayButton === playButton) {
+          stopAzkarReading();
+          status.textContent = "تم إيقاف القراءة.";
+        }
+      });
+
+      // زر التسبيح
+      const counterButton = document.createElement("button");
+      counterButton.type = "button";
+      counterButton.className = "azkar-repeat-btn";
+      counterButton.textContent = "📿 تسبيح";
+
+      counterButton.addEventListener("click", function () {
         if (remaining <= 0) return;
 
         remaining--;
@@ -196,34 +303,35 @@
           "المتبقي: " + remaining + " من " + originalCount;
 
         if (remaining === 0) {
-          button.disabled = true;
-          button.textContent = "✓ اكتمل الذكر";
+          counterButton.disabled = true;
+          counterButton.textContent = "✓ اكتمل الذكر";
           status.textContent = "تقبل الله منك 🤍";
           card.classList.add("azkar-complete");
         }
       });
 
-      card.append(counter, button, status);
+      card.append(
+        counter,
+        playButton,
+        stopButton,
+        counterButton,
+        status
+      );
+
       container.appendChild(card);
     });
 
-    // مصدر الأذكار
     const source = document.createElement("p");
     source.className = "azkar-source";
     source.textContent =
-      "المصدر: " +
-      (window.azkarSource || "مصادر الأذكار");
+      "المصدر: " + (window.azkarSource || "مصادر الأذكار");
 
     container.appendChild(source);
 
-    // الانتقال لصفحة الأذكار
     window.showPage("azkar");
   };
 
-  // =====================================
-  // 5- تشغيل التطبيق
-  // =====================================
-
+  // تشغيل التطبيق
   document.addEventListener("DOMContentLoaded", function () {
     updateDates();
     setupNotifications();
