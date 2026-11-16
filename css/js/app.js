@@ -103,8 +103,14 @@
     morning: "أذكار الصباح",
     evening: "أذكار المساء",
     sleep: "أذكار النوم",
+    wake: "أذكار الاستيقاظ من النوم",
     prayer: "أذكار بعد الصلاة",
-    afterPrayer: "أذكار بعد الصلاة"
+    afterPrayer: "أذكار بعد الصلاة",
+    adhan: "أذكار الأذان",
+    mosque: "أذكار المسجد",
+    home: "أذكار المنزل",
+    food: "أذكار الطعام",
+    general: "أذكار متنوعة"
   };
 
   // عرض الأذكار
@@ -113,7 +119,7 @@
 
     if (!container) return;
 
-    // معالجة اختلاف اسم أذكار بعد الصلاة
+    // توحيد اسم أذكار بعد الصلاة
     if (type === "prayer") {
       type = "afterPrayer";
     }
@@ -144,7 +150,7 @@
     container.appendChild(heading);
 
     // إنشاء بطاقات الأذكار
-    list.forEach(function (zekr, index) {
+    list.forEach(function (zekr) {
       const card = document.createElement("div");
       card.className = "content-card azkar-card";
 
@@ -206,7 +212,7 @@
     source.className = "azkar-source";
     source.textContent =
       "المصدر: " +
-      (window.azkarSource || "حصن المسلم");
+      (window.azkarSource || "مصادر الأذكار");
 
     container.appendChild(source);
 
