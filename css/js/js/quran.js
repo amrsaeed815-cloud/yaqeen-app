@@ -129,8 +129,7 @@
 
     try {
       const response = await fetch(
-        "https://api.alquran.cloud/v1/surah"
-      );
+https://alquran.api.alislam.ru/v1      );
 
       if (!response.ok) {
         throw new Error("تعذر تحميل السور");
