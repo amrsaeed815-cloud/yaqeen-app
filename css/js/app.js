@@ -1,340 +1,499 @@
-
 (function () {
   "use strict";
 
-  // =====================================
-  // تطبيق يقين - الملف الرئيسي app.js
-  // =====================================
+  const API = "https://alquran.api.alislam.ru/v1";
 
-  let currentUtterance = null;
-  let currentPlayButton = null;
-  let currentStopButton = null;
+  const surahList = document.getElementById("surah-list");
+  const readerSelect = document.getElementById("quran-reader");
 
-  // إيقاف القراءة الصوتية
-  function stopAzkarReading() {
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-    }
+  if (!surahList) return;
 
-    if (currentPlayButton) {
-      currentPlayButton.disabled = false;
-      currentPlayButton.textContent = "🔊 استمع للذكر";
-    }
-
-    if (currentStopButton) {
-      currentStopButton.disabled = true;
-    }
-
-    currentUtterance = null;
-    currentPlayButton = null;
-    currentStopButton = null;
-  }
-
-  // التنقل بين صفحات التطبيق
-  window.showPage = function (pageId) {
-    if (pageId !== "azkar") {
-      stopAzkarReading();
-    }
-
-    document.querySelectorAll(".page").forEach(function (page) {
-      page.classList.remove("active");
-    });
-
-    document.querySelectorAll(".nav-item").forEach(function (item) {
-      item.classList.remove("active");
-    });
-
-    const selectedPage = document.getElementById(pageId);
-
-    if (selectedPage) {
-      selectedPage.classList.add("active");
-    }
-
-    document.querySelectorAll(".nav-item").forEach(function (item) {
-      const action = item.getAttribute("onclick");
-
-      if (action && action.includes("'" + pageId + "'")) {
-        item.classList.add("active");
-      }
-    });
-
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth"
-    });
+  // القراء العشرة
+  const readers = {
+    mishary: "ar.alafasy",
+    husary: "ar.husary",
+    abdulbasit: "ar.abdulbasit",
+    sudais: "ar.sudais",
+    minshawi: "ar.minshawi",
+    shuraim: "ar.shuraim",
+    ajamy: "ar.ajamy",
+    jibreel: "ar.muhammadjibreel",
+    ayoub: "ar.muhammadayoub",
+    hudhaify: "ar.hudhaify"
   };
 
-  // التاريخ الميلادي والهجري
-  function updateDates() {
-    const now = new Date();
+  const audio = new Audio();
+  audio.preload = "none";
 
-    const gregorian = document.getElementById("gregorian-date");
-    const hijri = document.getElementById("hijri-date");
+  let surahs = [];
+  let currentAyahs = [];
+  let currentAyahIndex = 0;
+  let playRequest = 0;
+  let playbackStatus = null;
 
-    if (gregorian) {
-      gregorian.textContent = now.toLocaleDateString("ar-EG", {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric"
-      });
+  // تنسيق واجهة القرآن
+  const style = document.createElement("style");
+
+  style.textContent = `
+    .quran-surah-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
     }
 
-    if (hijri) {
-      try {
-        hijri.textContent = new Intl.DateTimeFormat(
-          "ar-SA-u-ca-islamic",
-          {
-            day: "numeric",
-            month: "long",
-            year: "numeric"
-          }
-        ).format(now);
-      } catch (error) {
-        hijri.textContent = "نسأل الله أن يجعل يومك مباركاً";
+    .quran-surah-actions button,
+    .quran-reader-tools button {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font: inherit;
+    }
+
+    .quran-read-btn {
+      background: #e8d7ad;
+      color: #292216;
+    }
+
+    .quran-play-btn {
+      background: #176b50;
+      color: #fff;
+    }
+
+    .quran-reading-panel {
+      margin-top: 12px;
+      padding: 14px;
+      border-radius: 12px;
+      background: rgba(128,128,128,.09);
+      line-height: 2.2;
+    }
+
+    .quran-reading-panel h4 {
+      text-align: center;
+      margin: 4px 0 14px;
+    }
+
+    .quran-ayah {
+      display: inline;
+      line-height: 2.25;
+      font-size: 1.25rem;
+    }
+
+    .quran-ayah-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid currentColor;
+      border-radius: 50%;
+      width: 27px;
+      height: 27px;
+      font-size: .78rem;
+      margin: 0 5px;
+    }
+
+    .quran-reader-tools {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 10px 0;
+    }
+
+    .quran-reader-status {
+      font-size: .9rem;
+      margin-top: 8px;
+      min-height: 1.4em;
+    }
+
+    @media(max-width:480px) {
+      .quran-surah-actions button,
+      .quran-reader-tools button {
+        flex: 1 1 100%;
       }
+
+      .quran-ayah {
+        font-size: 1.15rem;
+      }
+    }
+  `;
+
+  document.head.appendChild(style);
+
+  // تحديد القارئ
+  function getEdition() {
+    const selected = readerSelect
+      ? readerSelect.value
+      : "mishary";
+
+    return readers[selected] || readers.mishary;
+  }
+
+  // تحديث حالة الاستماع
+  function setStatus(message) {
+    if (playbackStatus) {
+      playbackStatus.textContent = message;
     }
   }
 
-  // التنبيهات
-  function setupNotifications() {
-    const button = document.querySelector(".notification-btn");
+  // إيقاف الصوت
+  function stopAudio() {
+    playRequest++;
 
-    if (!button) return;
+    audio.pause();
+    audio.removeAttribute("src");
+    audio.load();
 
-    button.addEventListener("click", async function () {
-      if (!("Notification" in window)) {
-        alert("المتصفح لا يدعم التنبيهات");
-        return;
+    currentAyahs = [];
+    currentAyahIndex = 0;
+
+    setStatus("تم إيقاف الاستماع.");
+  }
+
+  // إنشاء لوحة القراءة
+  function createPanel(card) {
+    let panel = card.querySelector(".quran-reading-panel");
+
+    if (!panel) {
+      panel = document.createElement("div");
+      panel.className = "quran-reading-panel";
+      card.appendChild(panel);
+    }
+
+    return panel;
+  }
+
+  // تحميل السور
+  async function loadSurahs() {
+    surahList.innerHTML =
+      "<p>جاري تحميل سور القرآن الكريم...</p>";
+
+    try {
+      const response = await fetch(API + "/surah");
+
+      if (!response.ok) {
+        throw new Error("تعذر تحميل السور");
       }
 
-      const permission = await Notification.requestPermission();
+      const result = await response.json();
 
-      if (permission === "granted") {
-        new Notification("يَقِين ☪", {
-          body: "أهلاً بك في تطبيق يقين، رفيقك إلى الله"
+      if (
+        result.code !== 200 ||
+        !Array.isArray(result.data)
+      ) {
+        throw new Error("بيانات السور غير متاحة");
+      }
+
+      surahs = result.data;
+      surahList.innerHTML = "";
+
+      surahs.forEach(function (surah) {
+        const card = document.createElement("div");
+        card.className = "surah-item";
+
+        const info = document.createElement("div");
+
+        const name = document.createElement("strong");
+        name.textContent =
+          surah.number + ". " + surah.name;
+
+        const details = document.createElement("small");
+
+        details.textContent =
+          " — " +
+          (surah.revelationType === "Meccan"
+            ? "مكية"
+            : "مدنية") +
+          " — " +
+          surah.numberOfAyahs +
+          " آية";
+
+        info.appendChild(name);
+        info.appendChild(details);
+
+        const actions = document.createElement("div");
+        actions.className = "quran-surah-actions";
+
+        // زر القراءة
+        const readButton = document.createElement("button");
+
+        readButton.type = "button";
+        readButton.className = "quran-read-btn";
+        readButton.textContent = "📖 قراءة";
+
+        readButton.addEventListener("click", function () {
+          loadSurahText(
+            surah.number,
+            card,
+            surah.name
+          );
         });
-      } else {
-        alert("لم يتم السماح بالتنبيهات");
-      }
-    });
+
+        // زر الاستماع
+        const playButton = document.createElement("button");
+
+        playButton.type = "button";
+        playButton.className = "quran-play-btn";
+        playButton.textContent = "▶ استماع";
+
+        playButton.addEventListener("click", function () {
+          playSurah(surah.number, card);
+        });
+
+        actions.appendChild(readButton);
+        actions.appendChild(playButton);
+
+        card.appendChild(info);
+        card.appendChild(actions);
+
+        surahList.appendChild(card);
+      });
+
+    } catch (error) {
+      console.error("Quran loading error:", error);
+
+      surahList.innerHTML =
+        "<p>تعذر تحميل السور. تأكد من اتصال الإنترنت ثم حدّث الصفحة.</p>";
+    }
   }
 
-  // عناوين الأقسام
-  const azkarTitles = {
-    morning: "أذكار الصباح",
-    evening: "أذكار المساء",
-    sleep: "أذكار النوم",
-    wake: "أذكار الاستيقاظ من النوم",
-    prayer: "أذكار بعد الصلاة",
-    afterPrayer: "أذكار بعد الصلاة",
-    adhan: "أذكار الأذان",
-    mosque: "أذكار المسجد",
-    home: "أذكار المنزل",
-    food: "أذكار الطعام والشراب",
-    general: "أذكار متنوعة"
-  };
+  // قراءة نص السورة
+  async function loadSurahText(surahNumber, card, surahName) {
+    stopAudio();
 
-  // تشغيل القراءة الصوتية
-  function speakAzkar(text, playButton, stopButton, status) {
-    if (!("speechSynthesis" in window)) {
-      status.textContent = "المتصفح لا يدعم القراءة الصوتية.";
+    const panel = createPanel(card);
+
+    panel.textContent = "جاري تحميل آيات السورة...";
+
+    try {
+      const response = await fetch(
+        API +
+        "/surah/" +
+        surahNumber +
+        "/quran-uthmani"
+      );
+
+      if (!response.ok) {
+        throw new Error("تعذر تحميل نص السورة");
+      }
+
+      const result = await response.json();
+
+      if (
+        result.code !== 200 ||
+        !result.data ||
+        !Array.isArray(result.data.ayahs)
+      ) {
+        throw new Error("نص السورة غير متاح");
+      }
+
+      panel.innerHTML = "";
+
+      const heading = document.createElement("h4");
+
+      heading.textContent = "سورة " + surahName;
+
+      panel.appendChild(heading);
+
+      // البسملة
+      if (surahNumber !== 1 && surahNumber !== 9) {
+        const basmala = document.createElement("p");
+
+        basmala.textContent =
+          "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ";
+
+        basmala.style.textAlign = "center";
+
+        panel.appendChild(basmala);
+      }
+
+      // عرض الآيات
+      result.data.ayahs.forEach(function (ayah) {
+        const verse = document.createElement("span");
+
+        verse.className = "quran-ayah";
+        verse.textContent = ayah.text + " ";
+
+        panel.appendChild(verse);
+
+        const number = document.createElement("span");
+
+        number.className = "quran-ayah-number";
+        number.textContent = ayah.numberInSurah;
+
+        panel.appendChild(number);
+
+        panel.appendChild(
+          document.createTextNode(" ")
+        );
+      });
+
+      panel.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest"
+      });
+
+    } catch (error) {
+      console.error("Quran text error:", error);
+
+      panel.textContent =
+        "تعذر تحميل الآيات. تأكد من اتصال الإنترنت وحاول مرة أخرى.";
+    }
+  }
+
+  // تشغيل السورة
+  async function playSurah(surahNumber, card) {
+    stopAudio();
+
+    const requestId = playRequest;
+    const edition = getEdition();
+
+    const panel = createPanel(card);
+
+    panel.innerHTML = "";
+
+    const status = document.createElement("p");
+
+    status.className = "quran-reader-status";
+    status.textContent = "جاري تجهيز صوت القارئ...";
+
+    panel.appendChild(status);
+
+    playbackStatus = status;
+
+    const tools = document.createElement("div");
+
+    tools.className = "quran-reader-tools";
+
+    const stopButton = document.createElement("button");
+
+    stopButton.type = "button";
+    stopButton.textContent = "■ إيقاف الاستماع";
+
+    stopButton.addEventListener("click", stopAudio);
+
+    tools.appendChild(stopButton);
+    panel.appendChild(tools);
+
+    try {
+      const response = await fetch(
+        API +
+        "/surah/" +
+        surahNumber +
+        "/" +
+        edition
+      );
+
+      if (!response.ok) {
+        throw new Error("الصوت غير متاح لهذا القارئ");
+      }
+
+      const result = await response.json();
+
+      if (requestId !== playRequest) return;
+
+      if (
+        result.code !== 200 ||
+        !result.data ||
+        !Array.isArray(result.data.ayahs)
+      ) {
+        throw new Error("بيانات الصوت غير متاحة");
+      }
+
+      currentAyahs = result.data.ayahs;
+      currentAyahIndex = 0;
+
+      if (
+        !currentAyahs.length ||
+        !currentAyahs[0].audio
+      ) {
+        throw new Error(
+          "لا يوجد تسجيل صوتي لهذه السورة بهذا القارئ"
+        );
+      }
+
+      const readerName =
+        readerSelect &&
+        readerSelect.options[readerSelect.selectedIndex]
+          ? readerSelect.options[readerSelect.selectedIndex].text
+          : "القارئ";
+
+      setStatus("بدأ الاستماع — " + readerName);
+
+      playCurrentAyah(requestId);
+
+    } catch (error) {
+      if (requestId !== playRequest) return;
+
+      console.error("Quran audio error:", error);
+
+      setStatus(
+        "تعذر تشغيل هذا القارئ حاليًا. جرّب قارئًا آخر أو أعد المحاولة."
+      );
+    }
+  }
+
+  // تشغيل الآيات بالتتابع
+  function playCurrentAyah(requestId) {
+    if (requestId !== playRequest) return;
+
+    if (currentAyahIndex >= currentAyahs.length) {
+      currentAyahs = [];
+
+      setStatus("انتهى تشغيل السورة.");
+
       return;
     }
 
-    stopAzkarReading();
+    const ayah = currentAyahs[currentAyahIndex];
 
-    const cleanText = text.replace(/\n/g, " ");
-    const utterance = new SpeechSynthesisUtterance(cleanText);
+    if (!ayah || !ayah.audio) {
+      currentAyahIndex++;
 
-    utterance.lang = "ar-SA";
-    utterance.rate = 0.85;
-    utterance.pitch = 1;
-    utterance.volume = 1;
+      playCurrentAyah(requestId);
 
-    const voices = window.speechSynthesis.getVoices();
-    const arabicVoice = voices.find(function (voice) {
-      return voice.lang && voice.lang.toLowerCase().startsWith("ar");
-    });
-
-    if (arabicVoice) {
-      utterance.voice = arabicVoice;
-    }
-
-    currentUtterance = utterance;
-    currentPlayButton = playButton;
-    currentStopButton = stopButton;
-
-    playButton.disabled = true;
-    playButton.textContent = "🔊 جاري القراءة...";
-    stopButton.disabled = false;
-    status.textContent = "جاري قراءة الذكر...";
-
-    utterance.onend = function () {
-      if (currentUtterance !== utterance) return;
-
-      playButton.disabled = false;
-      playButton.textContent = "🔊 استمع للذكر";
-      stopButton.disabled = true;
-      status.textContent = "انتهت القراءة.";
-      currentUtterance = null;
-      currentPlayButton = null;
-      currentStopButton = null;
-    };
-
-    utterance.onerror = function () {
-      if (currentUtterance !== utterance) return;
-
-      playButton.disabled = false;
-      playButton.textContent = "🔊 استمع للذكر";
-      stopButton.disabled = true;
-      status.textContent = "تعذرت القراءة الصوتية على هذا الجهاز.";
-      currentUtterance = null;
-      currentPlayButton = null;
-      currentStopButton = null;
-    };
-
-    window.speechSynthesis.speak(utterance);
-  }
-
-  // تحميل وعرض الأذكار
-  window.loadAzkar = function (type) {
-    const container = document.getElementById("azkar-content");
-
-    if (!container) return;
-
-    stopAzkarReading();
-
-    if (type === "prayer") {
-      type = "afterPrayer";
-    }
-
-    const data = window.azkarData;
-
-    if (!data || !Array.isArray(data[type])) {
-      container.textContent =
-        "تعذر تحميل الأذكار. تأكد من تحميل ملف azkar.js.";
       return;
     }
 
-    container.replaceChildren();
+    audio.src = ayah.audio;
+    audio.load();
 
-    const heading = document.createElement("div");
-    heading.className = "content-card";
-
-    const title = document.createElement("h3");
-    title.textContent = azkarTitles[type] || "الأذكار";
-
-    const description = document.createElement("p");
-    description.textContent =
-      "اقرأ الذكر أو استمع إليه واضغط على زر التسبيح لإكمال العدد.";
-
-    heading.append(title, description);
-    container.appendChild(heading);
-
-    data[type].forEach(function (zekr) {
-      const card = document.createElement("div");
-      card.className = "content-card azkar-card";
-
-      const text = document.createElement("p");
-      text.className = "azkar-text";
-      text.textContent = zekr.text || "";
-
-      card.appendChild(text);
-
-      if (zekr.note) {
-        const note = document.createElement("small");
-        note.className = "azkar-note";
-        note.textContent = zekr.note;
-        card.appendChild(note);
+    audio.play().then(function () {
+      if (requestId === playRequest) {
+        setStatus(
+          "جاري الاستماع — الآية " +
+          (ayah.numberInSurah || currentAyahIndex + 1)
+        );
       }
+    }).catch(function (error) {
+      if (requestId !== playRequest) return;
 
-      const originalCount = Math.max(
-        1,
-        Number(zekr.count) || 1
+      console.error("Audio playback error:", error);
+
+      setStatus(
+        "لم يبدأ الصوت. اضغط استماع مرة أخرى أو جرّب قارئًا آخر."
       );
-
-      let remaining = originalCount;
-
-      const counter = document.createElement("h3");
-      counter.className = "azkar-counter";
-      counter.textContent =
-        "المتبقي: " + remaining + " من " + originalCount;
-
-      // زر الاستماع
-      const playButton = document.createElement("button");
-      playButton.type = "button";
-      playButton.className = "azkar-play-btn";
-      playButton.textContent = "🔊 استمع للذكر";
-
-      // زر إيقاف القراءة
-      const stopButton = document.createElement("button");
-      stopButton.type = "button";
-      stopButton.className = "azkar-stop-btn";
-      stopButton.textContent = "⏹ إيقاف";
-      stopButton.disabled = true;
-
-      const status = document.createElement("p");
-      status.className = "azkar-status";
-
-      playButton.addEventListener("click", function () {
-        speakAzkar(zekr.text || "", playButton, stopButton, status);
-      });
-
-      stopButton.addEventListener("click", function () {
-        if (currentPlayButton === playButton) {
-          stopAzkarReading();
-          status.textContent = "تم إيقاف القراءة.";
-        }
-      });
-
-      // زر التسبيح
-      const counterButton = document.createElement("button");
-      counterButton.type = "button";
-      counterButton.className = "azkar-repeat-btn";
-      counterButton.textContent = "📿 تسبيح";
-
-      counterButton.addEventListener("click", function () {
-        if (remaining <= 0) return;
-
-        remaining--;
-
-        counter.textContent =
-          "المتبقي: " + remaining + " من " + originalCount;
-
-        if (remaining === 0) {
-          counterButton.disabled = true;
-          counterButton.textContent = "✓ اكتمل الذكر";
-          status.textContent = "تقبل الله منك 🤍";
-          card.classList.add("azkar-complete");
-        }
-      });
-
-      card.append(
-        counter,
-        playButton,
-        stopButton,
-        counterButton,
-        status
-      );
-
-      container.appendChild(card);
     });
+  }
 
-    const source = document.createElement("p");
-    source.className = "azkar-source";
-    source.textContent =
-      "المصدر: " + (window.azkarSource || "مصادر الأذكار");
+  // الانتقال للآية التالية
+  audio.addEventListener("ended", function () {
+    if (!currentAyahs.length) return;
 
-    container.appendChild(source);
+    currentAyahIndex++;
 
-    window.showPage("azkar");
-  };
-
-  // تشغيل التطبيق
-  document.addEventListener("DOMContentLoaded", function () {
-    updateDates();
-    setupNotifications();
+    playCurrentAyah(playRequest);
   });
+
+  // أخطاء الصوت
+  audio.addEventListener("error", function () {
+    if (currentAyahs.length) {
+      setStatus(
+        "حدث خطأ أثناء تحميل الصوت. جرّب قارئًا آخر."
+      );
+    }
+  });
+
+  // بدء تحميل السور
+  loadSurahs();
 
 })();
