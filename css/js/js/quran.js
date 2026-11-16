@@ -2,11 +2,18 @@
 (function () {
   "use strict";
 
+  // تطبيق يقين - قسم القرآن الكريم
+
+  const API = "https://alquran.api.alislam.ru/v1";
+
   const surahList = document.getElementById("surah-list");
   const readerSelect = document.getElementById("quran-reader");
-  if (!surahList) return;
 
-  // القراء العشرة
+  if (!surahList || !readerSelect) {
+    console.error("لم يتم العثور على عناصر قسم القرآن في الصفحة");
+    return;
+  }
+
   const readers = {
     mishary: "ar.alafasy",
     husary: "ar.husary",
@@ -20,396 +27,203 @@
     hudhaify: "ar.hudhaify"
   };
 
-  const audio = new Audio();
-  audio.preload = "none";
-
-  let surahs = [];
+  let audio = new Audio();
   let currentAyahs = [];
   let currentAyahIndex = 0;
-  let playRequest = 0;
-  let playbackStatus = null;
+  let currentSurahName = "";
 
-  const style = document.createElement("style");
-  style.textContent = `
-    .quran-surah-actions {
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      margin-top:10px
-    }
-    .quran-surah-actions button,
-    .quran-reader-tools button {
-      border:0;
-      border-radius:10px;
-      padding:10px 14px;
-      cursor:pointer;
-      font:inherit
-    }
-    .quran-read-btn {
-      background:#e8d7ad;
-      color:#292216
-    }
-    .quran-play-btn {
-      background:#176b50;
-      color:#fff
-    }
-    .quran-reading-panel {
-      margin-top:12px;
-      padding:14px;
-      border-radius:12px;
-      background:rgba(128,128,128,.09);
-      line-height:2.2
-    }
-    .quran-reading-panel h4 {
-      text-align:center;
-      margin:4px 0 14px
-    }
-    .quran-ayah {
-      display:inline;
-      line-height:2.25;
-      font-size:1.25rem
-    }
-    .quran-ayah-number {
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      border:1px solid currentColor;
-      border-radius:50%;
-      width:27px;
-      height:27px;
-      font-size:.78rem;
-      margin:0 5px
-    }
-    .quran-reader-tools {
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      margin:10px 0
-    }
-    .quran-reader-status {
-      font-size:.9rem;
-      margin-top:8px;
-      min-height:1.4em
-    }
-    @media(max-width:480px) {
-      .quran-surah-actions button,
-      .quran-reader-tools button {
-        flex:1 1 100%
-      }
-      .quran-ayah {
-        font-size:1.15rem
-      }
-    }
-  `;
-  document.head.appendChild(style);
+  const status = document.createElement("p");
+  status.id = "quran-status";
+  status.style.cssText =
+    "text-align:center;padding:10px;color:inherit;";
+  surahList.before(status);
 
-  function getEdition() {
-    const selected = readerSelect ? readerSelect.value : "mishary";
-    return readers[selected] || readers.mishary;
-  }
+  const reader = document.createElement("div");
+  reader.id = "quran-text";
+  reader.style.cssText =
+    "text-align:center;line-height:2.3;font-size:20px;padding:15px;";
+  surahList.after(reader);
 
   function setStatus(message) {
-    if (playbackStatus) {
-      playbackStatus.textContent = message;
-    }
+    status.textContent = message;
+  }
+
+  function getEdition() {
+    const selected = readerSelect.value;
+    return readers[selected] || selected || readers.mishary;
   }
 
   function stopAudio() {
-    playRequest++;
     audio.pause();
-    audio.removeAttribute("src");
-    audio.load();
+    audio.currentTime = 0;
     currentAyahs = [];
     currentAyahIndex = 0;
-    setStatus("تم إيقاف الاستماع.");
   }
 
   async function loadSurahs() {
-    surahList.innerHTML = "<p>جاري تحميل سور القرآن الكريم...</p>";
+    setStatus("جاري تحميل سور القرآن الكريم...");
+    surahList.innerHTML = "";
 
     try {
-      const response = await fetch(
-https://alquran.api.alislam.ru/v1      );
-
-      if (!response.ok) {
-        throw new Error("تعذر تحميل السور");
-      }
+      const response = await fetch(API + "/surah");
+      if (!response.ok) throw new Error("فشل الاتصال بالخادم");
 
       const result = await response.json();
+      const surahs = result.data || result;
 
-      if (result.code !== 200 || !Array.isArray(result.data)) {
-        throw new Error("بيانات السور غير متاحة");
+      if (!Array.isArray(surahs)) {
+        throw new Error("بيانات السور غير صحيحة");
       }
 
-      surahs = result.data;
       surahList.innerHTML = "";
 
       surahs.forEach(function (surah) {
         const card = document.createElement("div");
-        card.className = "surah-item";
+        card.style.cssText =
+          "padding:12px;margin:8px 0;border:1px solid #999;border-radius:12px;";
 
-        const info = document.createElement("div");
-
-        const name = document.createElement("strong");
-        name.textContent = surah.number + ". " + surah.name;
-
-        const details = document.createElement("small");
-        details.textContent =
-          " — " +
-          (surah.revelationType === "Meccan" ? "مكية" : "مدنية") +
-          " — " +
-          surah.numberOfAyahs +
-          " آية";
-
-        info.appendChild(name);
-        info.appendChild(details);
-
-        const actions = document.createElement("div");
-        actions.className = "quran-surah-actions";
+        const name = document.createElement("h3");
+        name.textContent =
+          surah.name || surah.englishName || ("سورة رقم " + surah.number);
 
         const readButton = document.createElement("button");
-        readButton.type = "button";
-        readButton.className = "quran-read-btn";
-        readButton.textContent = "📖 قراءة";
-
+        readButton.textContent = "قراءة السورة";
+        readButton.style.cssText = "margin:5px;padding:9px;";
         readButton.addEventListener("click", function () {
-          loadSurahText(surah.number, card, surah.name);
+          loadSurahText(surah.number, name.textContent);
         });
 
         const playButton = document.createElement("button");
-        playButton.type = "button";
-        playButton.className = "quran-play-btn";
-        playButton.textContent = "▶ استماع";
-
+        playButton.textContent = "استماع للسورة";
+        playButton.style.cssText = "margin:5px;padding:9px;";
         playButton.addEventListener("click", function () {
-          playSurah(surah.number, card);
+          playSurah(surah.number, name.textContent);
         });
 
-        actions.appendChild(readButton);
-        actions.appendChild(playButton);
-
-        card.appendChild(info);
-        card.appendChild(actions);
+        card.appendChild(name);
+        card.appendChild(readButton);
+        card.appendChild(playButton);
         surahList.appendChild(card);
       });
 
+      setStatus("تم تحميل سور القرآن الكريم");
     } catch (error) {
-      console.error("Quran loading error:", error);
-      surahList.innerHTML =
-        "<p>تعذر تحميل السور. تأكد من اتصال الإنترنت ثم حدّث الصفحة.</p>";
+      console.error(error);
+      setStatus("تعذر تحميل السور. تأكد من الاتصال بالإنترنت.");
     }
   }
 
-  async function loadSurahText(surahNumber, card, surahName) {
+  async function loadSurahText(number, name) {
     stopAudio();
-
-    let panel = card.querySelector(".quran-reading-panel");
-
-    if (!panel) {
-      panel = document.createElement("div");
-      panel.className = "quran-reading-panel";
-      card.appendChild(panel);
-    }
-
-    panel.textContent = "جاري تحميل آيات السورة...";
+    currentSurahName = name;
+    reader.innerHTML = "";
+    setStatus("جاري تحميل " + name);
 
     try {
       const response = await fetch(
-        "https://api.alquran.cloud/v1/surah/" +
-        surahNumber +
-        "/quran-uthmani"
+        API + "/surah/" + number + "/quran-uthmani"
       );
 
-      if (!response.ok) {
-        throw new Error("تعذر تحميل نص السورة");
-      }
+      if (!response.ok) throw new Error("تعذر تحميل السورة");
 
       const result = await response.json();
+      const data = result.data || result;
+      const ayahs = data.ayahs || [];
 
-      if (
-        result.code !== 200 ||
-        !result.data ||
-        !Array.isArray(result.data.ayahs)
-      ) {
-        throw new Error("نص السورة غير متاح");
-      }
+      if (!ayahs.length) throw new Error("لا توجد آيات");
 
-      panel.innerHTML = "";
+      const heading = document.createElement("h2");
+      heading.textContent = name;
+      reader.appendChild(heading);
 
-      const heading = document.createElement("h4");
-      heading.textContent = "سورة " + surahName;
-      panel.appendChild(heading);
-
-      if (surahNumber !== 1 && surahNumber !== 9) {
+      if (Number(number) !== 1 && Number(number) !== 9) {
         const basmala = document.createElement("p");
-        basmala.textContent =
-          "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ";
-        basmala.style.textAlign = "center";
-        panel.appendChild(basmala);
+        basmala.textContent = "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ";
+        reader.appendChild(basmala);
       }
 
-      result.data.ayahs.forEach(function (ayah) {
-        const verse = document.createElement("span");
-        verse.className = "quran-ayah";
-        verse.textContent = ayah.text + " ";
-        panel.appendChild(verse);
-
-        const number = document.createElement("span");
-        number.className = "quran-ayah-number";
-        number.textContent = ayah.numberInSurah;
-
-        panel.appendChild(number);
-        panel.appendChild(document.createTextNode(" "));
+      ayahs.forEach(function (ayah) {
+        const span = document.createElement("span");
+        span.textContent =
+          (ayah.text || "") + " ﴿" + (ayah.numberInSurah || "") + "﴾ ";
+        reader.appendChild(span);
       });
 
-      panel.scrollIntoView({
-        behavior: "smooth",
-        block: "nearest"
-      });
-
+      setStatus("تم تحميل " + name);
     } catch (error) {
-      console.error("Quran text error:", error);
-      panel.textContent =
-        "تعذر تحميل الآيات. تأكد من اتصال الإنترنت وحاول مرة أخرى.";
+      console.error(error);
+      setStatus("حدث خطأ أثناء تحميل آيات السورة");
     }
   }
 
-  async function playSurah(surahNumber, card) {
+  async function playSurah(number, name) {
     stopAudio();
-
-    const requestId = playRequest;
-    const edition = getEdition();
-
-    let panel = card.querySelector(".quran-reading-panel");
-
-    if (!panel) {
-      panel = document.createElement("div");
-      panel.className = "quran-reading-panel";
-      card.appendChild(panel);
-    }
-
-    panel.innerHTML = "";
-
-    const status = document.createElement("p");
-    status.className = "quran-reader-status";
-    status.textContent = "جاري تجهيز صوت القارئ...";
-    panel.appendChild(status);
-
-    playbackStatus = status;
-
-    const tools = document.createElement("div");
-    tools.className = "quran-reader-tools";
-
-    const stopButton = document.createElement("button");
-    stopButton.type = "button";
-    stopButton.textContent = "■ إيقاف الاستماع";
-    stopButton.addEventListener("click", stopAudio);
-
-    tools.appendChild(stopButton);
-    panel.appendChild(tools);
+    currentSurahName = name;
+    setStatus("جاري تجهيز صوت " + name);
 
     try {
+      const edition = getEdition();
       const response = await fetch(
-        "https://api.alquran.cloud/v1/surah/" +
-        surahNumber +
-        "/" +
-        edition
+        API + "/surah/" + number + "/" + edition
       );
 
-      if (!response.ok) {
-        throw new Error("الصوت غير متاح لهذا القارئ");
-      }
+      if (!response.ok) throw new Error("تعذر تحميل الصوت");
 
       const result = await response.json();
+      const data = result.data || result;
 
-      if (requestId !== playRequest) return;
+      currentAyahs = data.ayahs || [];
 
-      if (
-        result.code !== 200 ||
-        !result.data ||
-        !Array.isArray(result.data.ayahs)
-      ) {
-        throw new Error("بيانات الصوت غير متاحة");
+      if (!currentAyahs.length) {
+        throw new Error("لم يتم العثور على ملفات الصوت");
       }
 
-      currentAyahs = result.data.ayahs;
       currentAyahIndex = 0;
-
-      if (!currentAyahs.length || !currentAyahs[0].audio) {
-        throw new Error(
-          "لا يوجد تسجيل صوتي لهذه السورة بهذا القارئ"
-        );
-      }
-
-      const readerName =
-        readerSelect &&
-        readerSelect.options[readerSelect.selectedIndex]
-          ? readerSelect.options[readerSelect.selectedIndex].text
-          : "القارئ";
-
-      setStatus("بدأ الاستماع — " + readerName);
-
-      playCurrentAyah(requestId);
-
+      playCurrentAyah();
     } catch (error) {
-      if (requestId !== playRequest) return;
-
-      console.error("Quran audio error:", error);
-
-      setStatus(
-        "تعذر تشغيل هذا القارئ حاليًا. جرّب قارئًا آخر أو أعد المحاولة."
-      );
+      console.error(error);
+      setStatus("تعذر تشغيل السورة. جرّب قارئًا آخر.");
     }
   }
 
-  function playCurrentAyah(requestId) {
-    if (requestId !== playRequest) return;
-
+  function playCurrentAyah() {
     if (currentAyahIndex >= currentAyahs.length) {
-      currentAyahs = [];
-      setStatus("انتهى تشغيل السورة.");
+      setStatus("انتهت سورة " + currentSurahName);
       return;
     }
 
     const ayah = currentAyahs[currentAyahIndex];
 
-    if (!ayah || !ayah.audio) {
-      currentAyahIndex++;
-      playCurrentAyah(requestId);
+    if (!ayah.audio) {
+      setStatus("ملف صوت الآية غير متوفر");
       return;
     }
 
     audio.src = ayah.audio;
-    audio.load();
+    setStatus(
+      "سورة " + currentSurahName +
+      " - الآية " + (ayah.numberInSurah || currentAyahIndex + 1)
+    );
 
-    audio.play().then(function () {
-      if (requestId === playRequest) {
-        setStatus(
-          "جاري الاستماع — الآية " +
-          (ayah.numberInSurah || currentAyahIndex + 1)
-        );
-      }
-    }).catch(function (error) {
-      if (requestId !== playRequest) return;
-
-      console.error("Audio playback error:", error);
-
-      setStatus(
-        "لم يبدأ الصوت. اضغط استماع مرة أخرى أو جرّب قارئًا آخر."
-      );
+    audio.play().catch(function (error) {
+      console.error(error);
+      setStatus("اضغط على زر الاستماع مرة أخرى لتشغيل الصوت");
     });
   }
 
   audio.addEventListener("ended", function () {
-    if (!currentAyahs.length) return;
-
     currentAyahIndex++;
-    playCurrentAyah(playRequest);
+    playCurrentAyah();
   });
 
   audio.addEventListener("error", function () {
+    setStatus("حدث خطأ في تشغيل الصوت");
+  });
+
+  readerSelect.addEventListener("change", function () {
     if (currentAyahs.length) {
-      setStatus("حدث خطأ أثناء تحميل الصوت. جرّب قارئًا آخر.");
+      setStatus("تم تغيير القارئ. اختر السورة للاستماع بالقارئ الجديد.");
+      stopAudio();
     }
   });
 
