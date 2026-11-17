@@ -831,3 +831,186 @@ select {
 }
 
 
+/* ==========================================
+   YAQEEN - PRAYER SETTINGS DESIGN
+========================================== */
+
+.yaqeen-prayer-settings {
+  direction: rtl;
+  width: 100%;
+  padding: 15px;
+  color: #234b38;
+  box-sizing: border-box;
+}
+
+.prayer-settings-header {
+  text-align: center;
+  margin-bottom: 22px;
+}
+
+.prayer-settings-header h2 {
+  color: #176b45;
+  font-size: 23px;
+  margin-bottom: 8px;
+}
+
+.prayer-settings-header p {
+  color: #718477;
+  font-size: 14px;
+}
+
+.prayer-location-box {
+  background: linear-gradient(135deg, #e8f4eb, #fff9e9);
+  border: 1px solid rgba(201, 164, 92, .4);
+  border-radius: 16px;
+  padding: 17px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.prayer-location-box h3 {
+  color: #176b45;
+  margin: 0 0 10px;
+}
+
+.prayer-location-box p {
+  color: #65786b;
+  margin: 8px 0 14px;
+}
+
+.prayer-location-box button,
+.test-adhan-button,
+.prayer-audio-test button {
+  background: linear-gradient(135deg, #176b45, #23875a);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 11px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: .2s ease;
+}
+
+.prayer-location-box button:hover,
+.test-adhan-button:hover,
+.prayer-audio-test button:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.08);
+}
+
+.prayer-location-box button:disabled {
+  opacity: .6;
+  cursor: wait;
+}
+
+.prayer-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 15px;
+}
+
+.prayer-setting-card {
+  background: #fff;
+  border: 1px solid rgba(201, 164, 92, .35);
+  border-radius: 17px;
+  padding: 17px;
+  box-shadow: 0 5px 18px rgba(24, 75, 49, .07);
+  min-width: 0;
+}
+
+.prayer-setting-card h3 {
+  color: #176b45;
+  font-size: 19px;
+  margin: 0 0 16px;
+  padding-bottom: 11px;
+  border-bottom: 1px solid #eee5d2;
+}
+
+.prayer-setting-row {
+  margin-bottom: 15px;
+}
+
+.prayer-setting-row label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #405c4a;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.prayer-setting-row input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #218354;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.prayer-setting-row select {
+  width: 100%;
+  margin-top: 7px;
+  padding: 11px;
+  background: #f7faf7;
+  color: #234b38;
+  border: 1px solid #dce8de;
+  border-radius: 9px;
+  outline: none;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.prayer-setting-row select:focus {
+  border-color: #218354;
+  box-shadow: 0 0 0 2px rgba(33, 131, 84, .1);
+}
+
+.test-adhan-button {
+  width: 100%;
+  margin-top: 5px;
+  background: linear-gradient(135deg, #b48b3c, #d0aa5b);
+  color: #fff;
+}
+
+.prayer-audio-test {
+  text-align: center;
+  margin-top: 20px;
+  padding: 18px;
+  background: #f3f8f3;
+  border: 1px solid #dce9dc;
+  border-radius: 15px;
+}
+
+.prayer-audio-test p {
+  color: #56705e;
+  font-size: 13px;
+  margin-bottom: 0;
+}
+
+.prayer-save-message {
+  text-align: center;
+  color: #728578;
+  font-size: 13px;
+  margin-top: 18px;
+}
+
+@media (max-width: 600px) {
+  .yaqeen-prayer-settings {
+    padding: 10px;
+  }
+
+  .prayer-cards {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .prayer-setting-card {
+    padding: 15px;
+  }
+
+  .prayer-settings-header h2 {
+    font-size: 21px;
+  }
+}
+
