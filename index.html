@@ -1,29 +1,49 @@
-```html
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <meta name="theme-color" content="#080B10">
   <meta name="description" content="يقين - رفيقك إلى الله">
-<link rel="icon" href="favicon.ico">
-  <link rel="manifest" href="https://amrsaeed815-cloud.github.io/yaqeen-app/manifest.json">
-  <link rel="stylesheet" href="css/style.css">
+
+  <!-- أيقونة التطبيق -->
+  <link
+    rel="icon"
+    type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='85'%3E☪%3C/text%3E%3C/svg%3E"
+  >
+
+  <!-- إعدادات التطبيق -->
+  <link rel="manifest" href="./manifest.json">
+
+  <!-- ملف التصميم -->
+  <link rel="stylesheet" href="./css/style.css">
 
   <title>يَقِين | رفيقك إلى الله</title>
 </head>
 
 <body>
 
+<!-- رأس التطبيق -->
 <header class="top-header">
+
   <div class="brand">
     <div class="brand-icon">☪</div>
+
     <div>
       <h1>يَقِين</h1>
       <p>رفيقك إلى الله</p>
     </div>
   </div>
-  <button class="notification-btn" aria-label="التنبيهات">♧</button>
+
+  <button
+    class="notification-btn"
+    aria-label="التنبيهات"
+    type="button"
+  >♧</button>
+
 </header>
 
 <main>
@@ -37,7 +57,9 @@
       <p id="hijri-date">نسأل الله أن يجعل يومك مباركاً</p>
     </div>
 
+    <!-- مواقيت الصلاة -->
     <div class="prayer-card">
+
       <div class="section-heading">
         <h2>🕌 مواقيت الصلاة</h2>
         <span id="city-name">القاهرة - مصر</span>
@@ -85,6 +107,7 @@
       </div>
     </div>
 
+    <!-- خدمات التطبيق -->
     <div class="section-title">
       <h2>رفيق يومك الإيماني</h2>
       <p>كل ما تحتاجه في مكان واحد</p>
@@ -92,28 +115,44 @@
 
     <div class="features-grid">
 
-      <button class="feature-card" onclick="showPage('quran')">
+      <button
+        class="feature-card"
+        type="button"
+        onclick="showPage('quran')"
+      >
         <span class="feature-icon">📖</span>
         <h3>القرآن الكريم</h3>
         <p>اقرأ واستمع إلى كتاب الله</p>
         <span class="feature-link">افتح الآن ←</span>
       </button>
 
-      <button class="feature-card" onclick="showPage('azkar')">
+      <button
+        class="feature-card"
+        type="button"
+        onclick="showPage('azkar')"
+      >
         <span class="feature-icon">📿</span>
         <h3>الأذكار اليومية</h3>
         <p>حصّن يومك بذكر الله</p>
         <span class="feature-link">افتح الآن ←</span>
       </button>
 
-      <button class="feature-card" onclick="showPage('ramadan')">
+      <button
+        class="feature-card"
+        type="button"
+        onclick="showPage('ramadan')"
+      >
         <span class="feature-icon">🌙</span>
         <h3>رمضان</h3>
         <p>الإمساكية ومدفع الإفطار</p>
         <span class="feature-link">افتح الآن ←</span>
       </button>
 
-      <button class="feature-card" onclick="showPage('more')">
+      <button
+        class="feature-card"
+        type="button"
+        onclick="showPage('more')"
+      >
         <span class="feature-icon">🧭</span>
         <h3>القبلة والسبحة</h3>
         <p>خدماتك الإسلامية</p>
@@ -124,6 +163,7 @@
 
     <div class="daily-message">
       <span>🤍</span>
+
       <div>
         <h3>ذكر الله يطمئن القلوب</h3>
         <p>ألا بذكر الله تطمئن القلوب</p>
@@ -131,6 +171,7 @@
     </div>
 
   </section>
+
 
   <!-- القرآن الكريم -->
   <section id="quran" class="page">
@@ -145,6 +186,7 @@
       <h3>اختر القارئ</h3>
 
       <select id="quran-reader">
+
         <option value="mishary">مشاري راشد العفاسي</option>
         <option value="husary">محمود خليل الحصري</option>
         <option value="abdulbasit">عبد الباسط عبد الصمد</option>
@@ -155,24 +197,28 @@
         <option value="jibreel">محمد جبريل</option>
         <option value="ayoub">محمد أيوب</option>
         <option value="hudhaify">علي الحذيفي</option>
+
       </select>
     </div>
 
     <div class="content-card">
       <h3>المصحف الشريف</h3>
       <p>القرآن الكريم كاملاً - 114 سورة</p>
+
       <div id="surah-list"></div>
     </div>
 
     <div class="content-card">
       <h3>🎧 الابتهالات</h3>
       <p>الشيخ سيد النقشبندي</p>
+
       <div id="nasheed-player"></div>
     </div>
 
   </section>
 
-  <!-- الأذكار -->
+
+  <!-- الأذكار اليومية -->
   <section id="azkar" class="page">
 
     <div class="page-heading">
@@ -183,43 +229,43 @@
 
     <div class="azkar-menu">
 
-      <button class="feature-card" onclick="loadAzkar('morning')">
+      <button type="button" class="feature-card" onclick="loadAzkar('morning')">
         🌅 أذكار الصباح
       </button>
 
-      <button class="feature-card" onclick="loadAzkar('evening')">
+      <button type="button" class="feature-card" onclick="loadAzkar('evening')">
         🌇 أذكار المساء
       </button>
 
-      <button class="feature-card" onclick="loadAzkar('sleep')">
+      <button type="button" class="feature-card" onclick="loadAzkar('sleep')">
         🌙 أذكار النوم
       </button>
 
-      <button class="feature-card" onclick="loadAzkar('wake')">
+      <button type="button" class="feature-card" onclick="loadAzkar('wake')">
         ☀️ أذكار الاستيقاظ
       </button>
 
-      <button class="feature-card" onclick="loadAzkar('prayer')">
+      <button type="button" class="feature-card" onclick="loadAzkar('prayer')">
         🕌 أذكار بعد الصلاة
       </button>
 
-      <button class="feature-card" onclick="loadAzkar('adhan')">
+      <button type="button" class="feature-card" onclick="loadAzkar('adhan')">
         📢 أذكار الأذان
       </button>
 
-      <button class="feature-card" onclick="loadAzkar('mosque')">
+      <button type="button" class="feature-card" onclick="loadAzkar('mosque')">
         🕌 أذكار المسجد
       </button>
 
-      <button class="feature-card" onclick="loadAzkar('home')">
+      <button type="button" class="feature-card" onclick="loadAzkar('home')">
         🏠 أذكار المنزل
       </button>
 
-      <button class="feature-card" onclick="loadAzkar('food')">
+      <button type="button" class="feature-card" onclick="loadAzkar('food')">
         🍽️ أذكار الطعام
       </button>
 
-      <button class="feature-card" onclick="loadAzkar('general')">
+      <button type="button" class="feature-card" onclick="loadAzkar('general')">
         🤲 أذكار متنوعة
       </button>
 
@@ -229,7 +275,8 @@
 
   </section>
 
-  <!-- الصلاة -->
+
+  <!-- الصلاة والأذان -->
   <section id="prayer" class="page">
 
     <div class="page-heading">
@@ -239,6 +286,7 @@
     </div>
 
     <div class="content-card">
+
       <h3>إعدادات الأذان</h3>
 
       <label>
@@ -252,6 +300,7 @@
         <input type="checkbox" id="iqama-enabled" checked>
         تفعيل تنبيه الإقامة
       </label>
+
     </div>
 
     <div class="content-card">
@@ -261,6 +310,7 @@
     </div>
 
   </section>
+
 
   <!-- رمضان -->
   <section id="ramadan" class="page">
@@ -274,12 +324,14 @@
     <div class="content-card">
       <h3>إمساكية شهر رمضان</h3>
       <p>مواعيد السحور والإمساك والإفطار والصلاة</p>
+
       <div id="ramadan-calendar"></div>
     </div>
 
     <div class="content-card">
       <h3>🍲 تنبيه السحور</h3>
       <p>تذكير قبل موعد الفجر للاستعداد للسحور</p>
+
       <input
         type="number"
         id="suhoor-minutes"
@@ -287,6 +339,7 @@
         min="5"
         max="120"
       >
+
       <span>دقيقة قبل الفجر</span>
     </div>
 
@@ -301,6 +354,7 @@
     </div>
 
   </section>
+
 
   <!-- المزيد -->
   <section id="more" class="page">
@@ -341,95 +395,153 @@
 
 </main>
 
-<!-- شريط التنقل -->
+
+<!-- شريط التنقل السفلي -->
 <nav class="bottom-nav">
 
-  <button class="nav-item active" onclick="showPage('home')">
+  <button
+    type="button"
+    class="nav-item active"
+    onclick="showPage('home')"
+  >
     <span>⌂</span>
     <small>الرئيسية</small>
   </button>
 
-  <button class="nav-item" onclick="showPage('quran')">
+  <button
+    type="button"
+    class="nav-item"
+    onclick="showPage('quran')"
+  >
     <span>📖</span>
     <small>القرآن</small>
   </button>
 
-  <button class="nav-item" onclick="showPage('prayer')">
+  <button
+    type="button"
+    class="nav-item"
+    onclick="showPage('prayer')"
+  >
     <span>🕌</span>
     <small>الصلاة</small>
   </button>
 
-  <button class="nav-item" onclick="showPage('azkar')">
+  <button
+    type="button"
+    class="nav-item"
+    onclick="showPage('azkar')"
+  >
     <span>📿</span>
     <small>الأذكار</small>
   </button>
 
-  <button class="nav-item" onclick="showPage('more')">
+  <button
+    type="button"
+    class="nav-item"
+    onclick="showPage('more')"
+  >
     <span>☰</span>
     <small>المزيد</small>
   </button>
 
 </nav>
 
-<!-- التنقل بين الصفحات -->
+
+<!-- نظام التنقل بين الصفحات -->
 <script>
-window.showPage = function(pageId) {
 
-  const pages = document.querySelectorAll("main .page");
-  const target = document.getElementById(pageId);
+(function () {
 
-  if (!target) {
-    console.error("Page not found:", pageId);
-    return;
-  }
+  "use strict";
 
-  pages.forEach(function(page) {
-    page.classList.toggle("active", page.id === pageId);
-  });
+  window.showPage = function (pageId) {
 
-  document.querySelectorAll(".bottom-nav .nav-item")
-    .forEach(function(button) {
+    const pages = document.querySelectorAll("main .page");
+    const target = document.getElementById(pageId);
 
-      const isActive =
-        button.getAttribute("onclick") === "showPage('" + pageId + "')";
+    if (!target || !target.classList.contains("page")) {
+      console.error("Page not found:", pageId);
+      return;
+    }
 
-      button.classList.toggle("active", isActive);
+    pages.forEach(function (page) {
+      page.classList.toggle("active", page.id === pageId);
     });
 
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth"
-  });
+    document.querySelectorAll(".bottom-nav .nav-item")
+      .forEach(function (button) {
 
-};
+        const isActive =
+          button.getAttribute("onclick") ===
+          "showPage('" + pageId + "')";
+
+        button.classList.toggle("active", isActive);
+
+      });
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+
+  };
+
+})();
+
 </script>
 
+
 <!-- ملفات التطبيق -->
-<script src="css/js/azkar.js"></script>
-<script src="css/js/app.js"></script>
 
-<script src="css/js/js/quran.js"></script>
+<!-- الأذكار -->
+<script src="./css/js/azkar.js"></script>
 
-<script src="prayer.js"></script>
-<script src="ramadan.js"></script>
-<script src="css/js/js/js/timezone.js"></script>
+<!-- وظائف التطبيق -->
+<script src="./css/js/app.js"></script>
+
+<!-- القرآن الكريم -->
+<script src="./css/js/js/quran.js"></script>
+
+<!-- مواقيت الصلاة والأذان -->
+<script src="./prayer.js"></script>
+
+<!-- رمضان -->
+<script src="./ramadan.js"></script>
+
+<!-- التوقيت العالمي -->
+<script src="./css/js/js/js/timezone.js"></script>
+
 
 <!-- تسجيل Service Worker -->
 <script>
+
 if ("serviceWorker" in navigator) {
 
-  window.addEventListener("load", function() {
+  window.addEventListener("load", function () {
 
     navigator.serviceWorker.register("./service-worker.js")
-      .catch(function(error) {
-        console.error("Service Worker Error:", error);
+      .then(function (registration) {
+
+        console.log(
+          "Yaqeen Service Worker registered:",
+          registration.scope
+        );
+
+      })
+      .catch(function (error) {
+
+        console.error(
+          "Service Worker Error:",
+          error
+        );
+
       });
 
   });
 
 }
+
 </script>
 
 </body>
 </html>
-```
