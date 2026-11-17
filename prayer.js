@@ -4,7 +4,7 @@
 
   // ==========================================
   // تطبيق يقين - نظام الصلاة والأذان
-  // الإصدار المحسن
+  // النسخة المصححة
   // ==========================================
 
   const METHOD = 5;
@@ -207,13 +207,17 @@
   function createPrayerInterface() {
     const section = document.getElementById("prayer");
 
-    if (!section) return;
+    if (!section) {
+      console.warn("لم يتم العثور على قسم الصلاة #prayer");
+      return;
+    }
 
     if (document.getElementById("yaqeen-prayer-settings")) {
       return;
     }
 
-    section.innerHTML = `
+    // مهم: نضيف الإعدادات دون مسح محتوى قسم الصلاة الأصلي
+    section.insertAdjacentHTML("beforeend", `
       <div id="yaqeen-prayer-settings"
            class="yaqeen-prayer-settings">
 
@@ -225,6 +229,7 @@
         <div class="prayer-location-box">
           <h3>📍 موقع مواقيت الصلاة</h3>
           <p id="prayer-location-name"></p>
+
           <button type="button" id="refresh-prayer-location">
             تحديث الموقع
           </button>
@@ -237,6 +242,7 @@
           <button type="button" id="stop-prayer-audio">
             إيقاف صوت الأذان
           </button>
+
           <p id="prayer-audio-status">
             اختر صوت الأذان وجربه
           </p>
@@ -247,7 +253,7 @@
         </p>
 
       </div>
-    `;
+    `);
 
     renderPrayerCards();
 
@@ -277,7 +283,7 @@
       });
 
     document.getElementById("stop-prayer-audio")
-      ?.addEventListener("click", stopAudio);
+      ?.addEventListener("click", () => stopAudio());
   }
 
   // ==========================================
@@ -535,7 +541,8 @@
     container.querySelectorAll("[data-test-prayer]")
       .forEach(button => {
         button.addEventListener("click", () => {
-          playAdhan(button.dataset.testPrayer);
+          // true تعني أن التشغيل تجربة يدوية
+          playAdhan(button.dataset.testPrayer, true);
         });
       });
   }
@@ -580,7 +587,6 @@
       currentAudio = null;
 
       oldAudio.pause();
-
       oldAudio.removeAttribute("src");
       oldAudio.load();
     }
@@ -594,11 +600,13 @@
     }
   }
 
-  async function playAdhan(prayerId) {
+  async function playAdhan(prayerId, isTest = false) {
 
     const s = settings[prayerId];
 
-    if (!s || !s.adhanEnabled) {
+    // التشغيل التلقائي يحتاج تفعيل الأذان.
+    // التجربة اليدوية مسموحة حتى لو كان الأذان معطلًا.
+    if (!s || (!isTest && !s.adhanEnabled)) {
       return;
     }
 
@@ -608,14 +616,16 @@
       return;
     }
 
+    const prayer = PRAYERS.find(
+      item => item.id === prayerId
+    );
+
+    if (!prayer) return;
+
     stopAudio(false);
 
     const status = document.getElementById(
       "prayer-audio-status"
-    );
-
-    const prayer = PRAYERS.find(
-      item => item.id === prayerId
     );
 
     const audio = new Audio();
@@ -903,6 +913,12 @@
       city.textContent = locationData.city;
     }
 
+    const prayerCity = document.getElementById("prayer-city");
+
+    if (prayerCity) {
+      prayerCity.textContent = locationData.city;
+    }
+
     const locationName = document.getElementById(
       "prayer-location-name"
     );
@@ -1142,7 +1158,7 @@
         !history[key]
       ) {
         history[key] = true;
-        playAdhan(prayer.id);
+        playAdhan(prayer.id, false);
       }
     });
 
