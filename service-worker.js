@@ -1,5 +1,7 @@
 
-const CACHE_NAME = "yaqeen-v3";
+"use strict";
+
+const CACHE_NAME = "yaqeen-v4";
 
 const FILES_TO_CACHE = [
   "./",
@@ -10,68 +12,92 @@ const FILES_TO_CACHE = [
   "./css/js/js/quran.js",
   "./css/js/js/js/timezone.js",
   "./prayer.js",
-"./ramadan.js",
-"./icon-192.png",
-"./icon-512.png"];
+  "./ramadan.js",
+  "./icon-192.png",
+  "./icon-512.png"
+];
 
-// تثبيت الملفات الأساسية
+// تثبيت الملفات الأساسية دون فشل التثبيت
+// إذا كان أحد الملفات غير موجود
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(FILES_TO_CACHE);
+    caches.open(CACHE_NAME).then(async (cache) => {
+      await Promise.allSettled(
+        FILES_TO_CACHE.map((file) => cache.add(file))
+      );
     })
   );
 
   self.skipWaiting();
 });
 
-// حذف النسخ القديمة
+// تفعيل النسخة الجديدة وحذف نسخ يقين القديمة
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
         keys
-          .filter((key) => key !== CACHE_NAME)
+          .filter((key) =>
+            key.startsWith("yaqeen-") && key !== CACHE_NAME
+          )
           .map((key) => caches.delete(key))
       );
-    })
+    }).then(() => self.clients.claim())
   );
-
-  self.clients.claim();
 });
 
-// تشغيل الملفات من الذاكرة عند توفرها
+// التعامل مع طلبات الملفات
 self.addEventListener("fetch", (event) => {
-  if (event.request.method !== "GET") return;
+  const request = event.request;
 
-  const url = new URL(event.request.url);
+  if (request.method !== "GET") return;
 
+  const url = new URL(request.url);
+
+  // عدم تخزين طلبات المواقع الخارجية وواجهات API
   if (url.origin !== self.location.origin) return;
 
-  if (event.request.mode === "navigate") {
+  // صفحات التطبيق: الإنترنت أولاً ثم النسخة المحفوظة
+  if (request.mode === "navigate") {
     event.respondWith(
-      fetch(event.request)
+      fetch(request)
         .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put("./index.html", copy);
-          });
+          if (response.ok) {
+            const copy = response.clone();
+
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(
+                new URL("./index.html", self.registration.scope),
+                copy
+              );
+            });
+          }
+
           return response;
         })
-        .catch(() => caches.match("./index.html"))
+        .catch(async () => {
+          const cached = await caches.match(
+            new URL("./index.html", self.registration.scope)
+          );
+
+          return cached || Response.error();
+        })
     );
+
     return;
   }
 
+  // الملفات: النسخة المحفوظة أولاً ثم الإنترنت
   event.respondWith(
-    caches.match(event.request).then((cached) => {
+    caches.match(request).then((cached) => {
       if (cached) return cached;
 
-      return fetch(event.request).then((response) => {
-        if (response.ok) {
+      return fetch(request).then((response) => {
+        if (response.ok && response.type === "basic") {
           const copy = response.clone();
+
           caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, copy);
+            cache.put(request, copy);
           });
         }
 
