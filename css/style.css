@@ -1014,3 +1014,129 @@ select {
   }
 }
 
+
+/* ==========================================
+   YAQEEN - MOBILE PRAYER AUDIO CONTROLS
+   تحسين شريط مستوى صوت الأذان للموبايل والكمبيوتر
+========================================== */
+
+/* شريط مستوى الصوت */
+.yaqeen-prayer-settings
+.prayer-setting-row input[type="range"] {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: 32px !important;
+  margin: 10px 0 5px !important;
+  padding: 0 !important;
+  cursor: pointer;
+  accent-color: #176b45;
+  background: transparent !important;
+  border: none !important;
+  outline: none;
+  appearance: auto;
+  -webkit-appearance: auto;
+  touch-action: pan-x;
+}
+
+/* تحسين مظهر قيمة الصوت */
+.yaqeen-prayer-settings
+.prayer-setting-row label strong {
+  color: #176b45;
+  font-size: 15px;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+/* بطاقات الصلاة */
+.yaqeen-prayer-settings .prayer-setting-card {
+  width: 100%;
+  min-width: 0;
+  overflow: visible;
+}
+
+/* صفوف الإعدادات */
+.yaqeen-prayer-settings .prayer-setting-row {
+  width: 100%;
+  min-width: 0;
+  margin-bottom: 16px;
+}
+
+/* إظهار حالة التركيز */
+.yaqeen-prayer-settings
+.prayer-setting-row input[type="range"]:focus-visible {
+  outline: 2px solid #176b45;
+  outline-offset: 4px;
+}
+
+/* أزرار تجربة وإيقاف الأذان */
+.yaqeen-prayer-settings .test-adhan-button,
+.yaqeen-prayer-settings .prayer-audio-test button {
+  display: block;
+  width: 100%;
+  min-height: 46px;
+  margin-top: 10px;
+  font-size: 15px;
+  touch-action: manipulation;
+}
+
+/* صندوق حالة تشغيل الأذان */
+.yaqeen-prayer-settings .prayer-audio-test {
+  width: 100%;
+  line-height: 1.9;
+}
+
+/* تحسين شاشة الموبايل */
+@media (max-width: 600px) {
+
+  .yaqeen-prayer-settings {
+    width: 100%;
+    padding: 10px;
+  }
+
+  .yaqeen-prayer-settings .prayer-cards {
+    grid-template-columns: 1fr;
+    width: 100%;
+    gap: 14px;
+  }
+
+  .yaqeen-prayer-settings .prayer-setting-card {
+    width: 100%;
+    padding: 16px;
+    border-radius: 17px;
+  }
+
+  .yaqeen-prayer-settings
+  .prayer-setting-row input[type="range"] {
+    height: 38px !important;
+    margin-top: 12px !important;
+    margin-bottom: 8px !important;
+  }
+
+  .yaqeen-prayer-settings
+  .prayer-setting-row label {
+    font-size: 14px;
+    flex-wrap: wrap;
+  }
+
+  .yaqeen-prayer-settings .test-adhan-button {
+    min-height: 48px;
+  }
+
+  .yaqeen-prayer-settings .prayer-audio-test {
+    padding: 16px 12px;
+  }
+}
+
+/* الشاشات الصغيرة جدًا */
+@media (max-width: 360px) {
+
+  .yaqeen-prayer-settings .prayer-setting-card {
+    padding: 12px;
+  }
+
+  .yaqeen-prayer-settings
+  .prayer-setting-row label {
+    font-size: 13px;
+  }
+}
