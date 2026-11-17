@@ -526,3 +526,308 @@ select {
   background: #236274;
   color: white;
 }
+
+
+/* =====================================
+   YAQEEN APP - NEW LIGHT ISLAMIC THEME
+   الهوية البصرية الجديدة لتطبيق يقين
+===================================== */
+
+:root {
+  --green: #075B50;
+  --green-light: #0B7867;
+  --gold: #C9A45C;
+  --cream: #F8F7F1;
+  --white: #FFFFFF;
+  --text: #263B36;
+  --muted: #788780;
+  --shadow: 0 6px 22px rgba(7, 91, 80, .09);
+  --turquoise: #168C7B;
+  --blue: #EAF2EE;
+}
+
+html {
+  background: var(--cream);
+  color-scheme: light;
+}
+
+body {
+  background:
+    radial-gradient(circle at 10% 10%, rgba(201,164,92,.06), transparent 30%),
+    var(--cream);
+  color: var(--text);
+}
+
+/* الشريط العلوي */
+.top-header {
+  background: linear-gradient(135deg, #064C43, #087565);
+  color: white;
+  border-bottom: 2px solid var(--gold);
+  border-radius: 0 0 24px 24px;
+  box-shadow: var(--shadow);
+}
+
+.brand-icon {
+  background: rgba(255,255,255,.09);
+  border: 1px solid var(--gold);
+  color: #E9C77E;
+}
+
+.brand h1 {
+  color: #F0D18D;
+}
+
+.brand p {
+  color: #D6E9E1;
+}
+
+.notification-btn {
+  background: rgba(255,255,255,.10);
+  border: 1px solid rgba(255,255,255,.25);
+  color: #F0D18D;
+}
+
+/* الترحيب */
+.welcome p {
+  color: var(--muted);
+}
+
+.welcome h2 {
+  color: var(--green);
+}
+
+/* بطاقة مواقيت الصلاة */
+.prayer-card {
+  background: linear-gradient(145deg, #075B50, #08796A);
+  color: white;
+  border: 1px solid rgba(201,164,92,.65);
+  box-shadow: 0 10px 30px rgba(7,91,80,.18);
+}
+
+.prayer-card::after {
+  color: rgba(255,255,255,.06);
+}
+
+.section-heading h2 {
+  color: white;
+}
+
+.section-heading span {
+  color: #F0D18D;
+}
+
+.next-prayer p {
+  color: #D5E8E0;
+}
+
+.next-prayer h2 {
+  color: #F0D18D;
+}
+
+#countdown {
+  color: #F5D58E;
+}
+
+.prayer-times {
+  background: rgba(0,0,0,.16);
+  border: 1px solid rgba(255,255,255,.12);
+}
+
+.prayer-item p {
+  color: #D5E8E0;
+}
+
+.prayer-item strong {
+  color: #F0D18D;
+}
+
+/* عناوين الأقسام */
+.section-title h2 {
+  color: var(--green);
+}
+
+.section-title p {
+  color: var(--muted);
+}
+
+/* بطاقات الصفحة الرئيسية */
+.feature-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(201,164,92,.40);
+  color: var(--text);
+  box-shadow: var(--shadow);
+  border-radius: 20px;
+}
+
+.feature-card:active {
+  border-color: var(--gold);
+  transform: scale(.97);
+}
+
+.feature-icon {
+  background: #EAF3EE;
+  border: 1px solid rgba(201,164,92,.5);
+  border-radius: 50%;
+  color: var(--green);
+}
+
+.feature-card h3 {
+  color: var(--green);
+}
+
+.feature-card p {
+  color: var(--muted);
+}
+
+.feature-link {
+  color: #A47D35;
+}
+
+/* رسالة اليوم */
+.daily-message {
+  background: #EDF4EF;
+  border: 1px solid rgba(201,164,92,.5);
+}
+
+.daily-message h3 {
+  color: var(--green);
+}
+
+.daily-message p {
+  color: var(--muted);
+}
+
+/* عناوين الصفحات الداخلية */
+.page-heading h2 {
+  color: var(--green);
+}
+
+.page-heading p {
+  color: var(--muted);
+}
+
+/* البطاقات الداخلية */
+.content-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(201,164,92,.35);
+  box-shadow: var(--shadow);
+}
+
+.content-card h3 {
+  color: var(--green);
+}
+
+.content-card p {
+  color: var(--muted);
+}
+
+.content-card select,
+.content-card input[type="number"] {
+  background: #F8FAF8;
+  color: var(--text);
+  border: 1px solid #D9E5DD;
+}
+
+/* قائمة الأذكار */
+.azkar-menu .feature-card {
+  color: var(--green);
+  background: #FFFFFF;
+  border: 1px solid rgba(201,164,92,.45);
+}
+
+/* الإعدادات */
+.content-card label {
+  color: var(--text);
+}
+
+.content-card input[type="checkbox"] {
+  accent-color: var(--green);
+}
+
+/* بطاقة عن التطبيق */
+.about-card {
+  background: linear-gradient(145deg, #075B50, #08796A);
+  color: white;
+}
+
+.about-card h2 {
+  color: #F0D18D;
+}
+
+.about-card p {
+  color: #E3EEE9;
+}
+
+/* شريط التنقل السفلي */
+.bottom-nav {
+  background: rgba(255,255,255,.97);
+  border-top: 1px solid rgba(201,164,92,.55);
+  box-shadow: 0 -5px 22px rgba(7,91,80,.09);
+}
+
+.nav-item {
+  color: #89958F;
+}
+
+.nav-item.active {
+  color: var(--green);
+}
+
+.nav-item.active span {
+  color: var(--gold);
+}
+
+/* أقسام الصلاة */
+.prayer-section {
+  background: #FFFFFF;
+  border: 1px solid rgba(201,164,92,.4);
+  color: var(--text);
+}
+
+.prayer-section h2 {
+  color: var(--green);
+}
+
+#prayer-times > div {
+  background: #EDF4EF;
+  border: 1px solid #DCE8DF;
+  color: var(--green);
+}
+
+/* القوائم والحقول */
+select option {
+  background: #FFFFFF;
+  color: var(--text);
+}
+
+input,
+select {
+  color-scheme: light;
+}
+
+::selection {
+  background: #B8D9CB;
+  color: #064C43;
+}
+
+/* تحسين الهواتف */
+@media (max-width: 480px) {
+  main {
+    padding: 14px 12px;
+  }
+
+  .features-grid,
+  .azkar-menu {
+    gap: 10px;
+  }
+
+  .feature-card {
+    border-radius: 17px;
+  }
+
+  .top-header {
+    padding: 15px;
+  }
+}
+
+
