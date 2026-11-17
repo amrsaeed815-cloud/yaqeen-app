@@ -4,6 +4,7 @@
 
   // ==========================================
   // تطبيق يقين - نظام الصلاة والأذان
+  // الإصدار المحسن
   // ==========================================
 
   const METHOD = 5;
@@ -19,6 +20,11 @@
     city: "القاهرة - مصر"
   };
 
+  const AUDIO_BASE = new URL(
+    "./assets/audio/",
+    document.baseURI
+  ).href;
+
   const PRAYERS = [
     { id: "Fajr", name: "الفجر", element: "fajr-time" },
     { id: "Dhuhr", name: "الظهر", element: "dhuhr-time" },
@@ -30,11 +36,11 @@
   const ADHANS = {
     rifaat: {
       name: "الشيخ محمد رفعت",
-      file: "./محمد رفعت.mp4"
+      file: "محمد رفعت.mp4"
     },
     naqshbandi: {
       name: "الشيخ النقشبندي",
-      file: "./اذان(1).mp4"
+      file: "اذان.mp4"
     }
   };
 
@@ -148,16 +154,22 @@
       ) {
         return saved;
       }
-    } catch (error) {}
+    } catch (error) {
+      console.error("خطأ في قراءة الموقع:", error);
+    }
 
     return { ...DEFAULT_LOCATION };
   }
 
   function saveLocation() {
-    localStorage.setItem(
-      LOCATION_KEY,
-      JSON.stringify(locationData)
-    );
+    try {
+      localStorage.setItem(
+        LOCATION_KEY,
+        JSON.stringify(locationData)
+      );
+    } catch (error) {
+      console.error("تعذر حفظ الموقع:", error);
+    }
   }
 
   function getLocation() {
@@ -241,6 +253,7 @@
 
     document.getElementById("refresh-prayer-location")
       ?.addEventListener("click", async () => {
+
         const button = document.getElementById(
           "refresh-prayer-location"
         );
@@ -441,7 +454,9 @@
     }).join("");
 
     container.querySelectorAll("[data-setting]").forEach(control => {
+
       const saveControl = () => {
+
         const prayerId = control.dataset.prayer;
         const setting = control.dataset.setting;
 
@@ -457,6 +472,8 @@
             "timeOffsetMinutes"
           ].includes(setting)
         ) {
+          if (control.value.trim() === "") return;
+
           value = Number(control.value);
 
           if (!Number.isFinite(value)) return;
@@ -480,6 +497,7 @@
         settings[prayerId][setting] = value;
 
         if (setting === "adhanVolume") {
+
           const output = document.getElementById(
             "volume-value-" + prayerId
           );
@@ -488,7 +506,10 @@
             output.textContent = value + "%";
           }
 
-          if (currentAudio && currentAudio.dataset.prayer === prayerId) {
+          if (
+            currentAudio &&
+            currentAudio.dataset.prayer === prayerId
+          ) {
             currentAudio.volume = value / 100;
           }
         }
@@ -551,58 +572,78 @@
   // تشغيل وإيقاف الأذان
   // ==========================================
 
-  function stopAudio() {
+  function stopAudio(updateStatus = true) {
+
     if (currentAudio) {
-      currentAudio.pause();
-      currentAudio.currentTime = 0;
+      const oldAudio = currentAudio;
+
       currentAudio = null;
+
+      oldAudio.pause();
+
+      oldAudio.removeAttribute("src");
+      oldAudio.load();
     }
 
     const status = document.getElementById(
       "prayer-audio-status"
     );
 
-    if (status) {
+    if (status && updateStatus) {
       status.textContent = "تم إيقاف صوت الأذان";
     }
   }
 
-  function playAdhan(prayerId) {
+  async function playAdhan(prayerId) {
+
     const s = settings[prayerId];
 
-    if (!s || !s.adhanEnabled) return;
+    if (!s || !s.adhanEnabled) {
+      return;
+    }
 
     const selected = ADHANS[s.adhanVoice];
 
-    if (!selected) return;
+    if (!selected) {
+      return;
+    }
 
-    stopAudio();
+    stopAudio(false);
 
     const status = document.getElementById(
       "prayer-audio-status"
     );
 
-    const audio = new Audio(selected.file);
+    const prayer = PRAYERS.find(
+      item => item.id === prayerId
+    );
+
+    const audio = new Audio();
 
     currentAudio = audio;
+
     audio.dataset.prayer = prayerId;
     audio.preload = "auto";
     audio.volume = s.adhanVolume / 100;
 
-    if (status) {
-      const prayer = PRAYERS.find(
-        item => item.id === prayerId
-      );
+    audio.src = new URL(
+      selected.file,
+      AUDIO_BASE
+    ).href;
 
+    if (status) {
       status.textContent =
-        "جارٍ تشغيل أذان " + prayer.name +
-        " بصوت " + selected.name;
+        "جارٍ تشغيل أذان " +
+        prayer.name +
+        " بصوت " +
+        selected.name;
     }
 
     audio.addEventListener("ended", () => {
-      if (currentAudio === audio) {
-        currentAudio = null;
-      }
+
+      if (currentAudio !== audio) return;
+
+      currentAudio = null;
 
       if (status) {
         status.textContent = "انتهى تشغيل الأذان";
@@ -610,28 +651,61 @@
     });
 
     audio.addEventListener("error", () => {
+
+      if (currentAudio !== audio) return;
+
+      currentAudio = null;
+
+      console.error(
+        "خطأ تحميل ملف الأذان:",
+        audio.src,
+        audio.error
+      );
+
+      if (status) {
+        status.textContent =
+          "تعذر تحميل ملف الأذان. تأكد من وجود الملف داخل assets/audio.";
+      }
+    });
+
+    try {
+
+      audio.load();
+
+      await audio.play();
+
+      if (currentAudio === audio && status) {
+        status.textContent =
+          "يعمل الآن أذان " +
+          prayer.name +
+          " بصوت " +
+          selected.name;
+      }
+
+    } catch (error) {
+
+      console.error(
+        "تعذر تشغيل الأذان:",
+        error
+      );
+
       if (currentAudio === audio) {
         currentAudio = null;
       }
 
-      if (status) {
-        status.textContent =
-          "تعذر تشغيل الملف. تأكد من وجود ملف الصوت في المجلد الرئيسي.";
-      }
-    });
-
-    audio.play().catch(error => {
-      console.error("تعذر تشغيل الأذان:", error);
-
-      if (currentAudio === audio) {
-        currentAudio = null;
-      }
+      audio.pause();
 
       if (status) {
-        status.textContent =
-          "لم يتم تشغيل الصوت. حاول الضغط على تجربة الأذان مرة أخرى.";
+
+        if (error.name === "NotAllowedError") {
+          status.textContent =
+            "المتصفح منع التشغيل التلقائي. اضغط على تجربة الأذان لتشغيل الصوت.";
+        } else {
+          status.textContent =
+            "تعذر تشغيل الصوت. تحقق من مسار الملف واتصال الإنترنت.";
+        }
       }
-    });
+    }
   }
 
   // ==========================================
@@ -675,6 +749,7 @@
   }
 
   async function fetchTimings(date) {
+
     const url =
       `https://api.aladhan.com/v1/timings/${getApiDate(date)}` +
       `?latitude=${locationData.latitude}` +
@@ -697,11 +772,13 @@
   }
 
   async function loadPrayerTimes() {
+
     if (isLoading) return;
 
     isLoading = true;
 
     try {
+
       const today = new Date();
 
       const [todayTimes, nextDayTimes] = await Promise.all([
@@ -729,6 +806,7 @@
       }
 
       prayerTimes = cleaned;
+
       tomorrowFajr = cleanTime(nextDayTimes.Fajr);
 
       localStorage.setItem(
@@ -744,6 +822,7 @@
       updateNextPrayer();
 
     } catch (error) {
+
       console.error("خطأ في تحميل المواقيت:", error);
 
       loadCachedTimes();
@@ -761,7 +840,9 @@
   }
 
   function loadCachedTimes() {
+
     try {
+
       const cached = JSON.parse(
         localStorage.getItem(CACHE_KEY)
       );
@@ -777,8 +858,13 @@
         displayPrayerTimes();
         updateNextPrayer();
       }
+
     } catch (error) {
-      console.error("خطأ في قراءة المواقيت المحفوظة:", error);
+
+      console.error(
+        "خطأ في قراءة المواقيت المحفوظة:",
+        error
+      );
     }
   }
 
@@ -787,13 +873,20 @@
   // ==========================================
 
   function displayPrayerTimes() {
+
     if (!prayerTimes) return;
 
     PRAYERS.forEach(prayer => {
-      const element = document.getElementById(prayer.element);
+
+      const element = document.getElementById(
+        prayer.element
+      );
 
       if (element) {
-        const adjusted = getAdjustedPrayerDateTime(prayer.id);
+
+        const adjusted = getAdjustedPrayerDateTime(
+          prayer.id
+        );
 
         element.textContent = adjusted
           ? formatTime(
@@ -820,11 +913,13 @@
   }
 
   function formatTime(time) {
+
     if (!time) return "--:--";
 
     const [hour, minute] = time.split(":").map(Number);
 
     const period = hour >= 12 ? "م" : "ص";
+
     const formattedHour = hour % 12 || 12;
 
     return `${formattedHour}:${String(minute).padStart(2, "0")} ${period}`;
@@ -835,6 +930,7 @@
   // ==========================================
 
   function updateNextPrayer() {
+
     if (!prayerTimes) return;
 
     const now = new Date();
@@ -847,6 +943,7 @@
     let nextPrayer = upcoming;
 
     if (!nextPrayer && tomorrowFajr) {
+
       const tomorrow = new Date(
         now.getFullYear(),
         now.getMonth(),
@@ -885,15 +982,18 @@
     }
 
     if (countdownElement) {
+
       const difference = Math.max(
         0,
         nextPrayer.date.getTime() - now.getTime()
       );
 
       const hours = Math.floor(difference / 3600000);
+
       const minutes = Math.floor(
         (difference % 3600000) / 60000
       );
+
       const seconds = Math.floor(
         (difference % 60000) / 1000
       );
@@ -914,16 +1014,20 @@
   }
 
   function loadAlertHistory() {
+
     try {
+
       return JSON.parse(
         localStorage.getItem(ALERTS_KEY)
       ) || {};
+
     } catch (error) {
       return {};
     }
   }
 
   function saveAlertHistory(history) {
+
     const keys = Object.keys(history);
 
     keys.slice(0, Math.max(0, keys.length - 20))
@@ -936,6 +1040,7 @@
   }
 
   function speakAlert(prayerName) {
+
     if (!("speechSynthesis" in window)) return;
 
     window.speechSynthesis.cancel();
@@ -952,13 +1057,17 @@
   }
 
   function checkPrayerAlerts() {
+
     if (!prayerTimes) return;
 
     const now = new Date();
+
     const today = getLocalDateString();
+
     const history = loadAlertHistory();
 
     PRAYERS.forEach(prayer => {
+
       const s = settings[prayer.id];
 
       if (!s.alertEnabled) return;
@@ -996,16 +1105,19 @@
   // ==========================================
 
   function checkAdhan() {
+
     if (!prayerTimes) return;
 
     const now = new Date();
+
     const today = getLocalDateString();
+
     const history = loadAlertHistory();
 
     PRAYERS.forEach(prayer => {
+
       const s = settings[prayer.id];
 
-      // لا يعمل الأذان إلا في الوضع التلقائي
       if (
         !s.adhanEnabled ||
         s.adhanMode !== "auto"
@@ -1042,10 +1154,13 @@
   // ==========================================
 
   async function checkNewDay() {
+
     const today = getLocalDateString();
 
     if (today !== lastDate) {
+
       lastDate = today;
+
       prayerTimes = null;
       tomorrowFajr = null;
 
@@ -1054,13 +1169,21 @@
   }
 
   function startPrayerSystem() {
-    if (timer) clearInterval(timer);
+
+    if (timer) {
+      clearInterval(timer);
+    }
 
     timer = setInterval(() => {
+
       checkNewDay();
+
       updateNextPrayer();
+
       checkPrayerAlerts();
+
       checkAdhan();
+
     }, 1000);
   }
 
@@ -1069,6 +1192,7 @@
   // ==========================================
 
   async function init() {
+
     createPrayerInterface();
 
     lastDate = getLocalDateString();
@@ -1078,11 +1202,13 @@
     const locationUpdated = await getLocation();
 
     if (!locationUpdated) {
+
       const locationName = document.getElementById(
         "prayer-location-name"
       );
 
       if (locationName) {
+
         locationName.textContent =
           locationData.city +
           " (الموقع المحفوظ أو الافتراضي)";
@@ -1094,20 +1220,38 @@
     startPrayerSystem();
 
     document.addEventListener("visibilitychange", () => {
+
       if (!document.hidden) {
+
         checkNewDay();
+
         updateNextPrayer();
+
         checkPrayerAlerts();
+
         checkAdhan();
       }
     });
 
-    window.addEventListener("online", loadPrayerTimes);
+    window.addEventListener(
+      "online",
+      loadPrayerTimes
+    );
   }
 
+  // ==========================================
+  // تشغيل التطبيق
+  // ==========================================
+
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      init
+    );
+
   } else {
+
     init();
   }
 
