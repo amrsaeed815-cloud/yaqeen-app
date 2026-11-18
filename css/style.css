@@ -1141,275 +1141,210 @@ select {
   }
 }
 
-/* ==========================================
-   YAQEEN - APPROVED DARK GOLD THEME
-   التصميم الداكن المعتمد
-========================================== */
 
+/* =====================================================
+   YAQEEN NIGHT MOSQUE REDESIGN — approved visual direction
+   Dark petrol teal, deep navy, warm gold, Arabic RTL
+   Existing page structure and feature selectors preserved
+===================================================== */
 :root {
-  --green: #102D38;
-  --green-light: #164653;
-  --gold: #E5B85C;
-  --cream: #080B10;
-  --white: #111923;
-  --text: #E7EEF2;
-  --muted: #91A4B1;
-  --shadow: 0 8px 25px rgba(0,0,0,.35);
-  --turquoise: #43C6D9;
-  --blue: #182D43;
+  --green: #073b3b;
+  --green-light: #0b5555;
+  --gold: #e8b957;
+  --cream: #07171c;
+  --white: #102a31;
+  --text: #edf4f1;
+  --muted: #a9c0c2;
+  --shadow: 0 12px 34px rgba(0,0,0,.34);
+  --turquoise: #64c9c1;
+  --blue: #12343d;
 }
-
-html {
-  background: #080B10 !important;
-  color-scheme: dark !important;
+html, body {
+  background: #06171c !important;
+  color: #edf4f1 !important;
+  color-scheme: dark;
 }
-
 body {
   background:
-    radial-gradient(ellipse at top, #10313b 0%, #080B10 65%) !important;
-  color: #E7EEF2 !important;
+    radial-gradient(ellipse at 50% -10%, rgba(36,119,119,.32), transparent 48%),
+    radial-gradient(ellipse at 90% 35%, rgba(18,80,78,.18), transparent 40%),
+    linear-gradient(180deg, #071a20 0%, #08171d 55%, #061217 100%) !important;
 }
-
-/* الرأس */
 .top-header {
-  background: linear-gradient(135deg, #071923, #103744) !important;
-  border-bottom: 1px solid rgba(229,184,92,.5);
-  border-radius: 0 !important;
+  position: relative;
+  justify-content: center !important;
+  min-height: 104px;
+  padding: 18px 64px !important;
+  border-radius: 0 0 26px 26px !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(232,185,87,.58) !important;
+  background: linear-gradient(115deg, #06252a, #0b3b40 52%, #06252a) !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,.3) !important;
 }
-
-.brand h1,
-.welcome h2,
-.section-title h2,
-.page-heading h2 {
-  color: #E5B85C !important;
+.brand { justify-content: center; gap: 14px; }
+.brand-icon {
+  width: 54px; height: 54px; border-radius: 17px;
+  background: rgba(232,185,87,.09) !important;
+  border: 1px solid rgba(232,185,87,.6) !important;
+  color: var(--gold) !important;
+  font-size: 31px;
 }
-
-.brand p,
-.welcome p,
-.section-title p,
-.page-heading p {
-  color: #A7C1CB !important;
-}
-
-.brand-icon,
+.brand h1 { color: #f2c66e !important; font-size: 31px; letter-spacing: 1px; }
+.brand p { color: #c1d7d4 !important; }
 .notification-btn {
-  background: #142C38 !important;
-  color: #E5B85C !important;
-  border-color: #E5B85C !important;
+  position: absolute; left: 18px; top: 50%; transform: translateY(-50%);
+  background: rgba(255,255,255,.06) !important;
+  border: 1px solid rgba(232,185,87,.35) !important;
+  color: var(--gold) !important;
 }
-
-/* الترحيب */
+main { max-width: 900px !important; padding: 18px 16px 30px !important; }
 .welcome {
-  background:
-    radial-gradient(ellipse at 20% 100%, #164653 0%, transparent 55%),
-    linear-gradient(120deg, #102D38, #071923) !important;
-  border: 1px solid rgba(67,198,217,.45);
-  border-radius: 28px;
-  padding: 30px 22px !important;
-  margin: 5px 0 18px;
   text-align: center;
+  margin: 2px 0 16px;
+  padding: 20px 16px;
+  border-radius: 22px;
+  border: 1px solid rgba(100,201,193,.3);
+  background: linear-gradient(135deg, rgba(14,61,67,.92), rgba(8,39,47,.94));
   box-shadow: var(--shadow);
 }
-
-/* مواقيت الصلاة */
+.welcome p { color: #b5cbca !important; }
+.welcome h2 { color: #f1c66d !important; font-size: clamp(20px, 4vw, 27px); }
 .prayer-card {
+  isolation: isolate;
+  padding: 24px 20px 18px !important;
+  border: 1.5px solid rgba(232,185,87,.78) !important;
+  border-radius: 28px !important;
   background:
-    radial-gradient(ellipse at center top, #164653, transparent 75%),
-    linear-gradient(145deg, #102D38, #061820) !important;
-  border: 1px solid rgba(67,198,217,.5) !important;
-  border-radius: 30px !important;
-  box-shadow: 0 10px 35px rgba(0,0,0,.4);
+    radial-gradient(ellipse at 12% 45%, rgba(232,185,87,.12), transparent 34%),
+    radial-gradient(ellipse at 80% 0%, rgba(51,140,137,.28), transparent 45%),
+    linear-gradient(145deg, #0d4147 0%, #082b34 55%, #071e27 100%) !important;
+  box-shadow: 0 16px 42px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.08) !important;
 }
-
-.section-heading h2 {
-  color: #F1F5F6 !important;
+.prayer-card::after {
+  content: "☾" !important;
+  left: 8px !important; top: 52px !important;
+  color: rgba(221,239,230,.07) !important;
+  font-size: 150px !important;
 }
-
-.section-heading span,
-.next-prayer h2,
-.prayer-item strong {
-  color: #E5B85C !important;
-}
-
-.next-prayer p,
-.prayer-item p {
-  color: #D2E1E6 !important;
-}
-
+.section-heading h2 { color: #f5f0df !important; font-size: 18px !important; }
+.section-heading span { color: #eac16b !important; }
+.next-prayer { padding: 24px 0 26px !important; }
+.next-prayer p { color: #c5d9d6 !important; }
+.next-prayer h2 { color: #f2c46b !important; font-size: 32px !important; }
 #countdown {
-  color: #F2C96F !important;
-  background: rgba(5,25,34,.55);
-  border: 1px solid rgba(67,198,217,.3);
-  border-radius: 30px;
   display: inline-block;
-  padding: 5px 24px;
+  margin: 10px auto !important;
+  padding: 5px 20px;
+  border-radius: 999px;
+  border: 1px solid rgba(100,201,193,.38);
+  background: rgba(2,18,24,.55);
+  color: #f6c86b !important;
+  font-size: clamp(32px, 6vw, 46px) !important;
+  letter-spacing: 2px;
+  box-shadow: 0 5px 18px rgba(0,0,0,.2);
 }
-
-/* بطاقات الخدمات */
-.features-grid {
-  gap: 12px;
+.prayer-times {
+  gap: 4px !important;
+  padding: 15px 8px !important;
+  border: 1px solid rgba(167,211,202,.2) !important;
+  border-radius: 17px !important;
+  background: rgba(1,19,25,.48) !important;
 }
-
-.features-grid .feature-card {
-  background: linear-gradient(145deg, #103440, #0B1B26) !important;
-  color: #E7EEF2 !important;
-  border: 1px solid rgba(67,198,217,.35) !important;
-  border-radius: 22px !important;
-  box-shadow: var(--shadow);
-  min-height: 130px !important;
+.prayer-item p { color: #c4d9d5 !important; }
+.prayer-item strong { color: #f0c36b !important; font-size: 13px !important; }
+.prayer-item span { filter: saturate(.8); }
+.prayer-approach-alert {
+  position: relative; z-index: 2;
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  max-width: 560px; margin: 18px auto 0; padding: 14px 18px;
+  border-radius: 18px;
+  color: #08282b;
+  background: linear-gradient(110deg, #f4d17e, #dfaa45);
+  border: 1px solid rgba(255,245,210,.75);
+  box-shadow: 0 8px 25px rgba(225,174,76,.2);
+  text-align: right;
+  animation: yaqeen-alert-glow 2.4s ease-in-out infinite;
 }
-
-.feature-card h3,
-.content-card h3 {
-  color: #E5B85C !important;
+.prayer-approach-alert[hidden] { display: none !important; }
+.prayer-approach-alert .approach-bell { font-size: 27px; }
+.prayer-approach-alert strong { display: block; font-size: 17px; }
+.prayer-approach-alert p { margin-top: 4px; font-size: 12px; color: #4d4025; }
+@keyframes yaqeen-alert-glow {
+  0%,100% { box-shadow: 0 8px 22px rgba(225,174,76,.16); }
+  50% { box-shadow: 0 8px 30px rgba(245,199,105,.38); }
 }
-
-.feature-card p,
-.content-card p {
-  color: #B4C7CE !important;
+.section-title { margin: 28px 3px 16px; }
+.section-title h2, .page-heading h2 { color: #f0c46b !important; }
+.section-title p, .page-heading p { color: #a9c0c2 !important; }
+.feature-card, .content-card, .daily-message {
+  color: #edf4f1 !important;
+  background: linear-gradient(145deg, #102e36, #0b222b) !important;
+  border: 1px solid rgba(100,201,193,.22) !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,.24) !important;
 }
-
+.feature-card h3, .content-card h3, .daily-message h3 { color: #eec36a !important; }
+.feature-card p, .content-card p, .daily-message p { color: #b1c5c5 !important; }
 .feature-icon {
-  background: #173D49 !important;
-  color: #E5B85C !important;
-  border-color: rgba(229,184,92,.5) !important;
+  color: #f0c46b !important;
+  background: rgba(232,185,87,.09) !important;
+  border: 1px solid rgba(232,185,87,.28) !important;
 }
-
-.feature-link {
-  color: #F0C96F !important;
+.feature-link { color: #f0c46b !important; }
+.content-card select, .content-card input[type="number"],
+.content-card input:not([type="checkbox"]), .content-card textarea {
+  color: #edf4f1 !important; background: #071b22 !important;
+  border-color: rgba(100,201,193,.28) !important;
 }
-
-/* رسالة اليوم */
-.daily-message {
-  background: linear-gradient(120deg, #102D38, #071923) !important;
-  border: 1px solid rgba(67,198,217,.4) !important;
-  border-radius: 22px !important;
-}
-
-.daily-message h3 {
-  color: #E5B85C !important;
-}
-
-.daily-message p {
-  color: #D5E2E6 !important;
-}
-
-/* البطاقات الداخلية */
-.content-card,
-.prayer-section,
-.prayer-setting-card {
-  background: #111F2A !important;
-  color: #E7EEF2 !important;
-  border: 1px solid rgba(67,198,217,.25) !important;
-  box-shadow: var(--shadow);
-}
-
-.content-card h3,
-.prayer-section h2,
-.prayer-setting-card h3,
-.prayer-settings-header h2 {
-  color: #E5B85C !important;
-}
-
-.content-card p,
-.prayer-settings-header p,
-.prayer-save-message {
-  color: #A7BBC4 !important;
-}
-
-.content-card select,
-.content-card input,
-.prayer-setting-row select {
-  background: #091720 !important;
-  color: #E7EEF2 !important;
-  border-color: #315362 !important;
-  color-scheme: dark !important;
-}
-
-/* إعدادات الصلاة */
-.yaqeen-prayer-settings {
-  color: #E7EEF2 !important;
-}
-
-.prayer-location-box,
-.prayer-audio-test {
-  background: #102D38 !important;
-  border: 1px solid rgba(229,184,92,.35) !important;
-}
-
-.prayer-location-box h3,
-.prayer-location-box p,
-.prayer-audio-test p,
-.prayer-setting-row label {
-  color: #E7EEF2 !important;
-}
-
-.prayer-setting-row label strong {
-  color: #E5B85C !important;
-}
-
-.prayer-setting-row input[type="range"],
-.prayer-setting-row input[type="checkbox"] {
-  accent-color: #E5B85C !important;
-}
-
-.prayer-location-box button,
-.test-adhan-button,
-.prayer-audio-test button {
-  background: linear-gradient(135deg, #164653, #102D38) !important;
-  color: #F2D18B !important;
-  border: 1px solid #E5B85C !important;
-}
-
-/* شريط التنقل */
+.content-card label { color: #dce9e5 !important; }
+.content-card input[type="checkbox"] { accent-color: #e8b957 !important; }
 .bottom-nav {
-  background: rgba(7,20,29,.97) !important;
-  border-top: 1px solid rgba(67,198,217,.35) !important;
-  border-radius: 20px 20px 0 0;
+  background: rgba(5,27,33,.97) !important;
+  border-top: 1px solid rgba(232,185,87,.42) !important;
+  box-shadow: 0 -8px 28px rgba(0,0,0,.36) !important;
+  backdrop-filter: blur(14px);
 }
-
-.nav-item {
-  color: #91A4B1 !important;
+.nav-item { color: #91aaa9 !important; }
+.nav-item.active { color: #f1c66d !important; }
+.nav-item.active span { color: #f1c66d !important; }
+.prayer-section, #prayer-times > div {
+  background: #102d35 !important; color: #eaf2ee !important;
+  border-color: rgba(100,201,193,.22) !important;
 }
-
-.nav-item.active,
-.nav-item.active span {
-  color: #E5B85C !important;
+.prayer-section h2 { color: #edc36d !important; }
+select option { background: #0c242c !important; color: #edf4f1 !important; }
+input, select { color-scheme: dark !important; }
+/* Prayer settings generated by prayer.js: match the same dark visual system. */
+.yaqeen-prayer-settings { color: #eaf2ee !important; }
+.prayer-settings-header h2, .prayer-setting-card h3 { color: #edc36d !important; }
+.prayer-settings-header p, .prayer-setting-row label, .prayer-setting-row small,
+.prayer-location-box p, .prayer-audio-test p, .prayer-save-message { color: #b3c8c7 !important; }
+.prayer-location-box, .prayer-setting-card, .prayer-audio-test {
+  background: linear-gradient(145deg, #102e36, #0b222b) !important;
+  color: #edf4f1 !important;
+  border: 1px solid rgba(100,201,193,.22) !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,.22) !important;
 }
-
-/* القوائم */
-select option {
-  background: #111923 !important;
-  color: #E7EEF2 !important;
+.prayer-location-box h3 { color: #edc36d !important; }
+.prayer-location-box button, .test-adhan-button, .prayer-audio-test button {
+  background: linear-gradient(135deg, #0b625d, #0d8174) !important;
+  color: #fff !important; border: 1px solid rgba(232,185,87,.35) !important;
 }
-
-input,
-select {
-  color-scheme: dark !important;
+.test-adhan-button { background: linear-gradient(135deg, #b8842f, #e2b95f) !important; color: #09252a !important; }
+.prayer-setting-row select, .prayer-setting-row input[type="number"] {
+  background: #071b22 !important; color: #edf4f1 !important;
+  border-color: rgba(100,201,193,.28) !important;
 }
-
-::selection {
-  background: #236274;
-  color: white;
-}
-
-/* ضبط الشاشات */
-@media (min-width: 700px) {
-  main {
-    max-width: 1200px;
-  }
-}
-
-@media (max-width: 480px) {
-  main {
-    padding: 14px 12px;
-  }
-
-  .welcome {
-    padding: 24px 15px !important;
-  }
-
-  .features-grid {
-    gap: 10px;
-  }
+.prayer-setting-row input[type="checkbox"], .prayer-setting-row input[type="range"] { accent-color: #e8b957 !important; }
+.prayer-setting-card h3 { border-bottom-color: rgba(232,185,87,.22) !important; }
+.about-card { background: linear-gradient(145deg, #0b5555, #071e27) !important; }
+.about-card h2 { color: #f0c46b !important; }
+@media (max-width: 600px) {
+  .top-header { min-height: 88px; padding: 14px 58px !important; }
+  .brand h1 { font-size: 27px; }
+  .brand-icon { width: 46px; height: 46px; }
+  .prayer-card { padding: 19px 12px 14px !important; }
+  .prayer-times { padding: 12px 4px !important; }
+  .prayer-item p { font-size: 10px !important; }
+  .prayer-item strong { font-size: 11px !important; }
+  .bottom-nav { padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
 }
