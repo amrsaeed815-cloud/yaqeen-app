@@ -1,0 +1,582 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta name="theme-color" content="#080B10">
+  <meta name="description" content="يقين - رفيقك إلى الله">
+
+  <!-- أيقونة التطبيق -->
+  <link
+    rel="icon"
+    type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='85'%3E☪%3C/text%3E%3C/svg%3E"
+  >
+
+  <!-- إعدادات التطبيق -->
+  <link rel="manifest" href="./manifest.json">
+
+  <!-- ملف التصميم -->
+  <link rel="stylesheet" href="./css/style.css?v=yaqeen-night-1">
+
+  <title>يَقِين | رفيقك إلى الله</title>
+</head>
+
+<body>
+
+<!-- رأس التطبيق -->
+<header class="top-header">
+
+  <div class="brand">
+    <div class="brand-icon">☪</div>
+
+    <div>
+      <h1>يَقِين</h1>
+      <p>رفيقك إلى الله</p>
+    </div>
+  </div>
+
+  <button
+    class="notification-btn"
+    aria-label="التنبيهات"
+    type="button"
+  >♧</button>
+
+</header>
+
+<main>
+
+  <!-- الرئيسية -->
+  <section id="home" class="page active">
+
+    <div class="welcome">
+      <p id="gregorian-date">مرحباً بك في يقين</p>
+      <h2>السلام عليكم ورحمة الله</h2>
+      <p id="hijri-date">نسأل الله أن يجعل يومك مباركاً</p>
+    </div>
+
+    <!-- مواقيت الصلاة -->
+    <div class="prayer-card">
+
+      <div class="section-heading">
+        <h2>🕌 مواقيت الصلاة</h2>
+        <span id="city-name">القاهرة - مصر</span>
+      </div>
+
+      <div id="prayer-approach-alert" class="prayer-approach-alert" hidden aria-live="polite">
+        <span class="approach-bell" aria-hidden="true">🔔</span>
+        <div>
+          <strong id="prayer-approach-title">اقتربت الصلاة</strong>
+          <p id="prayer-approach-message">استعد للصلاة، لم يتبقَّ سوى 15 دقيقة أو أقل</p>
+        </div>
+      </div>
+
+      <div class="next-prayer">
+        <p>الصلاة القادمة</p>
+        <h2 id="next-prayer-name">الفجر</h2>
+        <div id="countdown">--:--:--</div>
+        <p>الوقت المتبقي للصلاة</p>
+      </div>
+
+      <div class="prayer-times">
+
+        <div class="prayer-item">
+          <span>🌅</span>
+          <p>الفجر</p>
+          <strong id="fajr-time">--:--</strong>
+        </div>
+
+        <div class="prayer-item">
+          <span>☀️</span>
+          <p>الظهر</p>
+          <strong id="dhuhr-time">--:--</strong>
+        </div>
+
+        <div class="prayer-item">
+          <span>🌤️</span>
+          <p>العصر</p>
+          <strong id="asr-time">--:--</strong>
+        </div>
+
+        <div class="prayer-item">
+          <span>🌇</span>
+          <p>المغرب</p>
+          <strong id="maghrib-time">--:--</strong>
+        </div>
+
+        <div class="prayer-item">
+          <span>🌙</span>
+          <p>العشاء</p>
+          <strong id="isha-time">--:--</strong>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- خدمات التطبيق -->
+    <div class="section-title">
+      <h2>رفيق يومك الإيماني</h2>
+      <p>كل ما تحتاجه في مكان واحد</p>
+    </div>
+
+    <div class="features-grid">
+
+      <button
+        class="feature-card"
+        type="button"
+        onclick="showPage('quran')"
+      >
+        <span class="feature-icon">📖</span>
+        <h3>القرآن الكريم</h3>
+        <p>اقرأ واستمع إلى كتاب الله</p>
+        <span class="feature-link">افتح الآن ←</span>
+      </button>
+
+      <button
+        class="feature-card"
+        type="button"
+        onclick="showPage('azkar')"
+      >
+        <span class="feature-icon">📿</span>
+        <h3>الأذكار اليومية</h3>
+        <p>حصّن يومك بذكر الله</p>
+        <span class="feature-link">افتح الآن ←</span>
+      </button>
+
+      <button
+        class="feature-card"
+        type="button"
+        onclick="showPage('ramadan')"
+      >
+        <span class="feature-icon">🌙</span>
+        <h3>رمضان</h3>
+        <p>الإمساكية ومدفع الإفطار</p>
+        <span class="feature-link">افتح الآن ←</span>
+      </button>
+
+      <button
+        class="feature-card"
+        type="button"
+        onclick="showPage('more')"
+      >
+        <span class="feature-icon">🧭</span>
+        <h3>القبلة والسبحة</h3>
+        <p>خدماتك الإسلامية</p>
+        <span class="feature-link">افتح الآن ←</span>
+      </button>
+
+    </div>
+
+    <div class="daily-message">
+      <span>🤍</span>
+
+      <div>
+        <h3>ذكر الله يطمئن القلوب</h3>
+        <p>ألا بذكر الله تطمئن القلوب</p>
+      </div>
+    </div>
+
+  </section>
+
+
+  <!-- القرآن الكريم -->
+  <section id="quran" class="page">
+
+    <div class="page-heading">
+      <span>📖</span>
+      <h2>القرآن الكريم</h2>
+      <p>نور قلبك بكلام الله</p>
+    </div>
+
+    <div class="content-card">
+      <h3>اختر القارئ</h3>
+
+      <select id="quran-reader">
+
+        <option value="mishary">مشاري راشد العفاسي</option>
+        <option value="husary">محمود خليل الحصري</option>
+        <option value="abdulbasit">عبد الباسط عبد الصمد</option>
+        <option value="sudais">عبد الرحمن السديس</option>
+        <option value="minshawi">محمد صديق المنشاوي</option>
+        <option value="shuraim">سعود الشريم</option>
+        <option value="ajamy">أحمد العجمي</option>
+        <option value="jibreel">محمد جبريل</option>
+        <option value="ayoub">محمد أيوب</option>
+        <option value="hudhaify">علي الحذيفي</option>
+
+      </select>
+    </div>
+
+    <div class="content-card">
+      <h3>المصحف الشريف</h3>
+      <p>القرآن الكريم كاملاً - 114 سورة</p>
+
+      <div id="surah-list"></div>
+    </div>
+
+    <div class="content-card">
+      <h3>🎧 الابتهالات</h3>
+      <p>الشيخ سيد النقشبندي</p>
+
+      <div id="nasheed-player"></div>
+    </div>
+
+  </section>
+
+
+  <!-- الأذكار اليومية -->
+  <section id="azkar" class="page">
+
+    <div class="page-heading">
+      <span>📿</span>
+      <h2>الأذكار اليومية</h2>
+      <p>اجعل لسانك رطباً بذكر الله</p>
+    </div>
+
+    <div class="azkar-menu">
+
+      <button type="button" class="feature-card" onclick="loadAzkar('morning')">
+        🌅 أذكار الصباح
+      </button>
+
+      <button type="button" class="feature-card" onclick="loadAzkar('evening')">
+        🌇 أذكار المساء
+      </button>
+
+      <button type="button" class="feature-card" onclick="loadAzkar('sleep')">
+        🌙 أذكار النوم
+      </button>
+
+      <button type="button" class="feature-card" onclick="loadAzkar('wake')">
+        ☀️ أذكار الاستيقاظ
+      </button>
+
+      <button type="button" class="feature-card" onclick="loadAzkar('prayer')">
+        🕌 أذكار بعد الصلاة
+      </button>
+
+      <button type="button" class="feature-card" onclick="loadAzkar('adhan')">
+        📢 أذكار الأذان
+      </button>
+
+      <button type="button" class="feature-card" onclick="loadAzkar('mosque')">
+        🕌 أذكار المسجد
+      </button>
+
+      <button type="button" class="feature-card" onclick="loadAzkar('home')">
+        🏠 أذكار المنزل
+      </button>
+
+      <button type="button" class="feature-card" onclick="loadAzkar('food')">
+        🍽️ أذكار الطعام
+      </button>
+
+      <button type="button" class="feature-card" onclick="loadAzkar('general')">
+        🤲 أذكار متنوعة
+      </button>
+
+    </div>
+
+    <div id="azkar-content"></div>
+
+  </section>
+
+
+  <!-- الصلاة والأذان -->
+  <section id="prayer" class="page">
+
+    <div class="page-heading">
+      <span>🕌</span>
+      <h2>الصلاة والأذان</h2>
+      <p>الصلاة نور وطمأنينة</p>
+    </div>
+
+    <div class="content-card">
+
+      <h3>إعدادات الأذان</h3>
+
+      <label>
+        <input type="checkbox" id="adhan-enabled" checked>
+        تفعيل تنبيهات الأذان
+      </label>
+
+      <br><br>
+
+      <label>
+        <input type="checkbox" id="iqama-enabled" checked>
+        تفعيل تنبيه الإقامة
+      </label>
+
+    </div>
+
+    <div class="content-card">
+      <h3>المدينة</h3>
+      <p id="prayer-city">القاهرة - مصر</p>
+      <p>مواقيت الصلاة حسب توقيت المدينة</p>
+    </div>
+
+  </section>
+
+
+  <!-- رمضان -->
+  <section id="ramadan" class="page">
+
+    <div class="page-heading">
+      <span>🌙</span>
+      <h2>رمضان 2027</h2>
+      <p>شهر الرحمة والمغفرة</p>
+    </div>
+
+    <div class="content-card">
+      <h3>إمساكية شهر رمضان</h3>
+      <p>مواعيد السحور والإمساك والإفطار والصلاة</p>
+
+      <div id="ramadan-calendar"></div>
+    </div>
+
+    <div class="content-card">
+      <h3>🍲 تنبيه السحور</h3>
+      <p>تذكير قبل موعد الفجر للاستعداد للسحور</p>
+
+      <input
+        type="number"
+        id="suhoor-minutes"
+        value="30"
+        min="5"
+        max="120"
+      >
+
+      <span>دقيقة قبل الفجر</span>
+    </div>
+
+    <div class="content-card">
+      <h3>💥 مدفع الإفطار</h3>
+      <p>تنبيه وقت أذان المغرب والإفطار</p>
+    </div>
+
+    <div class="content-card">
+      <h3>💥 مدفع الإمساك</h3>
+      <p>تنبيه قبل الفجر بموعد الإمساك</p>
+    </div>
+
+  </section>
+
+
+  <!-- المزيد -->
+  <section id="more" class="page">
+
+    <div class="page-heading">
+      <span>✨</span>
+      <h2>المزيد من الخدمات</h2>
+      <p>كل ما يقربك إلى الله</p>
+    </div>
+
+    <div class="content-card">
+      <h3>🧭 اتجاه القبلة</h3>
+      <p>اعرف اتجاه القبلة أينما كنت</p>
+    </div>
+
+    <div class="content-card">
+      <h3>📿 السبحة الإلكترونية</h3>
+      <p>اجعل وقتك عامراً بالتسبيح</p>
+    </div>
+
+    <div class="content-card">
+      <h3>🌍 التوقيت العالمي</h3>
+      <p>التوقيت المحلي والعالمي والتوقيت الصيفي والشتوي</p>
+    </div>
+
+    <div class="content-card">
+      <h3>⚙️ الإعدادات</h3>
+      <p>إعدادات تطبيق يقين</p>
+    </div>
+
+    <div class="content-card about-card">
+      <h2>يَقِين ☪</h2>
+      <p>رفيقك إلى الله</p>
+      <p>نسأل الله أن يتقبل منا ومنكم صالح الأعمال.</p>
+    </div>
+
+  </section>
+
+</main>
+
+
+<!-- شريط التنقل السفلي -->
+<nav class="bottom-nav">
+
+  <button
+    type="button"
+    class="nav-item active"
+    onclick="showPage('home')"
+  >
+    <span>⌂</span>
+    <small>الرئيسية</small>
+  </button>
+
+  <button
+    type="button"
+    class="nav-item"
+    onclick="showPage('quran')"
+  >
+    <span>📖</span>
+    <small>القرآن</small>
+  </button>
+
+  <button
+    type="button"
+    class="nav-item"
+    onclick="showPage('prayer')"
+  >
+    <span>🕌</span>
+    <small>الصلاة</small>
+  </button>
+
+  <button
+    type="button"
+    class="nav-item"
+    onclick="showPage('azkar')"
+  >
+    <span>📿</span>
+    <small>الأذكار</small>
+  </button>
+
+  <button
+    type="button"
+    class="nav-item"
+    onclick="showPage('more')"
+  >
+    <span>☰</span>
+    <small>المزيد</small>
+  </button>
+
+</nav>
+
+
+<!-- نظام التنقل بين الصفحات -->
+<script>
+
+(function () {
+
+  "use strict";
+
+  window.showPage = function (pageId) {
+
+    const pages = document.querySelectorAll("main .page");
+    const target = document.getElementById(pageId);
+
+    if (!target || !target.classList.contains("page")) {
+      console.error("Page not found:", pageId);
+      return;
+    }
+
+    pages.forEach(function (page) {
+      page.classList.toggle("active", page.id === pageId);
+    });
+
+    document.querySelectorAll(".bottom-nav .nav-item")
+      .forEach(function (button) {
+
+        const isActive =
+          button.getAttribute("onclick") ===
+          "showPage('" + pageId + "')";
+
+        button.classList.toggle("active", isActive);
+
+      });
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+
+  };
+
+})();
+
+</script>
+
+
+<!-- ملفات التطبيق -->
+
+<!-- الأذكار -->
+<script src="./css/js/azkar.js"></script>
+
+<!-- وظائف التطبيق -->
+<script src="./css/js/app.js"></script>
+
+<!-- القرآن الكريم -->
+<script src="./css/js/js/quran.js"></script>
+
+<!-- مواقيت الصلاة والأذان -->
+<script src="./prayer.js"></script>
+
+<!-- رمضان -->
+<script src="./ramadan.js"></script>
+
+<!-- التوقيت العالمي -->
+<script src="./css/js/js/js/timezone.js"></script>
+
+
+<!-- تنبيه مرئي عند اقتراب الصلاة خلال 15 دقيقة -->
+<script>
+(function () {
+  "use strict";
+  const alertBox = document.getElementById("prayer-approach-alert");
+  const title = document.getElementById("prayer-approach-title");
+  const countdown = document.getElementById("countdown");
+  const prayerName = document.getElementById("next-prayer-name");
+  if (!alertBox || !countdown || !prayerName) return;
+
+  function updateApproachAlert() {
+    const match = countdown.textContent.trim().match(/^(\d{1,3}):(\d{2}):(\d{2})$/);
+    if (!match) { alertBox.hidden = true; return; }
+    const secondsLeft = Number(match[1]) * 3600 + Number(match[2]) * 60 + Number(match[3]);
+    const isNear = secondsLeft > 0 && secondsLeft <= 15 * 60;
+    alertBox.hidden = !isNear;
+    if (isNear) title.textContent = "اقتربت صلاة " + prayerName.textContent.trim();
+  }
+
+  updateApproachAlert();
+  window.setInterval(updateApproachAlert, 1000);
+  const observer = new MutationObserver(updateApproachAlert);
+  observer.observe(countdown, { childList: true, characterData: true, subtree: true });
+  observer.observe(prayerName, { childList: true, characterData: true, subtree: true });
+})();
+</script>
+
+<!-- تسجيل Service Worker -->
+<script>
+
+if ("serviceWorker" in navigator) {
+
+  window.addEventListener("load", function () {
+
+    navigator.serviceWorker.register("./service-worker.js")
+      .then(function (registration) {
+
+        console.log(
+          "Yaqeen Service Worker registered:",
+          registration.scope
+        );
+
+      })
+      .catch(function (error) {
+
+        console.error(
+          "Service Worker Error:",
+          error
+        );
+
+      });
+
+  });
+
+}
+
+</script>
+
+</body>
+</html>
