@@ -3,8 +3,7 @@
   "use strict";
 
   // تطبيق يقين - قسم القرآن الكريم
-
- const API = "https://api.alquran.cloud/v1";
+const API = "https://alquran.api.islamic.network/v1";
   const TEXT_API = "https://api.alquran.cloud/v1";
 
   const surahList = document.getElementById("surah-list");
