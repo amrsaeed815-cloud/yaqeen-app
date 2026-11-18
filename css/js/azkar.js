@@ -415,11 +415,220 @@
 
   };
 
+
   // إتاحة الأذكار لباقي ملفات التطبيق
   window.azkarData = azkar;
   window.azkarSource = source;
 
-  // إبلاغ التطبيق بأن الأذكار أصبحت جاهزة
+  // أسماء الأقسام
+  const azkarTitles = {
+    morning: "أذكار الصباح",
+    evening: "أذكار المساء",
+    sleep: "أذكار النوم",
+    wake: "أذكار الاستيقاظ",
+    prayer: "أذكار بعد الصلاة",
+    afterPrayer: "أذكار بعد الصلاة",
+    adhan: "أذكار الأذان",
+    mosque: "أذكار دخول المسجد والخروج منه",
+    home: "أذكار دخول المنزل والخروج منه",
+    food: "أذكار الطعام والشراب",
+    general: "أذكار متنوعة"
+  };
+
+  // قراءة العداد المحفوظ
+  function getSavedCount(category, index, total) {
+    try {
+      const saved = localStorage.getItem(
+        `yaqeen_azkar_${category}_${index}`
+      );
+
+      if (saved !== null) {
+        const value = Number(saved);
+        if (Number.isFinite(value)) {
+          return Math.max(0, Math.min(total, value));
+        }
+      }
+    } catch (error) {
+      console.warn("تعذر قراءة العداد:", error);
+    }
+
+    return total;
+  }
+
+  // حفظ العداد
+  function saveCount(category, index, value) {
+    try {
+      localStorage.setItem(
+        `yaqeen_azkar_${category}_${index}`,
+        String(value)
+      );
+    } catch (error) {
+      console.warn("تعذر حفظ العداد:", error);
+    }
+  }
+
+  // تحديث التقدم
+  function updateProgress(states, bar, label) {
+    const total = states.length;
+    const completed = states.filter(
+      item => item.remaining === 0
+    ).length;
+
+    const percent = total
+      ? Math.round((completed / total) * 100)
+      : 0;
+
+    bar.style.width = percent + "%";
+    label.textContent =
+      `أكملت ${completed} من ${total} أذكار (${percent}%)`;
+  }
+
+  // عرض الأذكار
+  window.loadAzkar = function (category) {
+    if (category === "prayer") {
+      category = "afterPrayer";
+    }
+
+    const container = document.getElementById("azkar-content");
+
+    if (!container) {
+      console.error("العنصر azkar-content غير موجود");
+      return;
+    }
+
+    const items = azkar[category];
+
+    if (!Array.isArray(items)) {
+      container.textContent = "هذا القسم غير متاح حاليًا";
+      console.error("قسم غير موجود:", category);
+      return;
+    }
+
+    container.innerHTML = "";
+
+    const section = document.createElement("section");
+    section.style.cssText =
+      "direction:rtl;text-align:right;width:100%;";
+
+    const heading = document.createElement("h2");
+    heading.textContent = azkarTitles[category] || "الأذكار";
+    heading.style.cssText =
+      "text-align:center;margin:20px 0;color:#16b8a6;";
+
+    section.appendChild(heading);
+
+    const progressContainer = document.createElement("div");
+    progressContainer.style.cssText =
+      "height:9px;background:rgba(128,128,128,.18);border-radius:20px;overflow:hidden;margin:15px 0;";
+
+    const progressBar = document.createElement("div");
+    progressBar.style.cssText =
+      "height:100%;width:0%;background:#16b8a6;transition:width .25s;";
+
+    progressContainer.appendChild(progressBar);
+    section.appendChild(progressContainer);
+
+    const progressText = document.createElement("p");
+    progressText.style.cssText =
+      "text-align:center;font-size:13px;opacity:.8;margin-bottom:18px;";
+
+    section.appendChild(progressText);
+
+    const states = [];
+
+    items.forEach((item, index) => {
+      const total = Math.max(1, Number(item.count) || 1);
+
+      const state = {
+        remaining: getSavedCount(category, index, total),
+        total: total
+      };
+
+      states.push(state);
+
+      const card = document.createElement("article");
+      card.style.cssText =
+        "background:rgba(128,128,128,.09);border:1px solid rgba(22,184,166,.25);border-radius:16px;padding:18px;margin:14px 0;";
+
+      const text = document.createElement("p");
+      text.textContent = item.text;
+      text.style.cssText =
+        "white-space:pre-line;line-height:2.1;font-size:17px;text-align:center;margin:5px 0 12px;";
+
+      card.appendChild(text);
+
+      if (item.note) {
+        const note = document.createElement("p");
+        note.textContent = item.note;
+        note.style.cssText =
+          "text-align:center;color:#c9a64b;font-size:13px;margin:10px 0;";
+        card.appendChild(note);
+      }
+
+      const counter = document.createElement("p");
+      counter.style.cssText =
+        "text-align:center;font-weight:bold;margin:12px 0;color:#16b8a6;";
+
+      const button = document.createElement("button");
+      button.type = "button";
+      button.style.cssText =
+        "display:block;width:100%;padding:13px;border:0;border-radius:12px;background:#087f72;color:white;font-size:16px;font-weight:bold;cursor:pointer;margin-top:10px;";
+
+      function refresh() {
+        counter.textContent =
+          `المتبقي: ${state.remaining} من ${state.total}`;
+
+        button.disabled = state.remaining === 0;
+        button.textContent =
+          state.remaining === 0 ? "تم الذكر ✓" : "اضغط للتسبيح";
+
+        button.style.opacity =
+          state.remaining === 0 ? ".6" : "1";
+
+        updateProgress(states, progressBar, progressText);
+      }
+
+      button.addEventListener("click", function () {
+        if (state.remaining <= 0) return;
+
+        state.remaining--;
+        saveCount(category, index, state.remaining);
+        refresh();
+      });
+
+      const resetButton = document.createElement("button");
+      resetButton.type = "button";
+      resetButton.textContent = "إعادة العداد";
+      resetButton.style.cssText =
+        "display:block;margin:10px auto 0;padding:8px 18px;border:1px solid #c9a64b;border-radius:10px;background:transparent;color:inherit;cursor:pointer;";
+
+      resetButton.addEventListener("click", function () {
+        state.remaining = state.total;
+        saveCount(category, index, state.remaining);
+        refresh();
+      });
+
+      card.appendChild(counter);
+      card.appendChild(button);
+      card.appendChild(resetButton);
+
+      section.appendChild(card);
+      refresh();
+    });
+
+    const finishMessage = document.createElement("p");
+    finishMessage.textContent =
+      "تقبّل الله منك صالح الأعمال 🤍";
+    finishMessage.style.cssText =
+      "text-align:center;margin:25px 0;padding:15px;color:#c9a64b;";
+
+    section.appendChild(finishMessage);
+    container.appendChild(section);
+
+    updateProgress(states, progressBar, progressText);
+  };
+
+  // إبلاغ التطبيق بجاهزية الأذكار
   window.dispatchEvent(new Event("azkarReady"));
 
 })();
