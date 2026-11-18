@@ -2,9 +2,9 @@
 (function () {
   "use strict";
 
+  // ==========================================
   // تطبيق يقين - قسم القرآن الكريم
-  // مصدر الصوت: MP3Quran API
-  // مصدر النص: AlQuran Cloud
+  // ==========================================
 
   const API = "https://www.mp3quran.net/api/v3";
   const TEXT_API = "https://api.alquran.cloud/v1";
@@ -17,7 +17,10 @@
     return;
   }
 
-  // القراء المعتمدون في تطبيق يقين
+  // ==========================================
+  // بيانات القراء
+  // ==========================================
+
   const readers = {
     mishary: {
       aliases: [
@@ -117,8 +120,54 @@
     }
   };
 
+  // ==========================================
+  // تلاوات عبدالرحمن مسعد
+  // المصدر: TVQuran
+  // ==========================================
+
+  const mossadSurahs = {
+    32: {
+      name: "السجدة",
+      url: "https://download.tvquran.com/download/recitations/372/303/032.mp3"
+    },
+
+    73: {
+      name: "المزمل",
+      url: "https://download.tvquran.com/download/recitations/372/303/073.mp3"
+    },
+
+    78: {
+      name: "النبأ",
+      url: "https://download.tvquran.com/download/recitations/372/303/078.mp3"
+    },
+
+    87: {
+      name: "الأعلى",
+      url: "https://download.tvquran.com/download/recitations/372/303/087.mp3"
+    },
+
+    88: {
+      name: "الغاشية",
+      url: "https://download.tvquran.com/download/recitations/372/303/088.mp3"
+    },
+
+    100: {
+      name: "العاديات",
+      url: "https://download.tvquran.com/download/recitations/372/303/100.mp3"
+    },
+
+    107: {
+      name: "الماعون",
+      url: "https://download.tvquran.com/download/recitations/372/303/107.mp3"
+    }
+  };
+
+  // ==========================================
   // عناصر الصفحة
+  // ==========================================
+
   const status = document.createElement("p");
+
   status.id = "quran-status";
 
   status.style.cssText =
@@ -146,15 +195,27 @@
 
   audio.after(reader);
 
-  // بيانات التطبيق
+  // ==========================================
+  // متغيرات التطبيق
+  // ==========================================
+
   let surahs = [];
   let reciters = [];
+
   let currentSurahName = "";
   let currentAudioSession = 0;
   let currentMoshaf = null;
 
+  // ==========================================
+  // أدوات مساعدة
+  // ==========================================
+
   function setStatus(message) {
     status.textContent = message;
+  }
+
+  function isMossadSelected() {
+    return readerSelect.value === "abdulrahman_mossad";
   }
 
   function normalizeName(value) {
@@ -178,9 +239,14 @@
     currentMoshaf = null;
   }
 
-  // تحميل قائمة القراء من المصدر الرسمي
+  // ==========================================
+  // تحميل القراء
+  // ==========================================
+
   async function loadReciters() {
+
     try {
+
       const response = await fetch(
         API + "/reciters?language=ar"
       );
@@ -205,13 +271,19 @@
       return true;
 
     } catch (error) {
+
       console.error("Reciters Error:", error);
+
       return false;
     }
   }
 
-  // الحصول على اسم القارئ المطلوب
+  // ==========================================
+  // تحديد القارئ المختار
+  // ==========================================
+
   function getSelectedReader() {
+
     const selected = readerSelect.value;
 
     if (readers[selected]) {
@@ -219,6 +291,7 @@
     }
 
     for (const key in readers) {
+
       if (readers[key].aliases.includes(selected)) {
         return readers[key];
       }
@@ -229,6 +302,7 @@
     ];
 
     if (option) {
+
       return {
         aliases: [option.textContent]
       };
@@ -237,8 +311,12 @@
     return null;
   }
 
-  // البحث عن القارئ الصحيح
+  // ==========================================
+  // البحث عن القارئ
+  // ==========================================
+
   function findReader() {
+
     const config = getSelectedReader();
 
     if (!config) return null;
@@ -246,20 +324,28 @@
     const aliases = config.aliases.map(normalizeName);
 
     return reciters.find(function (reciter) {
+
       const name = normalizeName(reciter.name);
 
       return aliases.some(function (alias) {
+
         return (
           alias === name ||
           (alias.length >= 6 && name.includes(alias)) ||
           (name.length >= 6 && alias.includes(name))
         );
+
       });
+
     }) || null;
   }
 
-  // التأكد من وجود السور الـ114
+  // ==========================================
+  // التحقق من المصحف الكامل
+  // ==========================================
+
   function hasAllSurahs(moshaf) {
+
     if (!moshaf || !moshaf.server) {
       return false;
     }
@@ -282,8 +368,8 @@
     );
   }
 
-  // اختيار النسخة الكاملة للقارئ
   function findCompleteMoshaf(reciter) {
+
     if (!reciter || !Array.isArray(reciter.moshaf)) {
       return null;
     }
@@ -291,8 +377,12 @@
     return reciter.moshaf.find(hasAllSurahs) || null;
   }
 
-  // إنشاء رابط السورة
+  // ==========================================
+  // إنشاء رابط صوت السورة لباقي القراء
+  // ==========================================
+
   function getSurahAudioUrl(moshaf, number) {
+
     const server = moshaf.server.endsWith("/")
       ? moshaf.server
       : moshaf.server + "/";
@@ -302,13 +392,121 @@
     return server + paddedNumber + ".mp3";
   }
 
-  // تحميل السور
+  // ==========================================
+  // عرض السور حسب القارئ المختار
+  // ==========================================
+
+  function renderSurahs() {
+
+    surahList.innerHTML = "";
+
+    const mossad = isMossadSelected();
+
+    const availableSurahs = mossad
+      ? surahs.filter(function (surah) {
+          return Boolean(mossadSurahs[surah.number]);
+        })
+      : surahs;
+
+    if (!availableSurahs.length) {
+
+      setStatus("لا توجد سور متاحة للعرض حالياً");
+
+      return;
+    }
+
+    if (mossad) {
+
+      const info = document.createElement("p");
+
+      info.textContent =
+        "تلاوات عبدالرحمن مسعد المتاحة - 7 سور";
+
+      info.style.cssText =
+        "text-align:center;color:var(--gold);padding:10px;";
+
+      surahList.appendChild(info);
+    }
+
+    availableSurahs.forEach(function (surah) {
+
+      const card = document.createElement("div");
+
+      card.style.cssText =
+        "padding:12px;margin:8px 0;border:1px solid #999;border-radius:12px;";
+
+      const name = document.createElement("h3");
+
+      name.textContent =
+        surah.name || ("سورة رقم " + surah.number);
+
+      const readButton = document.createElement("button");
+
+      readButton.textContent = "📖 قراءة السورة";
+
+      readButton.style.cssText =
+        "margin:5px;padding:9px;";
+
+      readButton.addEventListener("click", function () {
+
+        loadSurahText(
+          surah.number,
+          name.textContent
+        );
+
+      });
+
+      const playButton = document.createElement("button");
+
+      playButton.textContent = "🎧 استماع للسورة";
+
+      playButton.style.cssText =
+        "margin:5px;padding:9px;";
+
+      playButton.addEventListener("click", function () {
+
+        playSurah(
+          surah.number,
+          name.textContent
+        );
+
+      });
+
+      card.appendChild(name);
+      card.appendChild(readButton);
+      card.appendChild(playButton);
+
+      surahList.appendChild(card);
+
+    });
+
+    if (mossad) {
+
+      setStatus(
+        "اختر سورة للاستماع بصوت عبدالرحمن مسعد"
+      );
+
+    } else {
+
+      setStatus(
+        "تم تحميل 114 سورة بنجاح"
+      );
+
+    }
+  }
+
+  // ==========================================
+  // تحميل السور الـ114
+  // ==========================================
+
   async function loadSurahs() {
+
     setStatus("جاري تحميل سور القرآن الكريم...");
 
     surahList.innerHTML = "";
 
     try {
+
       const response = await fetch(
         TEXT_API + "/surah"
       );
@@ -325,45 +523,10 @@
         throw new Error("قائمة السور غير مكتملة");
       }
 
-      surahs.forEach(function (surah) {
-        const card = document.createElement("div");
-
-        card.style.cssText =
-          "padding:12px;margin:8px 0;border:1px solid #999;border-radius:12px;";
-
-        const name = document.createElement("h3");
-
-        name.textContent =
-          surah.name || ("سورة رقم " + surah.number);
-
-        const readButton = document.createElement("button");
-
-        readButton.textContent = "📖 قراءة السورة";
-        readButton.style.cssText = "margin:5px;padding:9px;";
-
-        readButton.addEventListener("click", function () {
-          loadSurahText(surah.number, name.textContent);
-        });
-
-        const playButton = document.createElement("button");
-
-        playButton.textContent = "🎧 استماع للسورة";
-        playButton.style.cssText = "margin:5px;padding:9px;";
-
-        playButton.addEventListener("click", function () {
-          playSurah(surah.number, name.textContent);
-        });
-
-        card.appendChild(name);
-        card.appendChild(readButton);
-        card.appendChild(playButton);
-
-        surahList.appendChild(card);
-      });
-
-      setStatus("تم تحميل 114 سورة بنجاح");
+      renderSurahs();
 
     } catch (error) {
+
       console.error("Surah Loading Error:", error);
 
       setStatus(
@@ -372,8 +535,12 @@
     }
   }
 
-  // قراءة السورة
+  // ==========================================
+  // قراءة السورة نصياً
+  // ==========================================
+
   async function loadSurahText(number, name) {
+
     stopAudio();
 
     reader.innerHTML = "";
@@ -383,6 +550,7 @@
     setStatus("جاري تحميل " + name + "...");
 
     try {
+
       const response = await fetch(
         TEXT_API +
         "/surah/" +
@@ -412,6 +580,7 @@
       reader.appendChild(heading);
 
       if (Number(number) !== 1 && Number(number) !== 9) {
+
         const basmala = document.createElement("p");
 
         basmala.textContent =
@@ -429,6 +598,7 @@
         "direction:rtl;text-align:justify;line-height:2.6;font-size:23px;";
 
       ayahs.forEach(function (ayah) {
+
         const span = document.createElement("span");
 
         span.textContent =
@@ -438,6 +608,7 @@
           "﴾ ";
 
         textContainer.appendChild(span);
+
       });
 
       reader.appendChild(textContainer);
@@ -450,45 +621,125 @@
       });
 
     } catch (error) {
+
       console.error("Quran Reading Error:", error);
 
       setStatus("تعذر تحميل آيات السورة.");
     }
   }
 
-  // تشغيل السورة كاملة
+  // ==========================================
+  // تشغيل سورة عبدالرحمن مسعد
+  // ==========================================
+
+  async function playMossadSurah(number, name, session) {
+
+    const recitation = mossadSurahs[number];
+
+    if (!recitation) {
+
+      throw new Error(
+        "هذه السورة غير متاحة للقارئ عبدالرحمن مسعد"
+      );
+    }
+
+    currentMoshaf = null;
+
+    audio.src = recitation.url;
+
+    audio.load();
+
+    setStatus(
+      "جاري تشغيل سورة " +
+      name +
+      " بصوت عبدالرحمن مسعد"
+    );
+
+    const playPromise = audio.play();
+
+    if (playPromise) {
+      await playPromise;
+    }
+
+    if (session !== currentAudioSession) {
+
+      audio.pause();
+
+      return;
+    }
+
+    console.log(
+      "تم طلب تشغيل تلاوة عبدالرحمن مسعد:",
+      recitation.name
+    );
+  }
+
+  // ==========================================
+  // تشغيل السورة
+  // ==========================================
+
   async function playSurah(number, name) {
+
     stopAudio();
 
     const session = currentAudioSession;
 
     currentSurahName = name;
+
     reader.innerHTML = "";
 
     setStatus("جاري تجهيز صوت " + name + "...");
 
     try {
+
+      // مسار مستقل لعبدالرحمن مسعد
+
+      if (isMossadSelected()) {
+
+        await playMossadSurah(
+          number,
+          name,
+          session
+        );
+
+        return;
+      }
+
+      // تحميل القراء عند الحاجة
+
       if (!reciters.length) {
+
         const loaded = await loadReciters();
 
         if (!loaded) {
-          throw new Error("تعذر تحميل بيانات القراء");
+
+          throw new Error(
+            "تعذر تحميل بيانات القراء"
+          );
         }
       }
 
-      if (session !== currentAudioSession) return;
+      if (session !== currentAudioSession) {
+        return;
+      }
+
+      // البحث عن القارئ
 
       const reciter = findReader();
 
       if (!reciter) {
+
         throw new Error(
           "القارئ غير موجود في مكتبة الصوتيات"
         );
       }
 
+      // البحث عن المصحف الكامل
+
       const moshaf = findCompleteMoshaf(reciter);
 
       if (!moshaf) {
+
         throw new Error(
           "لا توجد نسخة كاملة من هذا القارئ تحتوي على السور الـ114"
         );
@@ -496,12 +747,15 @@
 
       currentMoshaf = moshaf;
 
+      // إنشاء رابط السورة
+
       const audioUrl = getSurahAudioUrl(
         moshaf,
         number
       );
 
       audio.src = audioUrl;
+
       audio.load();
 
       setStatus(
@@ -523,12 +777,17 @@
       }
 
       if (session !== currentAudioSession) {
+
         audio.pause();
+
         return;
       }
 
     } catch (error) {
-      if (session !== currentAudioSession) return;
+
+      if (session !== currentAudioSession) {
+        return;
+      }
 
       console.error("Quran Audio Error:", error);
 
@@ -539,14 +798,20 @@
     }
   }
 
+  // ==========================================
   // أحداث مشغل الصوت
+  // ==========================================
+
   audio.addEventListener("ended", function () {
+
     setStatus(
       "انتهى الاستماع لسورة " + currentSurahName
     );
+
   });
 
   audio.addEventListener("error", function () {
+
     if (!audio.src) return;
 
     console.error("Audio Error:", audio.error);
@@ -554,26 +819,57 @@
     setStatus(
       "تعذر تحميل ملف الصوت. جرّب مرة أخرى."
     );
+
   });
 
   audio.addEventListener("play", function () {
+
     if (currentSurahName) {
+
       setStatus(
         "يتم الآن الاستماع لسورة " + currentSurahName
       );
+
     }
+
   });
 
+  // ==========================================
   // تغيير القارئ
+  // ==========================================
+
   readerSelect.addEventListener("change", function () {
+
     stopAudio();
 
-    setStatus(
-      "تم تغيير القارئ. اختر السورة للاستماع."
-    );
+    reader.innerHTML = "";
+
+    if (surahs.length) {
+
+      renderSurahs();
+
+    }
+
+    if (isMossadSelected()) {
+
+      setStatus(
+        "اختر سورة من السور السبعة المتاحة لعبدالرحمن مسعد"
+      );
+
+    } else {
+
+      setStatus(
+        "تم تغيير القارئ. اختر السورة للاستماع."
+      );
+
+    }
+
   });
 
+  // ==========================================
   // بدء التطبيق
+  // ==========================================
+
   Promise.all([
     loadReciters(),
     loadSurahs()
