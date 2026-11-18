@@ -4,7 +4,6 @@
 
   // ==========================================
   // تطبيق يقين - نظام الصلاة والأذان
-  // النسخة المطورة
   // ==========================================
 
   const METHOD = 5;
@@ -20,7 +19,6 @@
     city: "القاهرة - مصر"
   };
 
-  // ملفات الصوت موجودة في المجلد الرئيسي
   const AUDIO_BASE = new URL("./", document.baseURI).href;
 
   const PRAYERS = [
@@ -43,7 +41,7 @@
     }
   };
 
-const DUA_FILE = "الشعراوي.mp4";
+  const DUA_FILE = "الشعراوي.mp4";
 
   let locationData = loadLocation();
   let prayerTimes = null;
@@ -931,7 +929,6 @@ const DUA_FILE = "الشعراوي.mp4";
           "انتهى أذان " + prayer.name;
       }
 
-      // تشغيل دعاء الشعراوي بعد انتهاء الأذان
       playAfterAdhanDua(prayerId);
     });
 
@@ -1386,7 +1383,8 @@ const DUA_FILE = "الشعراوي.mp4";
   }
 
   // ==========================================
-  // التنبيه الصوتي
+  // التنبيه الصوتي العادي
+  // خاص بتنبيه الإقامة فقط
   // ==========================================
 
   function speakAlert(message) {
@@ -1406,6 +1404,82 @@ const DUA_FILE = "الشعراوي.mp4";
     window.speechSynthesis.speak(utterance);
   }
 
+  // ==========================================
+  // اختيار صوت عربي رجالي لتنبيه اقتربت الصلاة
+  // ==========================================
+
+  function getArabicMaleVoice() {
+
+    if (!("speechSynthesis" in window)) {
+      return null;
+    }
+
+    const voices = window.speechSynthesis.getVoices();
+
+    const arabicVoices = voices.filter(voice =>
+      /^ar([-_]|$)/i.test(voice.lang)
+    );
+
+    // أسماء أصوات رجالية عربية معروفة
+    const maleNames =
+      /hamed|hamid|naayf|nayef|fahd|saleh|salih|shakir|shaker|hisham|hesham|tariq|tareq|bassel|basel|mohammed|mohammad|ahmed|ahmad|omar|youssef|yusuf|abdul|khalid|rashid|mansour|majed|nasser|nasser|طارق|هشام|فهد|صالح|محمد|أحمد|خالد|راشد|ناصر|ماجد|يوسف|عمر|حامد|شاكر|سليم|باسل/i;
+
+    // استبعاد الأسماء النسائية المعروفة
+    const femaleNames =
+      /hoda|houda|zariyah|amira|layla|leila|fatima|salma|sara|maryam|female|هدى|أميرة|ليلى|فاطمة|سلمى|سارة|مريم/i;
+
+    const maleVoice = arabicVoices.find(voice =>
+      maleNames.test(voice.name) &&
+      !femaleNames.test(voice.name)
+    );
+
+    if (maleVoice) {
+      return maleVoice;
+    }
+
+    // إذا لم يوجد اسم رجالي معروف، نختار صوتًا عربيًا
+    // ونخفض درجة الصوت قليلًا كحل احتياطي.
+    return arabicVoices.find(voice =>
+      !femaleNames.test(voice.name)
+    ) || arabicVoices[0] || null;
+  }
+
+  // ==========================================
+  // نطق تنبيه اقتراب الصلاة بصوت رجالي
+  // ==========================================
+
+  function speakMalePrayerAlert(message) {
+
+    if (!("speechSynthesis" in window)) {
+      console.warn("المتصفح لا يدعم النطق الصوتي");
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(
+      message
+    );
+
+    utterance.lang = "ar-SA";
+    utterance.rate = 0.88;
+    utterance.pitch = 0.82;
+    utterance.volume = 1;
+
+    const voice = getArabicMaleVoice();
+
+    if (voice) {
+      utterance.voice = voice;
+      utterance.lang = voice.lang;
+    }
+
+    window.speechSynthesis.speak(utterance);
+  }
+
+  // ==========================================
+  // الإشعار مع تحديد طريقة النطق
+  // ==========================================
+
   function announcePrayer(title, message, voiceMessage) {
 
     sendNotification(title, message);
@@ -1415,6 +1489,7 @@ const DUA_FILE = "الشعراوي.mp4";
 
   // ==========================================
   // التنبيه قبل الصلاة بـ15 دقيقة
+  // صوت رجل عربي - دون تغيير الأذان
   // ==========================================
 
   function checkPrayerAlerts() {
@@ -1459,11 +1534,20 @@ const DUA_FILE = "الشعراوي.mp4";
 
         history[key] = true;
 
-        announcePrayer(
+        const notificationMessage =
+          `اقتربت صلاة ${prayer.name}، متبقي 15 دقيقة.`;
+
+        const voiceMessage =
+          `اقتربت صلاة ${prayer.name}، باقي خمس عشرة دقيقة.`;
+
+        // إشعار الهاتف أو الكمبيوتر
+        sendNotification(
           "تطبيق يقين 🕌",
-          `اقتربت صلاة ${prayer.name}، متبقي 15 دقيقة.`,
-          `اقتربت صلاة ${prayer.name}`
+          notificationMessage
         );
+
+        // الصوت الرجالي العربي للتنبيه فقط
+        speakMalePrayerAlert(voiceMessage);
       }
     });
 
@@ -1472,6 +1556,7 @@ const DUA_FILE = "الشعراوي.mp4";
 
   // ==========================================
   // تنبيه موعد الإقامة
+  // لم يتم تغيير صوته
   // ==========================================
 
   function checkIqamaAlerts() {
@@ -1528,6 +1613,7 @@ const DUA_FILE = "الشعراوي.mp4";
 
   // ==========================================
   // الأذان التلقائي
+  // لم يتم تغيير أي شيء في تشغيل الأذان
   // ==========================================
 
   function checkAdhan() {
