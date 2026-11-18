@@ -18,7 +18,7 @@
   }
 
   // ==========================================
-  // بيانات القراء
+  // بيانات القراء الـ11
   // ==========================================
 
   const readers = {
@@ -163,37 +163,43 @@
   };
 
   // ==========================================
-  // عناصر الصفحة
+  // إنشاء عناصر الصفحة
   // ==========================================
 
-  const status = document.createElement("p");
+  let status = document.getElementById("quran-status");
 
-  status.id = "quran-status";
+  if (!status) {
+    status = document.createElement("p");
+    status.id = "quran-status";
+    surahList.before(status);
+  }
 
   status.style.cssText =
     "text-align:center;padding:10px;color:inherit;";
 
-  surahList.before(status);
+  let audio = document.getElementById("quran-audio");
 
-  const audio = document.createElement("audio");
-
-  audio.id = "quran-audio";
-  audio.controls = true;
-  audio.preload = "none";
+  if (!audio) {
+    audio = document.createElement("audio");
+    audio.id = "quran-audio";
+    audio.controls = true;
+    audio.preload = "none";
+    surahList.after(audio);
+  }
 
   audio.style.cssText =
     "display:block;width:100%;margin:15px auto;";
 
-  surahList.after(audio);
+  let reader = document.getElementById("quran-text");
 
-  const reader = document.createElement("div");
-
-  reader.id = "quran-text";
+  if (!reader) {
+    reader = document.createElement("div");
+    reader.id = "quran-text";
+    audio.after(reader);
+  }
 
   reader.style.cssText =
     "direction:rtl;text-align:justify;line-height:2.5;font-size:22px;padding:15px;";
-
-  audio.after(reader);
 
   // ==========================================
   // متغيرات التطبيق
@@ -204,7 +210,8 @@
 
   let currentSurahName = "";
   let currentAudioSession = 0;
-  let currentMoshaf = null;
+
+  let recitersPromise = null;
 
   // ==========================================
   // أدوات مساعدة
@@ -212,10 +219,6 @@
 
   function setStatus(message) {
     status.textContent = message;
-  }
-
-  function isMossadSelected() {
-    return readerSelect.value === "abdulrahman_mossad";
   }
 
   function normalizeName(value) {
@@ -229,53 +232,72 @@
       .replace(/[^a-z0-9\u0600-\u06FF]/g, "");
   }
 
+  function isMossadSelected() {
+    const option =
+      readerSelect.options[readerSelect.selectedIndex];
+
+    return (
+      readerSelect.value === "abdulrahman_mossad" ||
+      normalizeName(option?.textContent).includes(
+        normalizeName("عبدالرحمن مسعد")
+      )
+    );
+  }
+
   function stopAudio() {
     currentAudioSession++;
 
     audio.pause();
     audio.removeAttribute("src");
     audio.load();
-
-    currentMoshaf = null;
   }
 
   // ==========================================
-  // تحميل القراء
+  // تحميل بيانات القراء
   // ==========================================
 
   async function loadReciters() {
+    if (reciters.length) return true;
 
-    try {
-
-      const response = await fetch(
-        API + "/reciters?language=ar"
-      );
-
-      if (!response.ok) {
-        throw new Error("تعذر تحميل قائمة القراء");
-      }
-
-      const result = await response.json();
-
-      reciters = result.reciters || [];
-
-      if (!reciters.length) {
-        throw new Error("قائمة القراء فارغة");
-      }
-
-      console.log(
-        "تم تحميل القراء:",
-        reciters.length
-      );
-
-      return true;
-
-    } catch (error) {
-
-      console.error("Reciters Error:", error);
-
-      return false;
+    if (recitersPromise) {
+      return recitersPromise;
     }
+
+    recitersPromise = (async function () {
+      try {
+        const response = await fetch(
+          API + "/reciters?language=ar"
+        );
+
+        if (!response.ok) {
+          throw new Error("تعذر تحميل قائمة القراء");
+        }
+
+        const result = await response.json();
+
+        reciters = Array.isArray(result.reciters)
+          ? result.reciters
+          : [];
+
+        if (!reciters.length) {
+          throw new Error("قائمة القراء فارغة");
+        }
+
+        console.log(
+          "تم تحميل القراء:",
+          reciters.length
+        );
+
+        return true;
+
+      } catch (error) {
+        console.error("Reciters Error:", error);
+        recitersPromise = null;
+        return false;
+      }
+    })();
+
+    return recitersPromise;
   }
 
   // ==========================================
@@ -283,28 +305,47 @@
   // ==========================================
 
   function getSelectedReader() {
-
     const selected = readerSelect.value;
 
     if (readers[selected]) {
       return readers[selected];
     }
 
-    for (const key in readers) {
+    const option =
+      readerSelect.options[readerSelect.selectedIndex];
 
-      if (readers[key].aliases.includes(selected)) {
+    const optionText = option
+      ? option.textContent
+      : "";
+
+    const selectedNames = [
+      normalizeName(selected),
+      normalizeName(optionText)
+    ].filter(Boolean);
+
+    for (const key in readers) {
+      const aliases = readers[key].aliases.map(
+        normalizeName
+      );
+
+      const matched = aliases.some(function (alias) {
+        return selectedNames.some(function (name) {
+          return (
+            alias === name ||
+            (alias.length >= 6 && name.includes(alias)) ||
+            (name.length >= 6 && alias.includes(name))
+          );
+        });
+      });
+
+      if (matched) {
         return readers[key];
       }
     }
 
-    const option = readerSelect.options[
-      readerSelect.selectedIndex
-    ];
-
-    if (option) {
-
+    if (optionText) {
       return {
-        aliases: [option.textContent]
+        aliases: [optionText]
       };
     }
 
@@ -316,7 +357,6 @@
   // ==========================================
 
   function findReader() {
-
     const config = getSelectedReader();
 
     if (!config) return null;
@@ -324,66 +364,61 @@
     const aliases = config.aliases.map(normalizeName);
 
     return reciters.find(function (reciter) {
-
       const name = normalizeName(reciter.name);
 
       return aliases.some(function (alias) {
-
         return (
           alias === name ||
           (alias.length >= 6 && name.includes(alias)) ||
           (name.length >= 6 && alias.includes(name))
         );
-
       });
-
     }) || null;
   }
 
   // ==========================================
-  // التحقق من المصحف الكامل
+  // معرفة السور المتاحة في المصحف
   // ==========================================
 
-  function hasAllSurahs(moshaf) {
-
+  function getAvailableSurahs(moshaf) {
     if (!moshaf || !moshaf.server) {
-      return false;
+      return [];
     }
 
-    const available = String(
-      moshaf.surah_list || ""
-    )
+    return String(moshaf.surah_list || "")
       .split(",")
       .map(Number)
-      .filter(Number.isInteger);
-
-    const unique = new Set(available);
-
-    return (
-      Number(moshaf.surah_total) === 114 &&
-      Array.from(
-        { length: 114 },
-        (_, index) => index + 1
-      ).every(number => unique.has(number))
-    );
+      .filter(function (number) {
+        return (
+          Number.isInteger(number) &&
+          number >= 1 &&
+          number <= 114
+        );
+      });
   }
 
-  function findCompleteMoshaf(reciter) {
+  // ==========================================
+  // اختيار المصحف الذي يحتوي على السورة
+  // ==========================================
 
+  function findMoshafForSurah(reciter, surahNumber) {
     if (!reciter || !Array.isArray(reciter.moshaf)) {
       return null;
     }
 
-    return reciter.moshaf.find(hasAllSurahs) || null;
+    return reciter.moshaf.find(function (moshaf) {
+      return getAvailableSurahs(moshaf).includes(
+        Number(surahNumber)
+      );
+    }) || null;
   }
 
   // ==========================================
-  // إنشاء رابط صوت السورة لباقي القراء
+  // إنشاء رابط صوت السورة
   // ==========================================
 
   function getSurahAudioUrl(moshaf, number) {
-
-    const server = moshaf.server.endsWith("/")
+    const server = String(moshaf.server).endsWith("/")
       ? moshaf.server
       : moshaf.server + "/";
 
@@ -393,11 +428,10 @@
   }
 
   // ==========================================
-  // عرض السور حسب القارئ المختار
+  // عرض السور حسب القارئ
   // ==========================================
 
   function renderSurahs() {
-
     surahList.innerHTML = "";
 
     const mossad = isMossadSelected();
@@ -409,14 +443,11 @@
       : surahs;
 
     if (!availableSurahs.length) {
-
       setStatus("لا توجد سور متاحة للعرض حالياً");
-
       return;
     }
 
     if (mossad) {
-
       const info = document.createElement("p");
 
       info.textContent =
@@ -429,7 +460,6 @@
     }
 
     availableSurahs.forEach(function (surah) {
-
       const card = document.createElement("div");
 
       card.style.cssText =
@@ -443,33 +473,25 @@
       const readButton = document.createElement("button");
 
       readButton.textContent = "📖 قراءة السورة";
-
-      readButton.style.cssText =
-        "margin:5px;padding:9px;";
+      readButton.style.cssText = "margin:5px;padding:9px;";
 
       readButton.addEventListener("click", function () {
-
         loadSurahText(
           surah.number,
           name.textContent
         );
-
       });
 
       const playButton = document.createElement("button");
 
       playButton.textContent = "🎧 استماع للسورة";
-
-      playButton.style.cssText =
-        "margin:5px;padding:9px;";
+      playButton.style.cssText = "margin:5px;padding:9px;";
 
       playButton.addEventListener("click", function () {
-
         playSurah(
           surah.number,
           name.textContent
         );
-
       });
 
       card.appendChild(name);
@@ -477,22 +499,13 @@
       card.appendChild(playButton);
 
       surahList.appendChild(card);
-
     });
 
-    if (mossad) {
-
-      setStatus(
-        "اختر سورة للاستماع بصوت عبدالرحمن مسعد"
-      );
-
-    } else {
-
-      setStatus(
-        "تم تحميل 114 سورة بنجاح"
-      );
-
-    }
+    setStatus(
+      mossad
+        ? "اختر سورة للاستماع بصوت عبدالرحمن مسعد"
+        : "تم تحميل 114 سورة بنجاح"
+    );
   }
 
   // ==========================================
@@ -500,13 +513,11 @@
   // ==========================================
 
   async function loadSurahs() {
-
     setStatus("جاري تحميل سور القرآن الكريم...");
 
     surahList.innerHTML = "";
 
     try {
-
       const response = await fetch(
         TEXT_API + "/surah"
       );
@@ -526,7 +537,6 @@
       renderSurahs();
 
     } catch (error) {
-
       console.error("Surah Loading Error:", error);
 
       setStatus(
@@ -540,7 +550,6 @@
   // ==========================================
 
   async function loadSurahText(number, name) {
-
     stopAudio();
 
     reader.innerHTML = "";
@@ -549,8 +558,9 @@
 
     setStatus("جاري تحميل " + name + "...");
 
-    try {
+    const session = currentAudioSession;
 
+    try {
       const response = await fetch(
         TEXT_API +
         "/surah/" +
@@ -563,6 +573,8 @@
       }
 
       const result = await response.json();
+
+      if (session !== currentAudioSession) return;
 
       const ayahs = result.data?.ayahs || [];
 
@@ -580,7 +592,6 @@
       reader.appendChild(heading);
 
       if (Number(number) !== 1 && Number(number) !== 9) {
-
         const basmala = document.createElement("p");
 
         basmala.textContent =
@@ -598,7 +609,6 @@
         "direction:rtl;text-align:justify;line-height:2.6;font-size:23px;";
 
       ayahs.forEach(function (ayah) {
-
         const span = document.createElement("span");
 
         span.textContent =
@@ -608,7 +618,6 @@
           "﴾ ";
 
         textContainer.appendChild(span);
-
       });
 
       reader.appendChild(textContainer);
@@ -621,6 +630,7 @@
       });
 
     } catch (error) {
+      if (session !== currentAudioSession) return;
 
       console.error("Quran Reading Error:", error);
 
@@ -633,20 +643,15 @@
   // ==========================================
 
   async function playMossadSurah(number, name, session) {
-
     const recitation = mossadSurahs[number];
 
     if (!recitation) {
-
       throw new Error(
         "هذه السورة غير متاحة للقارئ عبدالرحمن مسعد"
       );
     }
 
-    currentMoshaf = null;
-
     audio.src = recitation.url;
-
     audio.load();
 
     setStatus(
@@ -655,16 +660,10 @@
       " بصوت عبدالرحمن مسعد"
     );
 
-    const playPromise = audio.play();
-
-    if (playPromise) {
-      await playPromise;
-    }
+    await audio.play();
 
     if (session !== currentAudioSession) {
-
       audio.pause();
-
       return;
     }
 
@@ -675,11 +674,10 @@
   }
 
   // ==========================================
-  // تشغيل السورة
+  // تشغيل السورة لباقي القراء
   // ==========================================
 
   async function playSurah(number, name) {
-
     stopAudio();
 
     const session = currentAudioSession;
@@ -691,11 +689,9 @@
     setStatus("جاري تجهيز صوت " + name + "...");
 
     try {
-
-      // مسار مستقل لعبدالرحمن مسعد
+      // عبدالرحمن مسعد
 
       if (isMossadSelected()) {
-
         await playMossadSurah(
           number,
           name,
@@ -705,49 +701,44 @@
         return;
       }
 
-      // تحميل القراء عند الحاجة
+      // تحميل بيانات القراء
 
       if (!reciters.length) {
-
         const loaded = await loadReciters();
 
         if (!loaded) {
-
           throw new Error(
-            "تعذر تحميل بيانات القراء"
+            "تعذر تحميل بيانات القراء. حاول مرة أخرى."
           );
         }
       }
 
-      if (session !== currentAudioSession) {
-        return;
-      }
+      if (session !== currentAudioSession) return;
 
       // البحث عن القارئ
 
       const reciter = findReader();
 
       if (!reciter) {
-
         throw new Error(
-          "القارئ غير موجود في مكتبة الصوتيات"
+          "لم يتم العثور على القارئ في مكتبة الصوتيات. تحقق من اسم القارئ."
         );
       }
 
-      // البحث عن المصحف الكامل
+      // البحث عن مصحف يحتوي على السورة المطلوبة
 
-      const moshaf = findCompleteMoshaf(reciter);
+      const moshaf = findMoshafForSurah(
+        reciter,
+        number
+      );
 
       if (!moshaf) {
-
         throw new Error(
-          "لا توجد نسخة كاملة من هذا القارئ تحتوي على السور الـ114"
+          "هذه السورة غير متاحة في المصحف الصوتي لهذا القارئ."
         );
       }
 
-      currentMoshaf = moshaf;
-
-      // إنشاء رابط السورة
+      // إنشاء الرابط
 
       const audioUrl = getSurahAudioUrl(
         moshaf,
@@ -755,7 +746,6 @@
       );
 
       audio.src = audioUrl;
-
       audio.load();
 
       setStatus(
@@ -770,24 +760,15 @@
         block: "start"
       });
 
-      const playPromise = audio.play();
-
-      if (playPromise) {
-        await playPromise;
-      }
+      await audio.play();
 
       if (session !== currentAudioSession) {
-
         audio.pause();
-
         return;
       }
 
     } catch (error) {
-
-      if (session !== currentAudioSession) {
-        return;
-      }
+      if (session !== currentAudioSession) return;
 
       console.error("Quran Audio Error:", error);
 
@@ -803,35 +784,27 @@
   // ==========================================
 
   audio.addEventListener("ended", function () {
-
     setStatus(
       "انتهى الاستماع لسورة " + currentSurahName
     );
-
   });
 
   audio.addEventListener("error", function () {
-
     if (!audio.src) return;
 
     console.error("Audio Error:", audio.error);
 
     setStatus(
-      "تعذر تحميل ملف الصوت. جرّب مرة أخرى."
+      "تعذر تحميل ملف الصوت. تحقق من اتصال الإنترنت أو جرّب قارئاً آخر."
     );
-
   });
 
   audio.addEventListener("play", function () {
-
     if (currentSurahName) {
-
       setStatus(
         "يتم الآن الاستماع لسورة " + currentSurahName
       );
-
     }
-
   });
 
   // ==========================================
@@ -839,31 +812,23 @@
   // ==========================================
 
   readerSelect.addEventListener("change", function () {
-
     stopAudio();
 
     reader.innerHTML = "";
 
     if (surahs.length) {
-
       renderSurahs();
-
     }
 
     if (isMossadSelected()) {
-
       setStatus(
         "اختر سورة من السور السبعة المتاحة لعبدالرحمن مسعد"
       );
-
     } else {
-
       setStatus(
         "تم تغيير القارئ. اختر السورة للاستماع."
       );
-
     }
-
   });
 
   // ==========================================
