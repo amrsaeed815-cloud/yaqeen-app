@@ -4,7 +4,7 @@
 
   // تطبيق يقين - قسم القرآن الكريم
 
-  const API = "https://alquran.api.alislam.ru/v1";
+ const API = "https://api.alquran.cloud/v1";
   const TEXT_API = "https://api.alquran.cloud/v1";
 
   const surahList = document.getElementById("surah-list");
