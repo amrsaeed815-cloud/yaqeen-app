@@ -1140,3 +1140,276 @@ select {
     font-size: 13px;
   }
 }
+
+/* ==========================================
+   YAQEEN - APPROVED DARK GOLD THEME
+   التصميم الداكن المعتمد
+========================================== */
+
+:root {
+  --green: #102D38;
+  --green-light: #164653;
+  --gold: #E5B85C;
+  --cream: #080B10;
+  --white: #111923;
+  --text: #E7EEF2;
+  --muted: #91A4B1;
+  --shadow: 0 8px 25px rgba(0,0,0,.35);
+  --turquoise: #43C6D9;
+  --blue: #182D43;
+}
+
+html {
+  background: #080B10 !important;
+  color-scheme: dark !important;
+}
+
+body {
+  background:
+    radial-gradient(ellipse at top, #10313b 0%, #080B10 65%) !important;
+  color: #E7EEF2 !important;
+}
+
+/* الرأس */
+.top-header {
+  background: linear-gradient(135deg, #071923, #103744) !important;
+  border-bottom: 1px solid rgba(229,184,92,.5);
+  border-radius: 0 !important;
+}
+
+.brand h1,
+.welcome h2,
+.section-title h2,
+.page-heading h2 {
+  color: #E5B85C !important;
+}
+
+.brand p,
+.welcome p,
+.section-title p,
+.page-heading p {
+  color: #A7C1CB !important;
+}
+
+.brand-icon,
+.notification-btn {
+  background: #142C38 !important;
+  color: #E5B85C !important;
+  border-color: #E5B85C !important;
+}
+
+/* الترحيب */
+.welcome {
+  background:
+    radial-gradient(ellipse at 20% 100%, #164653 0%, transparent 55%),
+    linear-gradient(120deg, #102D38, #071923) !important;
+  border: 1px solid rgba(67,198,217,.45);
+  border-radius: 28px;
+  padding: 30px 22px !important;
+  margin: 5px 0 18px;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+
+/* مواقيت الصلاة */
+.prayer-card {
+  background:
+    radial-gradient(ellipse at center top, #164653, transparent 75%),
+    linear-gradient(145deg, #102D38, #061820) !important;
+  border: 1px solid rgba(67,198,217,.5) !important;
+  border-radius: 30px !important;
+  box-shadow: 0 10px 35px rgba(0,0,0,.4);
+}
+
+.section-heading h2 {
+  color: #F1F5F6 !important;
+}
+
+.section-heading span,
+.next-prayer h2,
+.prayer-item strong {
+  color: #E5B85C !important;
+}
+
+.next-prayer p,
+.prayer-item p {
+  color: #D2E1E6 !important;
+}
+
+#countdown {
+  color: #F2C96F !important;
+  background: rgba(5,25,34,.55);
+  border: 1px solid rgba(67,198,217,.3);
+  border-radius: 30px;
+  display: inline-block;
+  padding: 5px 24px;
+}
+
+/* بطاقات الخدمات */
+.features-grid {
+  gap: 12px;
+}
+
+.features-grid .feature-card {
+  background: linear-gradient(145deg, #103440, #0B1B26) !important;
+  color: #E7EEF2 !important;
+  border: 1px solid rgba(67,198,217,.35) !important;
+  border-radius: 22px !important;
+  box-shadow: var(--shadow);
+  min-height: 130px !important;
+}
+
+.feature-card h3,
+.content-card h3 {
+  color: #E5B85C !important;
+}
+
+.feature-card p,
+.content-card p {
+  color: #B4C7CE !important;
+}
+
+.feature-icon {
+  background: #173D49 !important;
+  color: #E5B85C !important;
+  border-color: rgba(229,184,92,.5) !important;
+}
+
+.feature-link {
+  color: #F0C96F !important;
+}
+
+/* رسالة اليوم */
+.daily-message {
+  background: linear-gradient(120deg, #102D38, #071923) !important;
+  border: 1px solid rgba(67,198,217,.4) !important;
+  border-radius: 22px !important;
+}
+
+.daily-message h3 {
+  color: #E5B85C !important;
+}
+
+.daily-message p {
+  color: #D5E2E6 !important;
+}
+
+/* البطاقات الداخلية */
+.content-card,
+.prayer-section,
+.prayer-setting-card {
+  background: #111F2A !important;
+  color: #E7EEF2 !important;
+  border: 1px solid rgba(67,198,217,.25) !important;
+  box-shadow: var(--shadow);
+}
+
+.content-card h3,
+.prayer-section h2,
+.prayer-setting-card h3,
+.prayer-settings-header h2 {
+  color: #E5B85C !important;
+}
+
+.content-card p,
+.prayer-settings-header p,
+.prayer-save-message {
+  color: #A7BBC4 !important;
+}
+
+.content-card select,
+.content-card input,
+.prayer-setting-row select {
+  background: #091720 !important;
+  color: #E7EEF2 !important;
+  border-color: #315362 !important;
+  color-scheme: dark !important;
+}
+
+/* إعدادات الصلاة */
+.yaqeen-prayer-settings {
+  color: #E7EEF2 !important;
+}
+
+.prayer-location-box,
+.prayer-audio-test {
+  background: #102D38 !important;
+  border: 1px solid rgba(229,184,92,.35) !important;
+}
+
+.prayer-location-box h3,
+.prayer-location-box p,
+.prayer-audio-test p,
+.prayer-setting-row label {
+  color: #E7EEF2 !important;
+}
+
+.prayer-setting-row label strong {
+  color: #E5B85C !important;
+}
+
+.prayer-setting-row input[type="range"],
+.prayer-setting-row input[type="checkbox"] {
+  accent-color: #E5B85C !important;
+}
+
+.prayer-location-box button,
+.test-adhan-button,
+.prayer-audio-test button {
+  background: linear-gradient(135deg, #164653, #102D38) !important;
+  color: #F2D18B !important;
+  border: 1px solid #E5B85C !important;
+}
+
+/* شريط التنقل */
+.bottom-nav {
+  background: rgba(7,20,29,.97) !important;
+  border-top: 1px solid rgba(67,198,217,.35) !important;
+  border-radius: 20px 20px 0 0;
+}
+
+.nav-item {
+  color: #91A4B1 !important;
+}
+
+.nav-item.active,
+.nav-item.active span {
+  color: #E5B85C !important;
+}
+
+/* القوائم */
+select option {
+  background: #111923 !important;
+  color: #E7EEF2 !important;
+}
+
+input,
+select {
+  color-scheme: dark !important;
+}
+
+::selection {
+  background: #236274;
+  color: white;
+}
+
+/* ضبط الشاشات */
+@media (min-width: 700px) {
+  main {
+    max-width: 1200px;
+  }
+}
+
+@media (max-width: 480px) {
+  main {
+    padding: 14px 12px;
+  }
+
+  .welcome {
+    padding: 24px 15px !important;
+  }
+
+  .features-grid {
+    gap: 10px;
+  }
+}
