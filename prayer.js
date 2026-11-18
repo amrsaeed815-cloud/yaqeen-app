@@ -43,7 +43,7 @@
     }
   };
 
-  const DUA_FILE = "after-adhan-dua.mp3";
+const DUA_FILE = "الشعراوي.mp4";
 
   let locationData = loadLocation();
   let prayerTimes = null;
