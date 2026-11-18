@@ -8,17 +8,10 @@
   <meta name="theme-color" content="#080B10">
   <meta name="description" content="يقين - رفيقك إلى الله">
 
-  <!-- أيقونة التطبيق -->
-  <link
-    rel="icon"
-    type="image/svg+xml"
-    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='85'%3E☪%3C/text%3E%3C/svg%3E"
-  >
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='85'%3E☪%3C/text%3E%3C/svg%3E">
 
-  <!-- إعدادات التطبيق -->
   <link rel="manifest" href="./manifest.json">
-
-  <!-- ملف التصميم -->
   <link rel="stylesheet" href="./css/style.css">
 
   <title>يَقِين | رفيقك إلى الله</title>
@@ -26,24 +19,16 @@
 
 <body>
 
-<!-- رأس التطبيق -->
 <header class="top-header">
-
   <div class="brand">
     <div class="brand-icon">☪</div>
-
     <div>
       <h1>يَقِين</h1>
       <p>رفيقك إلى الله</p>
     </div>
   </div>
 
-  <button
-    class="notification-btn"
-    aria-label="التنبيهات"
-    type="button"
-  >♧</button>
-
+  <button class="notification-btn" aria-label="التنبيهات" type="button">♧</button>
 </header>
 
 <main>
@@ -57,9 +42,7 @@
       <p id="hijri-date">نسأل الله أن يجعل يومك مباركاً</p>
     </div>
 
-    <!-- مواقيت الصلاة -->
     <div class="prayer-card">
-
       <div class="section-heading">
         <h2>🕌 مواقيت الصلاة</h2>
         <span id="city-name">القاهرة - مصر</span>
@@ -73,41 +56,29 @@
       </div>
 
       <div class="prayer-times">
-
         <div class="prayer-item">
-          <span>🌅</span>
-          <p>الفجر</p>
+          <span>🌅</span><p>الفجر</p>
           <strong id="fajr-time">--:--</strong>
         </div>
-
         <div class="prayer-item">
-          <span>☀️</span>
-          <p>الظهر</p>
+          <span>☀️</span><p>الظهر</p>
           <strong id="dhuhr-time">--:--</strong>
         </div>
-
         <div class="prayer-item">
-          <span>🌤️</span>
-          <p>العصر</p>
+          <span>🌤️</span><p>العصر</p>
           <strong id="asr-time">--:--</strong>
         </div>
-
         <div class="prayer-item">
-          <span>🌇</span>
-          <p>المغرب</p>
+          <span>🌇</span><p>المغرب</p>
           <strong id="maghrib-time">--:--</strong>
         </div>
-
         <div class="prayer-item">
-          <span>🌙</span>
-          <p>العشاء</p>
+          <span>🌙</span><p>العشاء</p>
           <strong id="isha-time">--:--</strong>
         </div>
-
       </div>
     </div>
 
-    <!-- خدمات التطبيق -->
     <div class="section-title">
       <h2>رفيق يومك الإيماني</h2>
       <p>كل ما تحتاجه في مكان واحد</p>
@@ -115,44 +86,28 @@
 
     <div class="features-grid">
 
-      <button
-        class="feature-card"
-        type="button"
-        onclick="showPage('quran')"
-      >
+      <button class="feature-card" type="button" onclick="showPage('quran')">
         <span class="feature-icon">📖</span>
         <h3>القرآن الكريم</h3>
         <p>اقرأ واستمع إلى كتاب الله</p>
         <span class="feature-link">افتح الآن ←</span>
       </button>
 
-      <button
-        class="feature-card"
-        type="button"
-        onclick="showPage('azkar')"
-      >
+      <button class="feature-card" type="button" onclick="showPage('azkar')">
         <span class="feature-icon">📿</span>
         <h3>الأذكار اليومية</h3>
         <p>حصّن يومك بذكر الله</p>
         <span class="feature-link">افتح الآن ←</span>
       </button>
 
-      <button
-        class="feature-card"
-        type="button"
-        onclick="showPage('ramadan')"
-      >
+      <button class="feature-card" type="button" onclick="showPage('ramadan')">
         <span class="feature-icon">🌙</span>
         <h3>رمضان</h3>
         <p>الإمساكية ومدفع الإفطار</p>
         <span class="feature-link">افتح الآن ←</span>
       </button>
 
-      <button
-        class="feature-card"
-        type="button"
-        onclick="showPage('more')"
-      >
+      <button class="feature-card" type="button" onclick="showPage('more')">
         <span class="feature-icon">🧭</span>
         <h3>القبلة والسبحة</h3>
         <p>خدماتك الإسلامية</p>
@@ -163,7 +118,6 @@
 
     <div class="daily-message">
       <span>🤍</span>
-
       <div>
         <h3>ذكر الله يطمئن القلوب</h3>
         <p>ألا بذكر الله تطمئن القلوب</p>
@@ -171,7 +125,6 @@
     </div>
 
   </section>
-
 
   <!-- القرآن الكريم -->
   <section id="quran" class="page">
@@ -198,25 +151,21 @@
         <option value="hudhaify">علي الحذيفي</option>
         <option value="abdulrahman_mossad">عبدالرحمن مسعد</option>
       </select>
-
     </div>
 
     <div class="content-card">
       <h3>المصحف الشريف</h3>
       <p>القرآن الكريم كاملاً - 114 سورة</p>
-
       <div id="surah-list"></div>
     </div>
 
     <div class="content-card">
       <h3>🎧 الابتهالات</h3>
       <p>الشيخ سيد النقشبندي</p>
-
       <div id="nasheed-player"></div>
     </div>
 
   </section>
-
 
   <!-- الأذكار اليومية -->
   <section id="azkar" class="page">
@@ -228,53 +177,21 @@
     </div>
 
     <div class="azkar-menu">
-
-      <button type="button" class="feature-card" onclick="loadAzkar('morning')">
-        🌅 أذكار الصباح
-      </button>
-
-      <button type="button" class="feature-card" onclick="loadAzkar('evening')">
-        🌇 أذكار المساء
-      </button>
-
-      <button type="button" class="feature-card" onclick="loadAzkar('sleep')">
-        🌙 أذكار النوم
-      </button>
-
-      <button type="button" class="feature-card" onclick="loadAzkar('wake')">
-        ☀️ أذكار الاستيقاظ
-      </button>
-
-      <button type="button" class="feature-card" onclick="loadAzkar('prayer')">
-        🕌 أذكار بعد الصلاة
-      </button>
-
-      <button type="button" class="feature-card" onclick="loadAzkar('adhan')">
-        📢 أذكار الأذان
-      </button>
-
-      <button type="button" class="feature-card" onclick="loadAzkar('mosque')">
-        🕌 أذكار المسجد
-      </button>
-
-      <button type="button" class="feature-card" onclick="loadAzkar('home')">
-        🏠 أذكار المنزل
-      </button>
-
-      <button type="button" class="feature-card" onclick="loadAzkar('food')">
-        🍽️ أذكار الطعام
-      </button>
-
-      <button type="button" class="feature-card" onclick="loadAzkar('general')">
-        🤲 أذكار متنوعة
-      </button>
-
+      <button type="button" class="feature-card" onclick="loadAzkar('morning')">🌅 أذكار الصباح</button>
+      <button type="button" class="feature-card" onclick="loadAzkar('evening')">🌇 أذكار المساء</button>
+      <button type="button" class="feature-card" onclick="loadAzkar('sleep')">🌙 أذكار النوم</button>
+      <button type="button" class="feature-card" onclick="loadAzkar('wake')">☀️ أذكار الاستيقاظ</button>
+      <button type="button" class="feature-card" onclick="loadAzkar('prayer')">🕌 أذكار بعد الصلاة</button>
+      <button type="button" class="feature-card" onclick="loadAzkar('adhan')">📢 أذكار الأذان</button>
+      <button type="button" class="feature-card" onclick="loadAzkar('mosque')">🕌 أذكار المسجد</button>
+      <button type="button" class="feature-card" onclick="loadAzkar('home')">🏠 أذكار المنزل</button>
+      <button type="button" class="feature-card" onclick="loadAzkar('food')">🍽️ أذكار الطعام</button>
+      <button type="button" class="feature-card" onclick="loadAzkar('general')">🤲 أذكار متنوعة</button>
     </div>
 
     <div id="azkar-content"></div>
 
   </section>
-
 
   <!-- الصلاة والأذان -->
   <section id="prayer" class="page">
@@ -286,7 +203,6 @@
     </div>
 
     <div class="content-card">
-
       <h3>إعدادات الأذان</h3>
 
       <label>
@@ -300,7 +216,6 @@
         <input type="checkbox" id="iqama-enabled" checked>
         تفعيل تنبيه الإقامة
       </label>
-
     </div>
 
     <div class="content-card">
@@ -310,7 +225,6 @@
     </div>
 
   </section>
-
 
   <!-- رمضان -->
   <section id="ramadan" class="page">
@@ -324,22 +238,13 @@
     <div class="content-card">
       <h3>إمساكية شهر رمضان</h3>
       <p>مواعيد السحور والإمساك والإفطار والصلاة</p>
-
       <div id="ramadan-calendar"></div>
     </div>
 
     <div class="content-card">
       <h3>🍲 تنبيه السحور</h3>
       <p>تذكير قبل موعد الفجر للاستعداد للسحور</p>
-
-      <input
-        type="number"
-        id="suhoor-minutes"
-        value="30"
-        min="5"
-        max="120"
-      >
-
+      <input type="number" id="suhoor-minutes" value="30" min="5" max="120">
       <span>دقيقة قبل الفجر</span>
     </div>
 
@@ -355,7 +260,6 @@
 
   </section>
 
-
   <!-- المزيد -->
   <section id="more" class="page">
 
@@ -370,9 +274,35 @@
       <p>اعرف اتجاه القبلة أينما كنت</p>
     </div>
 
-    <div class="content-card">
-      <h3>📿 السبحة الإلكترونية</h3>
-      <p>اجعل وقتك عامراً بالتسبيح</p>
+    <!-- السبحة الإلكترونية -->
+    <div class="content-card" id="tasbeeh"
+      style="text-align:center;padding:25px;background:linear-gradient(145deg,#101d1b,#080f12);border:1px solid rgba(35,180,145,.3);border-radius:22px;">
+
+      <h3 style="color:#d6b45c;">📿 السبحة الإلكترونية</h3>
+
+      <p style="color:#a9b9b3;">اجعل لسانك رطباً بذكر الله</p>
+
+      <div style="width:190px;height:190px;max-width:100%;margin:25px auto;border:5px solid #178d70;border-radius:50%;display:flex;flex-direction:column;justify-content:center;align-items:center;background:radial-gradient(circle,#173b32,#0b1716);box-shadow:0 0 25px rgba(23,141,112,.2);">
+
+        <strong id="tasbeeh-count"
+          style="font-size:55px;color:#e4c36c;">0</strong>
+
+        <span style="color:#b5c8bf;">عدد التسبيحات</span>
+
+      </div>
+
+      <button type="button" id="tasbeeh-btn"
+        style="width:170px;height:65px;border:0;border-radius:18px;background:linear-gradient(135deg,#168d70,#075b4c);color:white;font-size:23px;font-weight:bold;cursor:pointer;margin:12px;">
+        سبّح 📿
+      </button>
+
+      <button type="button" id="tasbeeh-reset"
+        style="display:block;margin:12px auto;padding:12px 25px;border:1px solid #b99a4c;border-radius:12px;background:transparent;color:#d6b45c;font-size:15px;cursor:pointer;">
+        ↻ تصفير العداد
+      </button>
+
+      <p style="color:#b5c8bf;font-size:13px;">🤍 اذكر الله بقلب حاضر</p>
+
     </div>
 
     <div class="content-card">
@@ -395,67 +325,42 @@
 
 </main>
 
-
 <!-- شريط التنقل السفلي -->
 <nav class="bottom-nav">
 
-  <button
-    type="button"
-    class="nav-item active"
-    onclick="showPage('home')"
-  >
+  <button type="button" class="nav-item active" onclick="showPage('home')">
     <span>⌂</span>
     <small>الرئيسية</small>
   </button>
 
-  <button
-    type="button"
-    class="nav-item"
-    onclick="showPage('quran')"
-  >
+  <button type="button" class="nav-item" onclick="showPage('quran')">
     <span>📖</span>
     <small>القرآن</small>
   </button>
 
-  <button
-    type="button"
-    class="nav-item"
-    onclick="showPage('prayer')"
-  >
+  <button type="button" class="nav-item" onclick="showPage('prayer')">
     <span>🕌</span>
     <small>الصلاة</small>
   </button>
 
-  <button
-    type="button"
-    class="nav-item"
-    onclick="showPage('azkar')"
-  >
+  <button type="button" class="nav-item" onclick="showPage('azkar')">
     <span>📿</span>
     <small>الأذكار</small>
   </button>
 
-  <button
-    type="button"
-    class="nav-item"
-    onclick="showPage('more')"
-  >
+  <button type="button" class="nav-item" onclick="showPage('more')">
     <span>☰</span>
     <small>المزيد</small>
   </button>
 
 </nav>
 
-
 <!-- نظام التنقل بين الصفحات -->
 <script>
-
 (function () {
-
   "use strict";
 
   window.showPage = function (pageId) {
-
     const pages = document.querySelectorAll("main .page");
     const target = document.getElementById(pageId);
 
@@ -470,26 +375,20 @@
 
     document.querySelectorAll(".bottom-nav .nav-item")
       .forEach(function (button) {
-
         const isActive =
           button.getAttribute("onclick") ===
           "showPage('" + pageId + "')";
 
         button.classList.toggle("active", isActive);
-
       });
 
     window.scrollTo({
       top: 0,
       behavior: "smooth"
     });
-
   };
-
 })();
-
 </script>
-
 
 <!-- ملفات التطبيق -->
 
@@ -508,42 +407,31 @@
 <!-- رمضان -->
 <script src="./ramadan.js"></script>
 
+<!-- السبحة الإلكترونية -->
+<script src="./tasbeeh.js"></script>
+
 <!-- التوقيت العالمي -->
 <script src="./css/js/js/js/timezone.js"></script>
 
 <!-- اتجاه القبلة -->
 <script src="./qibla.js"></script>
 
-
 <!-- تسجيل Service Worker -->
 <script>
-
 if ("serviceWorker" in navigator) {
-
   window.addEventListener("load", function () {
-
     navigator.serviceWorker.register("./service-worker.js")
       .then(function (registration) {
-
         console.log(
           "Yaqeen Service Worker registered:",
           registration.scope
         );
-
       })
       .catch(function (error) {
-
-        console.error(
-          "Service Worker Error:",
-          error
-        );
-
+        console.error("Service Worker Error:", error);
       });
-
   });
-
 }
-
 </script>
 
 </body>
