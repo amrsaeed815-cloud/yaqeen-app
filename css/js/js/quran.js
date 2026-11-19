@@ -7,7 +7,8 @@
   // ==========================================
 
   const API = "https://mp3quran.net/api/v3";
- const TEXT_API = "https://quran-json.risanb.com/text/uthmani/chapters";
+  const TEXT_API =
+    "https://quran-json.risanb.com/text/uthmani/chapters";
 
   const surahList = document.getElementById("surah-list");
   const readerSelect = document.getElementById("quran-reader");
@@ -586,7 +587,41 @@
   }
 
   // ==========================================
-  // قراءة السورة نصياً - مصدر AyahQuran
+  // إشعار مصدر القرآن وترخيص Tanzil
+  // ==========================================
+
+  function addQuranSourceNotices(result) {
+    const licenseNotice = document.createElement("p");
+
+    licenseNotice.textContent = result.notice || "";
+
+    licenseNotice.style.cssText =
+      "direction:ltr;text-align:left;font-size:12px;line-height:1.8;padding:12px;margin:10px;border:1px solid #888;border-radius:10px;white-space:pre-wrap;";
+
+    reader.appendChild(licenseNotice);
+
+    const sourceNotice = document.createElement("p");
+
+    sourceNotice.textContent =
+      "مصدر نص القرآن الكريم: مشروع Tanzil. النص منقول كما هو دون تغيير، وفق ترخيص المشاع الإبداعي CC BY 3.0.";
+
+    sourceNotice.style.cssText =
+      "text-align:center;font-size:13px;color:var(--gold);padding:15px;line-height:2;";
+
+    const sourceLink = document.createElement("a");
+
+    sourceLink.textContent = "زيارة موقع Tanzil";
+    sourceLink.href = "https://tanzil.net/";
+    sourceLink.target = "_blank";
+    sourceLink.rel = "noopener noreferrer";
+
+    sourceNotice.appendChild(sourceLink);
+
+    reader.appendChild(sourceNotice);
+  }
+
+  // ==========================================
+  // قراءة السورة نصياً - مصدر Tanzil
   // ==========================================
 
   async function loadSurahText(number, name) {
@@ -601,25 +636,29 @@
     const session = currentAudioSession;
 
     try {
-     const response = await fetch(
-  TEXT_API +
-  "/" +
-  number +
-  ".json"
-);
+      const response = await fetch(
+        TEXT_API +
+        "/" +
+        number +
+        ".json"
+      );
 
       if (!response.ok) {
-        throw new Error("تعذر تحميل نص السورة");
+        throw new Error(
+          "تعذر تحميل نص السورة: " + response.status
+        );
       }
 
       const result = await response.json();
 
       if (session !== currentAudioSession) return;
 
-     const ayahs = result.verses || [];
+      const ayahs = result.verses || [];
 
       if (!Array.isArray(ayahs) || !ayahs.length) {
-        throw new Error("لا توجد آيات في بيانات السورة");
+        throw new Error(
+          "لا توجد آيات في بيانات السورة"
+        );
       }
 
       const heading = document.createElement("h2");
@@ -630,15 +669,7 @@
         "text-align:center;margin:15px 0;color:var(--gold);";
 
       reader.appendChild(heading);
-const licenseNotice = document.createElement("p");
 
-licenseNotice.textContent = result.notice || "";
-
-licenseNotice.style.cssText =
-  "direction:ltr;text-align:left;font-size:12px;line-height:1.8;padding:12px;margin:10px;border:1px solid #888;border-radius:10px;white-space:pre-wrap;";
-
-reader.appendChild(licenseNotice);
-      
       if (Number(number) !== 1 && Number(number) !== 9) {
         const basmala = document.createElement("p");
 
@@ -659,35 +690,20 @@ reader.appendChild(licenseNotice);
       ayahs.forEach(function (ayah) {
         const span = document.createElement("span");
 
-     span.textContent =
-  ayah.text +
-  " ﴿" +
-  ayah.id +
-  "﴾ ";
+        span.textContent =
+          ayah.text +
+          " ﴿" +
+          ayah.id +
+          "﴾ ";
 
         textContainer.appendChild(span);
       });
 
       reader.appendChild(textContainer);
-const sourceNotice = document.createElement("p");
 
-sourceNotice.textContent =
-  "مصدر نص القرآن الكريم: مشروع Tanzil. النص منقول كما هو دون تغيير، وفق ترخيص المشاع الإبداعي CC BY 3.0.";
+      // إضافة نص الترخيص والمصدر أسفل الآيات
+      addQuranSourceNotices(result);
 
-sourceNotice.style.cssText =
-  "text-align:center;font-size:13px;color:var(--gold);padding:15px;line-height:2;";
-
-const sourceLink = document.createElement("a");
-
-sourceLink.textContent = "زيارة موقع Tanzil";
-sourceLink.href = "https://tanzil.net/";
-sourceLink.target = "_blank";
-sourceLink.rel = "noopener noreferrer";
-
-sourceNotice.appendChild(sourceLink);
-
-reader.appendChild(sourceNotice);
-      
       setStatus("تم تحميل " + name + " بنجاح");
 
       reader.scrollIntoView({
