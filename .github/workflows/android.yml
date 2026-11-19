@@ -41,7 +41,7 @@ jobs:
       - name: Prepare app icon
         run: |
           mkdir -p resources
-          cp icon.png resources/icon.png
+          cp "assets/icon-512 (1).png" resources/icon.png
 
       - name: Generate Android icons
         run: npm run icons -- --assetPath resources
