@@ -509,38 +509,78 @@
   }
 
   // ==========================================
-  // تحميل السور الـ114
+  // تحميل السور الـ114 من MP3Quran
   // ==========================================
 
   async function loadSurahs() {
     setStatus("جاري تحميل سور القرآن الكريم...");
-
     surahList.innerHTML = "";
 
     try {
       const response = await fetch(
-        TEXT_API + "/surah"
+        API + "/suwar?language=ar"
       );
 
       if (!response.ok) {
-        throw new Error("فشل تحميل قائمة السور");
+        throw new Error(
+          "فشل تحميل قائمة السور: " + response.status
+        );
       }
 
       const result = await response.json();
 
-      surahs = result.data || result;
+      if (result.Errors && result.Errors.length) {
+        throw new Error(
+          "مصدر السور أعاد رسالة خطأ"
+        );
+      }
 
-      if (!Array.isArray(surahs) || surahs.length !== 114) {
+      if (!Array.isArray(result.suwar)) {
+        throw new Error(
+          "بيانات السور غير صحيحة"
+        );
+      }
+
+      surahs = result.suwar.map(function (surah) {
+        return {
+          number: Number(surah.id),
+          name: String(surah.name || "").trim()
+        };
+      });
+
+      if (
+        surahs.length !== 114 ||
+        surahs.some(function (surah) {
+          return (
+            !Number.isInteger(surah.number) ||
+            surah.number < 1 ||
+            surah.number > 114 ||
+            !surah.name
+          );
+        })
+      ) {
+        surahs = [];
         throw new Error("قائمة السور غير مكتملة");
       }
+
+      surahs.sort(function (a, b) {
+        return a.number - b.number;
+      });
+
+      console.log(
+        "تم تحميل السور بنجاح:",
+        surahs.length
+      );
 
       renderSurahs();
 
     } catch (error) {
       console.error("Surah Loading Error:", error);
 
+      surahs = [];
+
       setStatus(
-        "تعذر تحميل السور. حاول تحديث الصفحة."
+        "تعذر تحميل السور. تحقق من الإنترنت وحاول مرة أخرى."
       );
     }
   }
