@@ -1,0 +1,196 @@
+
+(function () {
+  "use strict";
+
+  const ruqyahData = [
+    {
+      title: "سورة الفاتحة",
+      text: "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ ۝ الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ ۝ الرَّحْمَٰنِ الرَّحِيمِ ۝ مَالِكِ يَوْمِ الدِّينِ ۝ إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ ۝ اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ ۝ صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ وَلَا الضَّالِّينَ",
+      source: "سورة الفاتحة",
+      count: 7
+    },
+    {
+      title: "آية الكرسي",
+      text: "اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ ۚ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ ۚ لَهُ مَا فِي السَّمَاوَاتِ وَمَا فِي الْأَرْضِ ۗ مَن ذَا الَّذِي يَشْفَعُ عِندَهُ إِلَّا بِإِذْنِهِ ۚ يَعْلَمُ مَا بَيْنَ أَيْدِيهِمْ وَمَا خَلْفَهُمْ ۖ وَلَا يُحِيطُونَ بِشَيْءٍ مِّنْ عِلْمِهِ إِلَّا بِمَا شَاءَ ۚ وَسِعَ كُرْسِيُّهُ السَّمَاوَاتِ وَالْأَرْضَ ۖ وَلَا يَئُودُهُ حِفْظُهُمَا ۚ وَهُوَ الْعَلِيُّ الْعَظِيمُ",
+      source: "سورة البقرة: 255",
+      count: 1
+    },
+    {
+      title: "آخر آيتين من سورة البقرة",
+      text: "آمَنَ الرَّسُولُ بِمَا أُنزِلَ إِلَيْهِ مِن رَّبِّهِ وَالْمُؤْمِنُونَ ۚ كُلٌّ آمَنَ بِاللَّهِ وَمَلَائِكَتِهِ وَكُتُبِهِ وَرُسُلِهِ لَا نُفَرِّقُ بَيْنَ أَحَدٍ مِّن رُّسُلِهِ ۚ وَقَالُوا سَمِعْنَا وَأَطَعْنَا غُفْرَانَكَ رَبَّنَا وَإِلَيْكَ الْمَصِيرُ ۝ لَا يُكَلِّفُ اللَّهُ نَفْسًا إِلَّا وُسْعَهَا ۚ لَهَا مَا كَسَبَتْ وَعَلَيْهَا مَا اكْتَسَبَتْ ۗ رَبَّنَا لَا تُؤَاخِذْنَا إِن نَّسِينَا أَوْ أَخْطَأْنَا...",
+      source: "سورة البقرة: 285-286",
+      count: 1
+    },
+    {
+      title: "سورة الإخلاص",
+      text: "قُلْ هُوَ اللَّهُ أَحَدٌ ۝ اللَّهُ الصَّمَدُ ۝ لَمْ يَلِدْ وَلَمْ يُولَدْ ۝ وَلَمْ يَكُن لَّهُ كُفُوًا أَحَدٌ",
+      source: "سورة الإخلاص",
+      count: 3
+    },
+    {
+      title: "سورة الفلق",
+      text: "قُلْ أَعُوذُ بِرَبِّ الْفَلَقِ ۝ مِن شَرِّ مَا خَلَقَ ۝ وَمِن شَرِّ غَاسِقٍ إِذَا وَقَبَ ۝ وَمِن شَرِّ النَّفَّاثَاتِ فِي الْعُقَدِ ۝ وَمِن شَرِّ حَاسِدٍ إِذَا حَسَدَ",
+      source: "سورة الفلق",
+      count: 3
+    },
+    {
+      title: "سورة الناس",
+      text: "قُلْ أَعُوذُ بِرَبِّ النَّاسِ ۝ مَلِكِ النَّاسِ ۝ إِلَٰهِ النَّاسِ ۝ مِن شَرِّ الْوَسْوَاسِ الْخَنَّاسِ ۝ الَّذِي يُوَسْوِسُ فِي صُدُورِ النَّاسِ ۝ مِنَ الْجِنَّةِ وَالنَّاسِ",
+      source: "سورة الناس",
+      count: 3
+    },
+    {
+      title: "دعاء الشفاء",
+      text: "اللَّهُمَّ رَبَّ النَّاسِ أَذْهِبِ الْبَأْسَ، اشْفِ أَنْتَ الشَّافِي، لَا شِفَاءَ إِلَّا شِفَاؤُكَ، شِفَاءً لَا يُغَادِرُ سَقَمًا",
+      source: "صحيح البخاري وصحيح مسلم",
+      count: 3
+    },
+    {
+      title: "رقية جبريل عليه السلام",
+      text: "بِاسْمِ اللَّهِ أَرْقِيكَ، مِنْ كُلِّ شَيْءٍ يُؤْذِيكَ، مِنْ شَرِّ كُلِّ نَفْسٍ أَوْ عَيْنِ حَاسِدٍ، اللَّهُ يَشْفِيكَ، بِاسْمِ اللَّهِ أَرْقِيكَ",
+      source: "صحيح مسلم",
+      count: 3
+    },
+    {
+      title: "دعاء الاستعاذة",
+      text: "أَعُوذُ بِكَلِمَاتِ اللَّهِ التَّامَّاتِ مِنْ شَرِّ مَا خَلَقَ",
+      source: "صحيح مسلم",
+      count: 3
+    }
+  ];
+
+  const container = document.getElementById("ruqyah-content");
+
+  if (!container) return;
+
+  const counters = ruqyahData.map(() => 0);
+
+  function escapeHTML(value) {
+    return String(value).replace(/[&<>"']/g, function (char) {
+      return {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      }[char];
+    });
+  }
+
+  function render() {
+    const total = ruqyahData.reduce(
+      (sum, item) => sum + item.count,
+      0
+    );
+
+    const completed = counters.reduce(
+      (sum, value) => sum + value,
+      0
+    );
+
+    const percentage = Math.round((completed / total) * 100);
+
+    container.innerHTML = `
+      <div class="content-card">
+        <h3>📿 متابعة الرقية الشرعية</h3>
+        <p>أكملت ${completed} من ${total} قراءة</p>
+
+        <div style="
+          background:#253b3a;
+          height:10px;
+          border-radius:20px;
+          overflow:hidden;
+          margin:15px 0;
+        ">
+          <div style="
+            width:${percentage}%;
+            height:100%;
+            background:#c5a45b;
+            transition:width .3s;
+          "></div>
+        </div>
+
+        <p>نسبة الإنجاز: ${percentage}%</p>
+
+        <button type="button" data-reset-all>
+          🔄 إعادة جميع العدادات
+        </button>
+      </div>
+
+      ${ruqyahData.map((item, index) => `
+        <div class="content-card ruqyah-card">
+          <h3>${index + 1}. ${escapeHTML(item.title)}</h3>
+
+          <p class="dua-text" style="
+            font-size:21px;
+            line-height:2.2;
+            text-align:center;
+            direction:rtl;
+          ">${escapeHTML(item.text)}</p>
+
+          <p style="text-align:center;color:#c5a45b">
+            ${escapeHTML(item.source)}
+          </p>
+
+          <div style="text-align:center;margin-top:15px">
+            <p>
+              عدد المرات:
+              <strong>${counters[index]}</strong>
+              / ${item.count}
+            </p>
+
+            <button type="button" data-increment="${index}">
+              📿 اضغط للتسبيح والقراءة
+            </button>
+
+            <button type="button" data-reset="${index}">
+              🔄 إعادة
+            </button>
+
+            <p style="margin-top:10px">
+              ${counters[index] >= item.count
+                ? "✅ اكتملت القراءة"
+                : "استمر في القراءة"}
+            </p>
+          </div>
+        </div>
+      `).join("")}
+    `;
+  }
+
+  container.addEventListener("click", function (event) {
+    const increment = event.target.closest("[data-increment]");
+    const reset = event.target.closest("[data-reset]");
+    const resetAll = event.target.closest("[data-reset-all]");
+
+    if (increment) {
+      const index = Number(increment.dataset.increment);
+
+      if (index >= 0 && index < counters.length) {
+        if (counters[index] < ruqyahData[index].count) {
+          counters[index]++;
+          render();
+        }
+      }
+    }
+
+    if (reset) {
+      const index = Number(reset.dataset.reset);
+
+      if (index >= 0 && index < counters.length) {
+        counters[index] = 0;
+        render();
+      }
+    }
+
+    if (resetAll) {
+      counters.fill(0);
+      render();
+    }
+  });
+
+  render();
+
+  window.ruqyahData = ruqyahData;
+
+})();
