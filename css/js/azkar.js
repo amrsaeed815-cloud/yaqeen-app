@@ -237,8 +237,7 @@
 
       audio.src = category === "morning"
         ? "./assets/audio/أذكار_الصباح.mp3%20(1).mp3"
-        : "./assets/audio/اذكار%20المساء%20(1).mp3";
-
+     : "./اذكار%20المساء%20(1).mp3";
       audioBox.appendChild(audioTitle);
       audioBox.appendChild(audio);
       section.appendChild(audioBox);
