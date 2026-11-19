@@ -630,7 +630,15 @@
         "text-align:center;margin:15px 0;color:var(--gold);";
 
       reader.appendChild(heading);
+const licenseNotice = document.createElement("p");
 
+licenseNotice.textContent = result.notice || "";
+
+licenseNotice.style.cssText =
+  "direction:ltr;text-align:left;font-size:12px;line-height:1.8;padding:12px;margin:10px;border:1px solid #888;border-radius:10px;white-space:pre-wrap;";
+
+reader.appendChild(licenseNotice);
+      
       if (Number(number) !== 1 && Number(number) !== 9) {
         const basmala = document.createElement("p");
 
