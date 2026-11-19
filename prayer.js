@@ -19,7 +19,8 @@
     city: "القاهرة - مصر"
   };
 
-const AUDIO_BASE = new URL("./assets/audio/", document.baseURI).href;
+  const AUDIO_BASE = new URL("./assets/audio/", document.baseURI).href;
+
   const PRAYERS = [
     { id: "Fajr", name: "الفجر", element: "fajr-time" },
     { id: "Dhuhr", name: "الظهر", element: "dhuhr-time" },
@@ -36,7 +37,7 @@ const AUDIO_BASE = new URL("./assets/audio/", document.baseURI).href;
 
     naqshbandi: {
       name: "الشيخ النقشبندي",
- file: "اذان.mp4"
+      file: "اذان.mp4"
     }
   };
 
@@ -1172,7 +1173,7 @@ const AUDIO_BASE = new URL("./assets/audio/", document.baseURI).href;
       ) {
 
         prayerTimes = cached.times;
-        tomorrowFajr = cached.tomorrowFajr;
+        tomorrowFajr = cached.tomorrowFajr || null;
 
         displayPrayerTimes();
         updateNextPrayer();
@@ -1419,11 +1420,9 @@ const AUDIO_BASE = new URL("./assets/audio/", document.baseURI).href;
       /^ar([-_]|$)/i.test(voice.lang)
     );
 
-    // أسماء أصوات رجالية عربية معروفة
     const maleNames =
-      /hamed|hamid|naayf|nayef|fahd|saleh|salih|shakir|shaker|hisham|hesham|tariq|tareq|bassel|basel|mohammed|mohammad|ahmed|ahmad|omar|youssef|yusuf|abdul|khalid|rashid|mansour|majed|nasser|nasser|طارق|هشام|فهد|صالح|محمد|أحمد|خالد|راشد|ناصر|ماجد|يوسف|عمر|حامد|شاكر|سليم|باسل/i;
+      /hamed|hamid|naayf|nayef|fahd|saleh|salih|shakir|shaker|hisham|hesham|tariq|tareq|bassel|basel|mohammed|mohammad|ahmed|ahmad|omar|youssef|yusuf|abdul|khalid|rashid|mansour|majed|nasser|طارق|هشام|فهد|صالح|محمد|أحمد|خالد|راشد|ناصر|ماجد|يوسف|عمر|حامد|شاكر|سليم|باسل/i;
 
-    // استبعاد الأسماء النسائية المعروفة
     const femaleNames =
       /hoda|houda|zariyah|amira|layla|leila|fatima|salma|sara|maryam|female|هدى|أميرة|ليلى|فاطمة|سلمى|سارة|مريم/i;
 
@@ -1436,8 +1435,6 @@ const AUDIO_BASE = new URL("./assets/audio/", document.baseURI).href;
       return maleVoice;
     }
 
-    // إذا لم يوجد اسم رجالي معروف، نختار صوتًا عربيًا
-    // ونخفض درجة الصوت قليلًا كحل احتياطي.
     return arabicVoices.find(voice =>
       !femaleNames.test(voice.name)
     ) || arabicVoices[0] || null;
@@ -1488,7 +1485,7 @@ const AUDIO_BASE = new URL("./assets/audio/", document.baseURI).href;
 
   // ==========================================
   // التنبيه قبل الصلاة بـ15 دقيقة
-  // صوت رجل عربي - دون تغيير الأذان
+  // يشمل فجر اليوم التالي
   // ==========================================
 
   function checkPrayerAlerts() {
@@ -1496,23 +1493,55 @@ const AUDIO_BASE = new URL("./assets/audio/", document.baseURI).href;
     if (!prayerTimes) return;
 
     const now = new Date();
-
-    const today = getLocalDateString();
-
     const history = loadAlertHistory();
 
-    PRAYERS.forEach(prayer => {
+    // مواعيد صلوات اليوم
+    const upcomingPrayers = PRAYERS.map(prayer => ({
+      ...prayer,
+      prayerDate: getAdjustedPrayerDateTime(prayer.id)
+    }));
+
+    // إضافة موعد فجر الغد الحقيقي القادم من API
+    const fajrPrayer = PRAYERS.find(
+      prayer => prayer.id === "Fajr"
+    );
+
+    if (fajrPrayer && tomorrowFajr) {
+
+      const tomorrow = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate() + 1
+      );
+
+      const fajrDate = getPrayerDateTime(
+        tomorrowFajr,
+        tomorrow
+      );
+
+      fajrDate.setMinutes(
+        fajrDate.getMinutes() +
+        (settings.Fajr.timeOffsetMinutes || 0)
+      );
+
+      upcomingPrayers.push({
+        ...fajrPrayer,
+        prayerDate: fajrDate
+      });
+    }
+
+    // فحص التنبيهات
+    upcomingPrayers.forEach(prayer => {
 
       const s = settings[prayer.id];
 
-      if (!s.alertEnabled) return;
+      if (!s || !s.alertEnabled) return;
 
-      const prayerDate = getAdjustedPrayerDateTime(
-        prayer.id
-      );
+      const prayerDate = prayer.prayerDate;
 
       if (!prayerDate) return;
 
+      // موعد التنبيه قبل الصلاة بـ15 دقيقة
       const alertDate = new Date(
         prayerDate.getTime() - 15 * 60000
       );
@@ -1522,7 +1551,7 @@ const AUDIO_BASE = new URL("./assets/audio/", document.baseURI).href;
 
       const key = getAlertKey(
         prayer.id,
-        today
+        getLocalDateString(prayerDate)
       );
 
       if (
@@ -1533,20 +1562,17 @@ const AUDIO_BASE = new URL("./assets/audio/", document.baseURI).href;
 
         history[key] = true;
 
-        const notificationMessage =
+        const message =
           `اقتربت صلاة ${prayer.name}، متبقي 15 دقيقة.`;
 
-        const voiceMessage =
-          `اقتربت صلاة ${prayer.name}، باقي خمس عشرة دقيقة.`;
-
-        // إشعار الهاتف أو الكمبيوتر
         sendNotification(
           "تطبيق يقين 🕌",
-          notificationMessage
+          message
         );
 
-        // الصوت الرجالي العربي للتنبيه فقط
-        speakMalePrayerAlert(voiceMessage);
+        speakMalePrayerAlert(
+          `اقتربت صلاة ${prayer.name}، باقي خمس عشرة دقيقة.`
+        );
       }
     });
 
@@ -1554,8 +1580,7 @@ const AUDIO_BASE = new URL("./assets/audio/", document.baseURI).href;
   }
 
   // ==========================================
-  // تنبيه موعد الإقامة
-  // لم يتم تغيير صوته
+  // تنبيه الإقامة
   // ==========================================
 
   function checkIqamaAlerts() {
@@ -1612,7 +1637,6 @@ const AUDIO_BASE = new URL("./assets/audio/", document.baseURI).href;
 
   // ==========================================
   // الأذان التلقائي
-  // لم يتم تغيير أي شيء في تشغيل الأذان
   // ==========================================
 
   function checkAdhan() {
