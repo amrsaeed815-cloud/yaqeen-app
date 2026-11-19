@@ -6,7 +6,7 @@
   // تطبيق يقين - قسم القرآن الكريم
   // ==========================================
 
-  const API = "https://www.mp3quran.net/api/v3";
+ const API = "https://mp3quran.net/api/v3";
   const TEXT_API = "https://api.alquran.cloud/v1";
 
   const surahList = document.getElementById("surah-list");
