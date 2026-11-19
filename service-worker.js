@@ -1,7 +1,7 @@
 
 "use strict";
 
-const CACHE_NAME = "yaqeen-v5";
+const CACHE_NAME =yaqeen-v6
 
 const FILES_TO_CACHE = [
   "./",
