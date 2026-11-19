@@ -19,6 +19,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -27,13 +28,16 @@ jobs:
           java-version: 21
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
-      - name: Prepare web files
+      - name: Build web files
         run: npm run build
 
-      - name: Add Android platform
-        run: npx cap add android
+      - name: Check Android platform
+        run: |
+          if [ ! -d "android" ]; then
+            npx cap add android
+          fi
 
       - name: Sync Android project
         run: npx cap sync android
@@ -49,3 +53,5 @@ jobs:
         with:
           name: Yaqeen-Android-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
