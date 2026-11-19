@@ -7,7 +7,7 @@
   // ==========================================
 
   const API = "https://mp3quran.net/api/v3";
-  const TEXT_API = "https://ayahquran.com/api/v1";
+ const TEXT_API = "https://quran-json.risanb.com/text/uthmani/chapters";
 
   const surahList = document.getElementById("surah-list");
   const readerSelect = document.getElementById("quran-reader");
