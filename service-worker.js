@@ -1,7 +1,8 @@
 
 "use strict";
 
-const CACHE_NAME =yaqeen-v6
+// إصدار جديد للكاش
+const CACHE_NAME = "yaqeen-v7";
 
 const FILES_TO_CACHE = [
   "./",
@@ -14,7 +15,13 @@ const FILES_TO_CACHE = [
   "./prayer.js",
   "./ramadan.js",
   "./icon-192.png",
-  "./icon-512.png"
+  "./icon-512.png",
+
+  // ملفات الصوت
+  "./assets/audio/اذان.mp4",
+  "./assets/audio/الشعراوي.mp4",
+  "./assets/audio/محمد رفعت.mp4",
+  "./assets/audio/مدافع.mp4"
 ];
 
 // تثبيت الملفات الأساسية دون فشل التثبيت
@@ -102,7 +109,7 @@ self.addEventListener("fetch", (event) => {
         }
 
         return response;
-      });
+      })
     })
   );
 });
