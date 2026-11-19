@@ -4,7 +4,6 @@
 
   // ==========================================
   // تطبيق يقين - الملف الرئيسي app.js
-  // مسؤول عن التنقل والتاريخ والإشعارات
   // ==========================================
 
   if (window.yaqeenAppInitialized) {
@@ -26,7 +25,7 @@
       return;
     }
 
-    document.querySelectorAll(".page").forEach(page => {
+    document.querySelectorAll("main .page").forEach(page => {
       page.classList.remove("active");
     });
 
@@ -36,9 +35,7 @@
     document.querySelectorAll(".bottom-nav .nav-item")
       .forEach(button => {
         const onclick = button.getAttribute("onclick") || "";
-        const match = onclick.match(
-          /showPage\(['"]([^'"]+)['"]\)/
-        );
+        const match = onclick.match(/showPage\(['"]([^'"]+)['"]\)/);
 
         button.classList.toggle(
           "active",
@@ -52,7 +49,6 @@
     });
   }
 
-  // إتاحة الدالة لأزرار HTML
   window.showPage = showPage;
 
   // ==========================================
@@ -62,24 +58,16 @@
   function updateDates() {
     const now = new Date();
 
-    const gregorian = document.getElementById(
-      "gregorian-date"
-    );
-
-    const hijri = document.getElementById(
-      "hijri-date"
-    );
+    const gregorian = document.getElementById("gregorian-date");
+    const hijri = document.getElementById("hijri-date");
 
     if (gregorian) {
-      gregorian.textContent = now.toLocaleDateString(
-        "ar-EG",
-        {
-          weekday: "long",
-          year: "numeric",
-          month: "long",
-          day: "numeric"
-        }
-      );
+      gregorian.textContent = now.toLocaleDateString("ar-EG", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric"
+      });
     }
 
     if (hijri) {
@@ -106,6 +94,7 @@
               day: "numeric"
             }
           ).format(now);
+
         } catch (fallbackError) {
           hijri.textContent = "التاريخ الهجري غير متاح";
         }
@@ -118,9 +107,7 @@
   // ==========================================
 
   function setupNotifications() {
-    const button = document.querySelector(
-      ".notification-btn"
-    );
+    const button = document.querySelector(".notification-btn");
 
     if (!button || button.dataset.bound === "true") {
       return;
@@ -136,9 +123,7 @@
       }
 
       if (Notification.permission === "denied") {
-        alert(
-          "الإشعارات محظورة. يمكنك تفعيلها من إعدادات المتصفح."
-        );
+        alert("الإشعارات محظورة. يمكنك تفعيلها من إعدادات المتصفح.");
         return;
       }
 
@@ -165,12 +150,11 @@
         console.error("Notification error:", error);
         alert("تعذر تفعيل الإشعارات.");
       }
-
     });
   }
 
   // ==========================================
-  // التأكد من وجود الأقسام الأساسية
+  // التأكد من وجود جميع أقسام التطبيق
   // ==========================================
 
   function checkAppSections() {
@@ -180,15 +164,14 @@
       "azkar",
       "prayer",
       "ramadan",
-      "more"
+      "more",
+      "duas",
+      "ruqyah"
     ];
 
     sections.forEach(id => {
       if (!document.getElementById(id)) {
-        console.warn(
-          "Yaqeen section missing:",
-          id
-        );
+        console.warn("Yaqeen section missing:", id);
       }
     });
   }
@@ -198,7 +181,6 @@
   // ==========================================
 
   function init() {
-
     checkAppSections();
 
     updateDates();
@@ -209,26 +191,19 @@
     setInterval(updateDates, 60000);
 
     // تحديث التاريخ عند العودة للتطبيق
-    document.addEventListener(
-      "visibilitychange",
-      function () {
-        if (!document.hidden) {
-          updateDates();
-        }
+    document.addEventListener("visibilitychange", function () {
+      if (!document.hidden) {
+        updateDates();
       }
-    );
+    });
 
-    console.log(
-      "يَقِين: تم تشغيل الملف الرئيسي بنجاح ☪"
-    );
+    console.log("يَقِين: تم تشغيل الملف الرئيسي بنجاح ☪");
   }
 
   if (document.readyState === "loading") {
-    document.addEventListener(
-      "DOMContentLoaded",
-      init,
-      { once: true }
-    );
+    document.addEventListener("DOMContentLoaded", init, {
+      once: true
+    });
   } else {
     init();
   }
