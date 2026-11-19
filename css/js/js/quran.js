@@ -616,7 +616,7 @@
 
       if (session !== currentAudioSession) return;
 
-      const ayahs = result.verses || [];
+     const ayahs = result.verses || [];
 
       if (!Array.isArray(ayahs) || !ayahs.length) {
         throw new Error("لا توجد آيات في بيانات السورة");
