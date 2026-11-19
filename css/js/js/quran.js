@@ -6,8 +6,9 @@
   // تطبيق يقين - قسم القرآن الكريم
   // ==========================================
 
- const API = "https://mp3quran.net/api/v3";
- const TEXT_API = "https://ayahquran.com/api/v1";
+  const API = "https://mp3quran.net/api/v3";
+  const TEXT_API = "https://ayahquran.com/api/v1";
+
   const surahList = document.getElementById("surah-list");
   const readerSelect = document.getElementById("quran-reader");
 
@@ -585,7 +586,7 @@
   }
 
   // ==========================================
-  // قراءة السورة نصياً
+  // قراءة السورة نصياً - مصدر AyahQuran
   // ==========================================
 
   async function loadSurahText(number, name) {
@@ -603,8 +604,7 @@
       const response = await fetch(
         TEXT_API +
         "/surah/" +
-        number +
-        "/quran-uthmani"
+        number
       );
 
       if (!response.ok) {
@@ -615,10 +615,10 @@
 
       if (session !== currentAudioSession) return;
 
-      const ayahs = result.data?.ayahs || [];
+      const ayahs = result.verses || [];
 
-      if (!ayahs.length) {
-        throw new Error("لا توجد آيات");
+      if (!Array.isArray(ayahs) || !ayahs.length) {
+        throw new Error("لا توجد آيات في بيانات السورة");
       }
 
       const heading = document.createElement("h2");
@@ -651,9 +651,9 @@
         const span = document.createElement("span");
 
         span.textContent =
-          ayah.text +
+          ayah.text_uthmani +
           " ﴿" +
-          ayah.numberInSurah +
+          ayah.number +
           "﴾ ";
 
         textContainer.appendChild(span);
