@@ -5,13 +5,15 @@
   "private": true,
   "description": "يَقِين | رفيقك إلى الله",
   "scripts": {
-    "build": "node scripts/prepare-web.cjs"
+    "build": "node scripts/prepare-web.cjs",
+    "icons": "capacitor-assets generate --android"
   },
   "dependencies": {
     "@capacitor/core": "^8.3.3",
     "@capacitor/android": "^8.3.3"
   },
   "devDependencies": {
-    "@capacitor/cli": "^8.3.3"
+    "@capacitor/cli": "^8.3.3",
+    "@capacitor/assets": "^3.0.5"
   }
 }
