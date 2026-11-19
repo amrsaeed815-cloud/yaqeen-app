@@ -38,6 +38,14 @@ jobs:
             npx cap add android
           fi
 
+      - name: Prepare app icon
+        run: |
+          mkdir -p resources
+          cp icon.png resources/icon.png
+
+      - name: Generate Android icons
+        run: npm run icons -- --assetPath resources
+
       - name: Sync Android project
         run: npx cap sync android
 
