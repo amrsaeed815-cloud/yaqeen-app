@@ -19,8 +19,7 @@
     city: "القاهرة - مصر"
   };
 
-  const AUDIO_BASE = new URL("./", document.baseURI).href;
-
+const AUDIO_BASE = new URL("./assets/audio/", document.baseURI).href;
   const PRAYERS = [
     { id: "Fajr", name: "الفجر", element: "fajr-time" },
     { id: "Dhuhr", name: "الظهر", element: "dhuhr-time" },
