@@ -34,7 +34,6 @@
       name: "الشيخ محمد رفعت",
       file: "محمد رفعت.mp4"
     },
-
     naqshbandi: {
       name: "الشيخ النقشبندي",
       file: "اذان.mp4"
@@ -52,6 +51,18 @@
   let isLoading = false;
 
   // ==========================================
+  // أدوات مساعدة
+  // ==========================================
+
+  function clampNumber(value, min, max, fallback) {
+    const number = Number(value);
+
+    return Number.isFinite(number)
+      ? Math.max(min, Math.min(max, number))
+      : fallback;
+  }
+
+  // ==========================================
   // الإعدادات الافتراضية
   // ==========================================
 
@@ -64,6 +75,8 @@
         adhanMode: "auto",
         adhanVoice: "rifaat",
         adhanVolume: 80,
+        duaEnabled: true,
+        duaVolume: 80,
         timeOffsetMinutes: 0,
         alertEnabled: true,
         iqamaEnabled: true,
@@ -79,7 +92,7 @@
 
     try {
       const saved = JSON.parse(
-        localStorage.getItem(SETTINGS_KEY)
+        localStorage.getItem(SETTINGS_KEY) || "null"
       );
 
       if (!saved) return defaults;
@@ -102,20 +115,25 @@
           s.adhanVoice = "rifaat";
         }
 
-        s.adhanVolume = Math.max(
-          0,
-          Math.min(100, Number(s.adhanVolume) || 0)
+        s.adhanVolume = clampNumber(s.adhanVolume, 0, 100, 80);
+        s.duaVolume = clampNumber(s.duaVolume, 0, 100, 80);
+
+        s.timeOffsetMinutes = clampNumber(
+          s.timeOffsetMinutes, -60, 60, 0
         );
 
-        s.timeOffsetMinutes = Math.max(
-          -60,
-          Math.min(60, Number(s.timeOffsetMinutes) || 0)
+        s.iqamaMinutes = clampNumber(
+          s.iqamaMinutes, 1, 180, 15
         );
 
-        s.iqamaMinutes = Math.max(
-          1,
-          Math.min(180, Number(s.iqamaMinutes) || 15)
-        );
+        [
+          "adhanEnabled",
+          "duaEnabled",
+          "alertEnabled",
+          "iqamaEnabled"
+        ].forEach(key => {
+          s[key] = s[key] !== false;
+        });
       });
 
       return defaults;
@@ -146,15 +164,19 @@
   function loadLocation() {
     try {
       const saved = JSON.parse(
-        localStorage.getItem(LOCATION_KEY)
+        localStorage.getItem(LOCATION_KEY) || "null"
       );
 
       if (
         saved &&
-        Number.isFinite(saved.latitude) &&
-        Number.isFinite(saved.longitude)
+        Number.isFinite(Number(saved.latitude)) &&
+        Number.isFinite(Number(saved.longitude))
       ) {
-        return saved;
+        return {
+          latitude: Number(saved.latitude),
+          longitude: Number(saved.longitude),
+          city: saved.city || "الموقع المحفوظ"
+        };
       }
 
     } catch (error) {
@@ -177,7 +199,6 @@
 
   function getLocation() {
     return new Promise(resolve => {
-
       if (!navigator.geolocation) {
         resolve(false);
         return;
@@ -185,7 +206,6 @@
 
       navigator.geolocation.getCurrentPosition(
         position => {
-
           locationData = {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
@@ -212,7 +232,6 @@
   // ==========================================
 
   function createPrayerInterface() {
-
     const section = document.getElementById("prayer");
 
     if (!section) {
@@ -225,34 +244,24 @@
     }
 
     section.insertAdjacentHTML("beforeend", `
-
       <div id="yaqeen-prayer-settings"
            class="yaqeen-prayer-settings">
 
         <div class="prayer-settings-header">
-
           <h2>🕌 إعدادات الصلاة والأذان</h2>
-
-          <p>
-            خصص إعدادات كل صلاة بالطريقة التي تناسبك
-          </p>
-
+          <p>خصص إعدادات كل صلاة بالطريقة التي تناسبك</p>
         </div>
 
         <div class="prayer-location-box">
-
           <h3>📍 موقع مواقيت الصلاة</h3>
-
           <p id="prayer-location-name"></p>
 
           <button type="button" id="refresh-prayer-location">
             تحديث الموقع
           </button>
-
         </div>
 
         <div class="prayer-notification-box">
-
           <h3>🔔 إشعارات الصلاة</h3>
 
           <p>
@@ -261,30 +270,36 @@
 
           <button
             type="button"
-            id="enable-prayer-notifications"
-          >
+            id="enable-prayer-notifications">
             تفعيل إشعارات الصلاة
+          </button>
+
+          <button
+            type="button"
+            id="test-prayer-notification">
+            تجربة الإشعارات
           </button>
 
           <p id="prayer-notification-status">
             حالة الإشعارات غير محددة
           </p>
-
         </div>
 
         <div class="prayer-cards"
              id="prayer-settings-cards"></div>
 
         <div class="prayer-audio-test">
+          <button type="button" id="test-prayer-dua">
+            ▶ تجربة دعاء الشيخ الشعراوي
+          </button>
 
           <button type="button" id="stop-prayer-audio">
             إيقاف صوت الأذان والدعاء
           </button>
 
           <p id="prayer-audio-status">
-            اختر صوت الأذان وجربه
+            اختر صوت الأذان أو الدعاء وجربه
           </p>
-
         </div>
 
         <p class="prayer-save-message">
@@ -292,17 +307,14 @@
         </p>
 
       </div>
-
     `);
 
     renderPrayerCards();
 
     document.getElementById("refresh-prayer-location")
-      ?.addEventListener("click", async () => {
+      ?.addEventListener("click", async event => {
 
-        const button = document.getElementById(
-          "refresh-prayer-location"
-        );
+        const button = event.currentTarget;
 
         button.disabled = true;
         button.textContent = "جارٍ تحديد الموقع...";
@@ -313,22 +325,40 @@
         button.textContent = "تحديث الموقع";
 
         if (!success) {
-          alert(
-            "تعذر تحديد موقعك. اسمح بالوصول للموقع من إعدادات المتصفح."
-          );
+          alert("تعذر تحديد موقعك. اسمح بالوصول للموقع من إعدادات المتصفح.");
           return;
         }
 
+        updateLocationLabel();
         await loadPrayerTimes();
       });
 
     document.getElementById("stop-prayer-audio")
       ?.addEventListener("click", stopAudio);
 
+    document.getElementById("test-prayer-dua")
+      ?.addEventListener("click", () => {
+        playDua("Fajr", true);
+      });
+
     document.getElementById("enable-prayer-notifications")
       ?.addEventListener("click", requestNotifications);
 
+    document.getElementById("test-prayer-notification")
+      ?.addEventListener("click", testNotification);
+
     updateNotificationStatus();
+    updateLocationLabel();
+  }
+
+  function updateLocationLabel() {
+    const element = document.getElementById(
+      "prayer-location-name"
+    );
+
+    if (element) {
+      element.textContent = locationData.city;
+    }
   }
 
   // ==========================================
@@ -336,30 +366,23 @@
   // ==========================================
 
   async function requestNotifications() {
-
     if (!("Notification" in window)) {
       alert("المتصفح لا يدعم إشعارات النظام.");
       return;
     }
 
     try {
-
       const permission = await Notification.requestPermission();
 
       updateNotificationStatus();
 
       if (permission === "granted") {
-
         sendNotification(
           "تطبيق يقين 🕌",
           "تم تفعيل إشعارات الصلاة بنجاح."
         );
-
       } else {
-
-        alert(
-          "لم يتم السماح بالإشعارات. يمكنك تفعيلها من إعدادات المتصفح."
-        );
+        alert("لم يتم السماح بالإشعارات. يمكنك تفعيلها من إعدادات المتصفح.");
       }
 
     } catch (error) {
@@ -368,7 +391,6 @@
   }
 
   function updateNotificationStatus() {
-
     const element = document.getElementById(
       "prayer-notification-status"
     );
@@ -384,19 +406,14 @@
 
     if (permission === "granted") {
       element.textContent = "الإشعارات مفعلة ✓";
-
     } else if (permission === "denied") {
-      element.textContent =
-        "الإشعارات محظورة. اسمح بها من إعدادات المتصفح.";
-
+      element.textContent = "الإشعارات محظورة. اسمح بها من إعدادات المتصفح.";
     } else {
-      element.textContent =
-        "يمكنك تفعيل الإشعارات من الزر أعلاه.";
+      element.textContent = "يمكنك تفعيل الإشعارات من الزر أعلاه.";
     }
   }
 
   function sendNotification(title, body) {
-
     if (
       !("Notification" in window) ||
       Notification.permission !== "granted"
@@ -405,9 +422,8 @@
     }
 
     try {
-
       const notification = new Notification(title, {
-        body: body,
+        body,
         icon: "./favicon.ico",
         tag: "yaqeen-prayer"
       });
@@ -422,12 +438,26 @@
     }
   }
 
+  function testNotification() {
+    if (
+      !("Notification" in window) ||
+      Notification.permission !== "granted"
+    ) {
+      alert("فعّل الإشعارات أولًا.");
+      return;
+    }
+
+    sendNotification(
+      "تجربة تطبيق يقين 🕌",
+      "الإشعارات تعمل بنجاح."
+    );
+  }
+
   // ==========================================
   // بطاقات الصلاة
   // ==========================================
 
   function renderPrayerCards() {
-
     const container = document.getElementById(
       "prayer-settings-cards"
     );
@@ -435,219 +465,172 @@
     if (!container) return;
 
     container.innerHTML = PRAYERS.map(prayer => {
-
       const s = settings[prayer.id];
 
       return `
-
         <div class="prayer-setting-card">
 
           <h3>🕌 ${prayer.name}</h3>
 
-          <div class="prayer-setting-row">
-
-            <label>
-              <input
-                type="checkbox"
-                data-prayer="${prayer.id}"
-                data-setting="adhanEnabled"
-                ${s.adhanEnabled ? "checked" : ""}
-              >
-              تفعيل الأذان
-            </label>
-
-          </div>
-
-          <div class="prayer-setting-row">
-
-            <label for="mode-${prayer.id}">
-              طريقة تشغيل الأذان
-            </label>
-
-            <select
-              id="mode-${prayer.id}"
+          <label>
+            <input type="checkbox"
               data-prayer="${prayer.id}"
-              data-setting="adhanMode"
-            >
+              data-setting="adhanEnabled"
+              ${s.adhanEnabled ? "checked" : ""}>
+            تفعيل الأذان
+          </label>
 
-              <option value="auto"
-                ${s.adhanMode === "auto" ? "selected" : ""}>
-                تشغيل تلقائي مع موعد الصلاة
-              </option>
+          <label for="mode-${prayer.id}">
+            طريقة تشغيل الأذان
+          </label>
 
-              <option value="manual"
-                ${s.adhanMode === "manual" ? "selected" : ""}>
-                تشغيل يدوي فقط
-              </option>
+          <select id="mode-${prayer.id}"
+            data-prayer="${prayer.id}"
+            data-setting="adhanMode">
 
-            </select>
+            <option value="auto"
+              ${s.adhanMode === "auto" ? "selected" : ""}>
+              تلقائي
+            </option>
 
-          </div>
+            <option value="manual"
+              ${s.adhanMode === "manual" ? "selected" : ""}>
+              يدوي
+            </option>
+          </select>
 
-          <div class="prayer-setting-row">
-
-            <label>
-              <input
-                type="checkbox"
-                data-prayer="${prayer.id}"
-                data-setting="alertEnabled"
-                ${s.alertEnabled ? "checked" : ""}
-              >
-              تنبيه قبل الصلاة بـ15 دقيقة
-            </label>
-
-          </div>
-
-          <div class="prayer-setting-row">
-
-            <label>
-              <input
-                type="checkbox"
-                data-prayer="${prayer.id}"
-                data-setting="iqamaEnabled"
-                ${s.iqamaEnabled ? "checked" : ""}
-              >
-              تفعيل تنبيه الإقامة
-            </label>
-
-          </div>
-
-          <div class="prayer-setting-row">
-
-            <label for="iqama-${prayer.id}">
-              مدة الإقامة بعد الأذان
-            </label>
-
-            <select
-              id="iqama-${prayer.id}"
+          <label>
+            <input type="checkbox"
               data-prayer="${prayer.id}"
-              data-setting="iqamaMinutes"
-            >
+              data-setting="alertEnabled"
+              ${s.alertEnabled ? "checked" : ""}>
+            تنبيه قبل الصلاة بـ15 دقيقة
+          </label>
 
-              ${[5, 10, 15, 20, 25, 30, 35, 40, 45, 60]
-                .map(value => `
-
-                  <option
-                    value="${value}"
-                    ${s.iqamaMinutes === value ? "selected" : ""}
-                  >
-                    ${value} دقيقة
-                  </option>
-
-                `).join("")}
-
-            </select>
-
-          </div>
-
-          <div class="prayer-setting-row">
-
-            <label for="voice-${prayer.id}">
-              صوت المؤذن
-            </label>
-
-            <select
-              id="voice-${prayer.id}"
+          <label>
+            <input type="checkbox"
               data-prayer="${prayer.id}"
-              data-setting="adhanVoice"
-            >
+              data-setting="iqamaEnabled"
+              ${s.iqamaEnabled ? "checked" : ""}>
+            تفعيل تنبيه الإقامة
+          </label>
 
-              <option value="rifaat"
-                ${s.adhanVoice === "rifaat" ? "selected" : ""}>
-                الشيخ محمد رفعت
-              </option>
+          <label for="iqama-${prayer.id}">
+            مدة الإقامة بعد الأذان
+          </label>
 
-              <option value="naqshbandi"
-                ${s.adhanVoice === "naqshbandi" ? "selected" : ""}>
-                الشيخ النقشبندي
-              </option>
+          <select id="iqama-${prayer.id}"
+            data-prayer="${prayer.id}"
+            data-setting="iqamaMinutes">
 
-            </select>
+            ${[5, 10, 15, 20, 25, 30, 35, 40, 45, 60]
+              .map(value => `
+                <option value="${value}"
+                  ${s.iqamaMinutes === value ? "selected" : ""}>
+                  ${value} دقيقة
+                </option>
+              `).join("")}
+          </select>
 
-          </div>
+          <label for="voice-${prayer.id}">
+            صوت المؤذن
+          </label>
 
-          <div class="prayer-setting-row">
+          <select id="voice-${prayer.id}"
+            data-prayer="${prayer.id}"
+            data-setting="adhanVoice">
 
-            <label for="volume-${prayer.id}">
+            <option value="rifaat"
+              ${s.adhanVoice === "rifaat" ? "selected" : ""}>
+              الشيخ محمد رفعت
+            </option>
 
-              مستوى صوت الأذان:
+            <option value="naqshbandi"
+              ${s.adhanVoice === "naqshbandi" ? "selected" : ""}>
+              الشيخ النقشبندي
+            </option>
+          </select>
 
-              <strong id="volume-value-${prayer.id}">
-                ${s.adhanVolume}%
-              </strong>
+          <label for="volume-${prayer.id}">
+            مستوى صوت الأذان:
+            <strong id="volume-value-${prayer.id}">
+              ${s.adhanVolume}%
+            </strong>
+          </label>
 
-            </label>
+          <input type="range"
+            id="volume-${prayer.id}"
+            min="0" max="100"
+            value="${s.adhanVolume}"
+            data-prayer="${prayer.id}"
+            data-setting="adhanVolume">
 
-            <input
-              type="range"
-              id="volume-${prayer.id}"
-              min="0"
-              max="100"
-              value="${s.adhanVolume}"
+          <label>
+            <input type="checkbox"
               data-prayer="${prayer.id}"
-              data-setting="adhanVolume"
-            >
+              data-setting="duaEnabled"
+              ${s.duaEnabled ? "checked" : ""}>
+            تشغيل دعاء الشيخ الشعراوي بعد الأذان
+          </label>
 
-          </div>
+          <label for="dua-volume-${prayer.id}">
+            مستوى صوت الدعاء:
+            <strong id="dua-volume-value-${prayer.id}">
+              ${s.duaVolume}%
+            </strong>
+          </label>
 
-          <div class="prayer-setting-row">
+          <input type="range"
+            id="dua-volume-${prayer.id}"
+            min="0" max="100"
+            value="${s.duaVolume}"
+            data-prayer="${prayer.id}"
+            data-setting="duaVolume">
 
-            <label for="offset-${prayer.id}">
-              تصحيح وقت الصلاة بالدقائق
-            </label>
+          <label for="offset-${prayer.id}">
+            تصحيح وقت الصلاة بالدقائق
+          </label>
 
-            <input
-              type="number"
-              id="offset-${prayer.id}"
-              min="-60"
-              max="60"
-              step="1"
-              value="${s.timeOffsetMinutes}"
-              data-prayer="${prayer.id}"
-              data-setting="timeOffsetMinutes"
-            >
+          <input type="number"
+            id="offset-${prayer.id}"
+            min="-60" max="60"
+            step="1"
+            value="${s.timeOffsetMinutes}"
+            data-prayer="${prayer.id}"
+            data-setting="timeOffsetMinutes">
 
-            <small>
-              استخدم رقمًا موجبًا للتأخير وسالبًا للتقديم.
-            </small>
-
-          </div>
-
-          <button
-            type="button"
-            class="test-adhan-button"
-            data-test-prayer="${prayer.id}"
-          >
+          <button type="button"
+            data-test-prayer="${prayer.id}">
             ▶ تجربة الأذان
           </button>
 
+          <button type="button"
+            data-test-dua="${prayer.id}">
+            ▶ تجربة الدعاء
+          </button>
+
         </div>
-
       `;
-
     }).join("");
 
     container.querySelectorAll("[data-setting]")
       .forEach(control => {
 
         const saveControl = () => {
-
           const prayerId = control.dataset.prayer;
           const setting = control.dataset.setting;
 
           let value;
 
           if (control.type === "checkbox") {
-
             value = control.checked;
 
-          } else if (
-            [
-              "iqamaMinutes",
-              "adhanVolume",
-              "timeOffsetMinutes"
-            ].includes(setting)
-          ) {
+          } else if ([
+            "iqamaMinutes",
+            "adhanVolume",
+            "duaVolume",
+            "timeOffsetMinutes"
+          ].includes(setting)) {
 
             if (control.value.trim() === "") return;
 
@@ -655,29 +638,34 @@
 
             if (!Number.isFinite(value)) return;
 
-            if (setting === "adhanVolume") {
-              value = Math.max(0, Math.min(100, value));
+            if (setting === "adhanVolume" || setting === "duaVolume") {
+              value = clampNumber(value, 0, 100, 80);
             }
 
             if (setting === "timeOffsetMinutes") {
-              value = Math.max(-60, Math.min(60, value));
+              value = clampNumber(value, -60, 60, 0);
             }
 
             if (setting === "iqamaMinutes") {
-              value = Math.max(1, Math.min(180, value));
+              value = clampNumber(value, 1, 180, 15);
             }
 
           } else {
-
             value = control.value;
           }
 
           settings[prayerId][setting] = value;
 
-          if (setting === "adhanVolume") {
+          if (
+            setting === "adhanVolume" ||
+            setting === "duaVolume"
+          ) {
+            const prefix = setting === "adhanVolume"
+              ? "volume-value-"
+              : "dua-volume-value-";
 
             const output = document.getElementById(
-              "volume-value-" + prayerId
+              prefix + prayerId
             );
 
             if (output) {
@@ -688,7 +676,15 @@
               currentAudio &&
               currentAudio.dataset.prayer === prayerId
             ) {
-              currentAudio.volume = value / 100;
+              if (setting === "adhanVolume" &&
+                  currentAudio.dataset.type === "adhan") {
+                currentAudio.volume = value / 100;
+              }
+
+              if (setting === "duaVolume" &&
+                  currentAudio.dataset.type === "dua") {
+                currentAudio.volume = value / 100;
+              }
             }
           }
 
@@ -712,26 +708,76 @@
 
     container.querySelectorAll("[data-test-prayer]")
       .forEach(button => {
-
         button.addEventListener("click", () => {
           playAdhan(button.dataset.testPrayer, true);
         });
+      });
 
+    container.querySelectorAll("[data-test-dua]")
+      .forEach(button => {
+        button.addEventListener("click", () => {
+          playDua(button.dataset.testDua, true);
+        });
       });
   }
 
   // ==========================================
-  // حساب أوقات الصلاة
+  // التاريخ والوقت
   // ==========================================
 
-  function getAdjustedPrayerDateTime(
-    prayerId,
-    date = new Date()
-  ) {
+  function getLocalDateString(date = new Date()) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
 
-    const prayer = PRAYERS.find(
-      item => item.id === prayerId
-    );
+    return `${year}-${month}-${day}`;
+  }
+
+  function getApiDate(date = new Date()) {
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+
+    return `${day}-${month}-${year}`;
+  }
+
+  function cleanTime(value) {
+    if (!value) return null;
+
+    const match = String(value).match(/(\d{1,2}):(\d{2})/);
+
+    if (!match) return null;
+
+    return `${match[1].padStart(2, "0")}:${match[2]}`;
+  }
+
+  function getPrayerDateTime(time, date = new Date()) {
+    const [hours, minutes] = time.split(":").map(Number);
+
+    const result = new Date(date);
+
+    result.setHours(hours, minutes, 0, 0);
+
+    return result;
+  }
+
+  function formatTime(time) {
+    if (!time) return "--:--";
+
+    const [hour, minute] = time.split(":").map(Number);
+
+    const period = hour >= 12 ? "م" : "ص";
+    const formattedHour = hour % 12 || 12;
+
+    return `${formattedHour}:${String(minute).padStart(2, "0")} ${period}`;
+  }
+
+  // ==========================================
+  // حساب مواقيت الصلاة بعد التصحيح
+  // ==========================================
+
+  function getAdjustedPrayerDateTime(prayerId, date = new Date()) {
+    const prayer = PRAYERS.find(item => item.id === prayerId);
 
     if (!prayer || !prayerTimes) return null;
 
@@ -750,15 +796,12 @@
   }
 
   // ==========================================
-  // تشغيل وإيقاف الصوت
+  // الصوت
   // ==========================================
 
   function stopAudio(updateStatus = true) {
-
     if (currentAudio) {
-
       const oldAudio = currentAudio;
-
       currentAudio = null;
 
       oldAudio.pause();
@@ -776,16 +819,15 @@
   }
 
   // ==========================================
-  // دعاء الشيخ الشعراوي بعد الأذان
+  // دعاء الشيخ الشعراوي
   // ==========================================
 
-  async function playAfterAdhanDua(prayerId) {
+  async function playDua(prayerId, isTest = false) {
+    const s = settings[prayerId];
 
-    const prayer = PRAYERS.find(
-      item => item.id === prayerId
-    );
+    if (!s || (!isTest && !s.duaEnabled)) return;
 
-    if (!prayer) return;
+    stopAudio(false);
 
     const status = document.getElementById(
       "prayer-audio-status"
@@ -798,74 +840,71 @@
     audio.dataset.prayer = prayerId;
     audio.dataset.type = "dua";
     audio.preload = "auto";
-    audio.volume = settings[prayerId].adhanVolume / 100;
+    audio.volume = s.duaVolume / 100;
 
-    audio.src = new URL(
-      DUA_FILE,
-      AUDIO_BASE
-    ).href;
+    audio.src = new URL(DUA_FILE, AUDIO_BASE).href;
 
     if (status) {
-      status.textContent =
-        "انتهى الأذان. جارٍ تشغيل دعاء الشيخ الشعراوي...";
+      status.textContent = "جارٍ تشغيل دعاء الشيخ الشعراوي...";
     }
 
     audio.addEventListener("ended", () => {
-
       if (currentAudio !== audio) return;
 
       currentAudio = null;
 
       if (status) {
-        status.textContent =
-          "انتهى الأذان ودعاء الشيخ الشعراوي.";
+        status.textContent = "انتهى دعاء الشيخ الشعراوي.";
       }
     });
 
     audio.addEventListener("error", () => {
-
       if (currentAudio !== audio) return;
 
       currentAudio = null;
 
-      console.error(
-        "تعذر تحميل دعاء الشعراوي:",
-        audio.src,
-        audio.error
-      );
+      console.error("تعذر تحميل الدعاء:", audio.src);
 
       if (status) {
-        status.textContent =
-          "انتهى الأذان، لكن تعذر تحميل ملف الدعاء.";
+        status.textContent = "تعذر تحميل ملف دعاء الشعراوي.";
       }
     });
 
     try {
-
       audio.load();
-
       await audio.play();
 
       if (currentAudio === audio && status) {
-        status.textContent =
-          "يعمل الآن دعاء الشيخ الشعراوي بعد الأذان.";
+        status.textContent = "يعمل الآن دعاء الشيخ الشعراوي.";
       }
 
     } catch (error) {
-
       console.error("تعذر تشغيل الدعاء:", error);
 
       if (currentAudio === audio) {
         currentAudio = null;
       }
 
-      audio.pause();
-
       if (status) {
-        status.textContent =
-          "انتهى الأذان. تعذر تشغيل الدعاء تلقائيًا.";
+        status.textContent = "تعذر تشغيل الدعاء.";
       }
     }
+  }
+
+  async function playAfterAdhanDua(prayerId) {
+    if (!settings[prayerId]?.duaEnabled) {
+      const status = document.getElementById(
+        "prayer-audio-status"
+      );
+
+      if (status) {
+        status.textContent = "انتهى الأذان.";
+      }
+
+      return;
+    }
+
+    await playDua(prayerId, false);
   }
 
   // ==========================================
@@ -873,12 +912,9 @@
   // ==========================================
 
   async function playAdhan(prayerId, isTest = false) {
-
     const s = settings[prayerId];
 
-    if (!s || (!isTest && !s.adhanEnabled)) {
-      return;
-    }
+    if (!s || (!isTest && !s.adhanEnabled)) return;
 
     const selected = ADHANS[s.adhanVoice];
 
@@ -905,44 +941,32 @@
     audio.preload = "auto";
     audio.volume = s.adhanVolume / 100;
 
-    audio.src = new URL(
-      selected.file,
-      AUDIO_BASE
-    ).href;
+    audio.src = new URL(selected.file, AUDIO_BASE).href;
 
     if (status) {
       status.textContent =
-        "جارٍ تشغيل أذان " +
-        prayer.name +
-        " بصوت " +
-        selected.name;
+        "جارٍ تشغيل أذان " + prayer.name +
+        " بصوت " + selected.name;
     }
 
     audio.addEventListener("ended", () => {
-
       if (currentAudio !== audio) return;
 
       currentAudio = null;
 
       if (status) {
-        status.textContent =
-          "انتهى أذان " + prayer.name;
+        status.textContent = "انتهى أذان " + prayer.name;
       }
 
       playAfterAdhanDua(prayerId);
     });
 
     audio.addEventListener("error", () => {
-
       if (currentAudio !== audio) return;
 
       currentAudio = null;
 
-      console.error(
-        "خطأ تحميل ملف الأذان:",
-        audio.src,
-        audio.error
-      );
+      console.error("خطأ تحميل ملف الأذان:", audio.src);
 
       if (status) {
         status.textContent =
@@ -951,105 +975,29 @@
     });
 
     try {
-
       audio.load();
-
       await audio.play();
 
       if (currentAudio === audio && status) {
-
         status.textContent =
-          "يعمل الآن أذان " +
-          prayer.name +
-          " بصوت " +
-          selected.name;
+          "يعمل الآن أذان " + prayer.name +
+          " بصوت " + selected.name;
       }
 
     } catch (error) {
-
       console.error("تعذر تشغيل الأذان:", error);
 
       if (currentAudio === audio) {
         currentAudio = null;
       }
 
-      audio.pause();
-
       if (status) {
-
-        if (error.name === "NotAllowedError") {
-
-          status.textContent =
-            "المتصفح منع التشغيل التلقائي. اضغط تجربة الأذان أولًا للسماح بالصوت.";
-
-        } else {
-
-          status.textContent =
-            "تعذر تشغيل الصوت. تحقق من ملفات الأذان.";
-        }
+        status.textContent =
+          error.name === "NotAllowedError"
+            ? "المتصفح منع التشغيل التلقائي. اضغط تجربة الأذان أولًا."
+            : "تعذر تشغيل الصوت. تحقق من ملفات الأذان.";
       }
     }
-  }
-
-  // ==========================================
-  // التاريخ والوقت
-  // ==========================================
-
-  function getLocalDateString(date = new Date()) {
-
-    const year = date.getFullYear();
-
-    const month = String(
-      date.getMonth() + 1
-    ).padStart(2, "0");
-
-    const day = String(
-      date.getDate()
-    ).padStart(2, "0");
-
-    return `${year}-${month}-${day}`;
-  }
-
-  function getApiDate(date = new Date()) {
-
-    const day = String(
-      date.getDate()
-    ).padStart(2, "0");
-
-    const month = String(
-      date.getMonth() + 1
-    ).padStart(2, "0");
-
-    const year = date.getFullYear();
-
-    return `${day}-${month}-${year}`;
-  }
-
-  function cleanTime(value) {
-
-    if (!value) return null;
-
-    const match = String(value).match(
-      /(\d{1,2}):(\d{2})/
-    );
-
-    if (!match) return null;
-
-    return `${match[1].padStart(2, "0")}:${match[2]}`;
-  }
-
-  function getPrayerDateTime(
-    time,
-    date = new Date()
-  ) {
-
-    const [hours, minutes] = time.split(":").map(Number);
-
-    const result = new Date(date);
-
-    result.setHours(hours, minutes, 0, 0);
-
-    return result;
   }
 
   // ==========================================
@@ -1057,7 +1005,6 @@
   // ==========================================
 
   async function fetchTimings(date) {
-
     const url =
       `https://api.aladhan.com/v1/timings/${getApiDate(date)}` +
       `?latitude=${locationData.latitude}` +
@@ -1072,10 +1019,7 @@
 
     const result = await response.json();
 
-    if (
-      result.code !== 200 ||
-      !result.data?.timings
-    ) {
+    if (result.code !== 200 || !result.data?.timings) {
       throw new Error("بيانات مواقيت الصلاة غير صحيحة");
     }
 
@@ -1083,13 +1027,11 @@
   }
 
   async function loadPrayerTimes() {
-
     if (isLoading) return;
 
     isLoading = true;
 
     try {
-
       const today = new Date();
 
       const tomorrow = new Date(
@@ -1098,20 +1040,17 @@
         today.getDate() + 1
       );
 
-      const [todayTimes, nextDayTimes] =
-        await Promise.all([
-          fetchTimings(today),
-          fetchTimings(tomorrow)
-        ]);
+      const [todayTimes, nextDayTimes] = await Promise.all([
+        fetchTimings(today),
+        fetchTimings(tomorrow)
+      ]);
 
       const cleaned = {};
 
       PRAYERS.forEach(prayer => {
-
         cleaned[prayer.id] = cleanTime(
           todayTimes[prayer.id]
         );
-
       });
 
       if (Object.values(cleaned).some(value => !value)) {
@@ -1119,10 +1058,7 @@
       }
 
       prayerTimes = cleaned;
-
-      tomorrowFajr = cleanTime(
-        nextDayTimes.Fajr
-      );
+      tomorrowFajr = cleanTime(nextDayTimes.Fajr);
 
       localStorage.setItem(
         CACHE_KEY,
@@ -1137,11 +1073,7 @@
       updateNextPrayer();
 
     } catch (error) {
-
-      console.error(
-        "خطأ في تحميل المواقيت:",
-        error
-      );
+      console.error("خطأ في تحميل المواقيت:", error);
 
       loadCachedTimes();
 
@@ -1153,17 +1085,14 @@
       }
 
     } finally {
-
       isLoading = false;
     }
   }
 
   function loadCachedTimes() {
-
     try {
-
       const cached = JSON.parse(
-        localStorage.getItem(CACHE_KEY)
+        localStorage.getItem(CACHE_KEY) || "null"
       );
 
       if (
@@ -1171,7 +1100,6 @@
         cached.date === getLocalDateString() &&
         cached.times
       ) {
-
         prayerTimes = cached.times;
         tomorrowFajr = cached.tomorrowFajr || null;
 
@@ -1180,11 +1108,7 @@
       }
 
     } catch (error) {
-
-      console.error(
-        "خطأ في قراءة المواقيت المحفوظة:",
-        error
-      );
+      console.error("خطأ في قراءة المواقيت المحفوظة:", error);
     }
   }
 
@@ -1193,17 +1117,14 @@
   // ==========================================
 
   function displayPrayerTimes() {
-
     if (!prayerTimes) return;
 
     PRAYERS.forEach(prayer => {
-
       const element = document.getElementById(
         prayer.element
       );
 
       if (element) {
-
         const adjusted = getAdjustedPrayerDateTime(
           prayer.id
         );
@@ -1217,41 +1138,14 @@
       }
     });
 
-    const city = document.getElementById("city-name");
+    ["city-name", "prayer-city", "prayer-location-name"]
+      .forEach(id => {
+        const element = document.getElementById(id);
 
-    if (city) {
-      city.textContent = locationData.city;
-    }
-
-    const prayerCity = document.getElementById("prayer-city");
-
-    if (prayerCity) {
-      prayerCity.textContent = locationData.city;
-    }
-
-    const locationName = document.getElementById(
-      "prayer-location-name"
-    );
-
-    if (locationName) {
-      locationName.textContent = locationData.city;
-    }
-  }
-
-  function formatTime(time) {
-
-    if (!time) return "--:--";
-
-    const [hour, minute] = time.split(":").map(Number);
-
-    const period = hour >= 12 ? "م" : "ص";
-
-    const formattedHour = hour % 12 || 12;
-
-    return (
-      `${formattedHour}:` +
-      `${String(minute).padStart(2, "0")} ${period}`
-    );
+        if (element) {
+          element.textContent = locationData.city;
+        }
+      });
   }
 
   // ==========================================
@@ -1259,7 +1153,6 @@
   // ==========================================
 
   function updateNextPrayer() {
-
     if (!prayerTimes) return;
 
     const now = new Date();
@@ -1267,14 +1160,11 @@
     const upcoming = PRAYERS.map(prayer => ({
       ...prayer,
       date: getAdjustedPrayerDateTime(prayer.id)
-    })).find(
-      prayer => prayer.date && prayer.date > now
-    );
+    })).find(prayer => prayer.date && prayer.date > now);
 
     let nextPrayer = upcoming;
 
     if (!nextPrayer && tomorrowFajr) {
-
       const tomorrow = new Date(
         now.getFullYear(),
         now.getMonth(),
@@ -1298,6 +1188,8 @@
       };
     }
 
+    if (!nextPrayer) return;
+
     const nameElement = document.getElementById(
       "next-prayer-name"
     );
@@ -1306,30 +1198,19 @@
       "countdown"
     );
 
-    if (!nextPrayer) return;
-
     if (nameElement) {
       nameElement.textContent = nextPrayer.name;
     }
 
     if (countdownElement) {
-
       const difference = Math.max(
         0,
         nextPrayer.date.getTime() - now.getTime()
       );
 
-      const hours = Math.floor(
-        difference / 3600000
-      );
-
-      const minutes = Math.floor(
-        (difference % 3600000) / 60000
-      );
-
-      const seconds = Math.floor(
-        (difference % 60000) / 1000
-      );
+      const hours = Math.floor(difference / 3600000);
+      const minutes = Math.floor((difference % 3600000) / 60000);
+      const seconds = Math.floor((difference % 60000) / 1000);
 
       countdownElement.textContent =
         `${String(hours).padStart(2, "0")}:` +
@@ -1347,21 +1228,16 @@
   }
 
   function loadAlertHistory() {
-
     try {
-
       return JSON.parse(
-        localStorage.getItem(ALERTS_KEY)
-      ) || {};
-
+        localStorage.getItem(ALERTS_KEY) || "{}"
+      );
     } catch (error) {
-
       return {};
     }
   }
 
   function saveAlertHistory(history) {
-
     const keys = Object.keys(history);
 
     keys.slice(
@@ -1370,32 +1246,25 @@
     ).forEach(key => delete history[key]);
 
     try {
-
       localStorage.setItem(
         ALERTS_KEY,
         JSON.stringify(history)
       );
-
     } catch (error) {
-
       console.error("تعذر حفظ سجل التنبيهات:", error);
     }
   }
 
   // ==========================================
-  // التنبيه الصوتي العادي
-  // خاص بتنبيه الإقامة فقط
+  // النطق الصوتي
   // ==========================================
 
   function speakAlert(message) {
-
     if (!("speechSynthesis" in window)) return;
 
     window.speechSynthesis.cancel();
 
-    const utterance = new SpeechSynthesisUtterance(
-      message
-    );
+    const utterance = new SpeechSynthesisUtterance(message);
 
     utterance.lang = "ar-SA";
     utterance.rate = 0.9;
@@ -1404,15 +1273,8 @@
     window.speechSynthesis.speak(utterance);
   }
 
-  // ==========================================
-  // اختيار صوت عربي رجالي لتنبيه اقتربت الصلاة
-  // ==========================================
-
   function getArabicMaleVoice() {
-
-    if (!("speechSynthesis" in window)) {
-      return null;
-    }
+    if (!("speechSynthesis" in window)) return null;
 
     const voices = window.speechSynthesis.getVoices();
 
@@ -1421,41 +1283,29 @@
     );
 
     const maleNames =
-      /hamed|hamid|naayf|nayef|fahd|saleh|salih|shakir|shaker|hisham|hesham|tariq|tareq|bassel|basel|mohammed|mohammad|ahmed|ahmad|omar|youssef|yusuf|abdul|khalid|rashid|mansour|majed|nasser|طارق|هشام|فهد|صالح|محمد|أحمد|خالد|راشد|ناصر|ماجد|يوسف|عمر|حامد|شاكر|سليم|باسل/i;
+      /hamed|hamid|nayef|fahd|saleh|shakir|hisham|tariq|mohammed|mohammad|ahmed|ahmad|omar|youssef|abdul|khalid|rashid|nasser|طارق|هشام|فهد|صالح|محمد|أحمد|خالد|راشد|ناصر|ماجد|يوسف|عمر|حامد|شاكر|باسل/i;
 
     const femaleNames =
-      /hoda|houda|zariyah|amira|layla|leila|fatima|salma|sara|maryam|female|هدى|أميرة|ليلى|فاطمة|سلمى|سارة|مريم/i;
+      /hoda|houda|amira|layla|leila|fatima|salma|sara|maryam|female|هدى|أميرة|ليلى|فاطمة|سلمى|سارة|مريم/i;
 
     const maleVoice = arabicVoices.find(voice =>
       maleNames.test(voice.name) &&
       !femaleNames.test(voice.name)
     );
 
-    if (maleVoice) {
-      return maleVoice;
-    }
+    if (maleVoice) return maleVoice;
 
     return arabicVoices.find(voice =>
       !femaleNames.test(voice.name)
     ) || arabicVoices[0] || null;
   }
 
-  // ==========================================
-  // نطق تنبيه اقتراب الصلاة بصوت رجالي
-  // ==========================================
-
   function speakMalePrayerAlert(message) {
-
-    if (!("speechSynthesis" in window)) {
-      console.warn("المتصفح لا يدعم النطق الصوتي");
-      return;
-    }
+    if (!("speechSynthesis" in window)) return;
 
     window.speechSynthesis.cancel();
 
-    const utterance = new SpeechSynthesisUtterance(
-      message
-    );
+    const utterance = new SpeechSynthesisUtterance(message);
 
     utterance.lang = "ar-SA";
     utterance.rate = 0.88;
@@ -1472,42 +1322,27 @@
     window.speechSynthesis.speak(utterance);
   }
 
-  // ==========================================
-  // الإشعار مع تحديد طريقة النطق
-  // ==========================================
-
   function announcePrayer(title, message, voiceMessage) {
-
     sendNotification(title, message);
-
     speakAlert(voiceMessage);
   }
 
   // ==========================================
-  // التنبيه قبل الصلاة بـ15 دقيقة
-  // يشمل فجر اليوم التالي
+  // تنبيه قبل الصلاة بـ15 دقيقة
   // ==========================================
 
   function checkPrayerAlerts() {
-
     if (!prayerTimes) return;
 
     const now = new Date();
     const history = loadAlertHistory();
 
-    // مواعيد صلوات اليوم
     const upcomingPrayers = PRAYERS.map(prayer => ({
       ...prayer,
       prayerDate: getAdjustedPrayerDateTime(prayer.id)
     }));
 
-    // إضافة موعد فجر الغد الحقيقي القادم من API
-    const fajrPrayer = PRAYERS.find(
-      prayer => prayer.id === "Fajr"
-    );
-
-    if (fajrPrayer && tomorrowFajr) {
-
+    if (tomorrowFajr) {
       const tomorrow = new Date(
         now.getFullYear(),
         now.getMonth(),
@@ -1525,33 +1360,27 @@
       );
 
       upcomingPrayers.push({
-        ...fajrPrayer,
+        ...PRAYERS[0],
         prayerDate: fajrDate
       });
     }
 
-    // فحص التنبيهات
     upcomingPrayers.forEach(prayer => {
-
       const s = settings[prayer.id];
 
-      if (!s || !s.alertEnabled) return;
+      if (!s || !s.alertEnabled || !prayer.prayerDate) {
+        return;
+      }
 
-      const prayerDate = prayer.prayerDate;
-
-      if (!prayerDate) return;
-
-      // موعد التنبيه قبل الصلاة بـ15 دقيقة
       const alertDate = new Date(
-        prayerDate.getTime() - 15 * 60000
+        prayer.prayerDate.getTime() - 15 * 60000
       );
 
-      const difference =
-        now.getTime() - alertDate.getTime();
+      const difference = now.getTime() - alertDate.getTime();
 
       const key = getAlertKey(
         prayer.id,
-        getLocalDateString(prayerDate)
+        getLocalDateString(prayer.prayerDate)
       );
 
       if (
@@ -1559,15 +1388,11 @@
         difference < 60000 &&
         !history[key]
       ) {
-
         history[key] = true;
-
-        const message =
-          `اقتربت صلاة ${prayer.name}، متبقي 15 دقيقة.`;
 
         sendNotification(
           "تطبيق يقين 🕌",
-          message
+          `اقتربت صلاة ${prayer.name}، متبقي 15 دقيقة.`
         );
 
         speakMalePrayerAlert(
@@ -1584,17 +1409,13 @@
   // ==========================================
 
   function checkIqamaAlerts() {
-
     if (!prayerTimes) return;
 
     const now = new Date();
-
     const today = getLocalDateString();
-
     const history = loadAlertHistory();
 
     PRAYERS.forEach(prayer => {
-
       const s = settings[prayer.id];
 
       if (!s.iqamaEnabled) return;
@@ -1611,8 +1432,7 @@
         iqamaDate.getMinutes() + s.iqamaMinutes
       );
 
-      const difference =
-        now.getTime() - iqamaDate.getTime();
+      const difference = now.getTime() - iqamaDate.getTime();
 
       const key = `iqama_${prayer.id}_${today}`;
 
@@ -1621,7 +1441,6 @@
         difference < 60000 &&
         !history[key]
       ) {
-
         history[key] = true;
 
         announcePrayer(
@@ -1640,17 +1459,13 @@
   // ==========================================
 
   function checkAdhan() {
-
     if (!prayerTimes) return;
 
     const now = new Date();
-
     const today = getLocalDateString();
-
     const history = loadAlertHistory();
 
     PRAYERS.forEach(prayer => {
-
       const s = settings[prayer.id];
 
       if (
@@ -1666,8 +1481,7 @@
 
       if (!prayerDate) return;
 
-      const difference =
-        now.getTime() - prayerDate.getTime();
+      const difference = now.getTime() - prayerDate.getTime();
 
       const key = `adhan_${prayer.id}_${today}`;
 
@@ -1676,9 +1490,7 @@
         difference < 60000 &&
         !history[key]
       ) {
-
         history[key] = true;
-
         playAdhan(prayer.id, false);
       }
     });
@@ -1691,11 +1503,9 @@
   // ==========================================
 
   async function checkNewDay() {
-
     const today = getLocalDateString();
 
     if (today !== lastDate) {
-
       lastDate = today;
 
       prayerTimes = null;
@@ -1710,23 +1520,16 @@
   // ==========================================
 
   function startPrayerSystem() {
-
     if (timer) {
       clearInterval(timer);
     }
 
     timer = setInterval(() => {
-
       checkNewDay();
-
       updateNextPrayer();
-
       checkPrayerAlerts();
-
       checkAdhan();
-
       checkIqamaAlerts();
-
     }, 1000);
   }
 
@@ -1735,7 +1538,6 @@
   // ==========================================
 
   async function init() {
-
     createPrayerInterface();
 
     lastDate = getLocalDateString();
@@ -1745,17 +1547,7 @@
     const locationUpdated = await getLocation();
 
     if (!locationUpdated) {
-
-      const locationName = document.getElementById(
-        "prayer-location-name"
-      );
-
-      if (locationName) {
-
-        locationName.textContent =
-          locationData.city +
-          " (الموقع المحفوظ أو الافتراضي)";
-      }
+      updateLocationLabel();
     }
 
     await loadPrayerTimes();
@@ -1765,17 +1557,11 @@
     document.addEventListener(
       "visibilitychange",
       () => {
-
         if (!document.hidden) {
-
           checkNewDay();
-
           updateNextPrayer();
-
           checkPrayerAlerts();
-
           checkAdhan();
-
           checkIqamaAlerts();
         }
       }
@@ -1792,14 +1578,8 @@
   // ==========================================
 
   if (document.readyState === "loading") {
-
-    document.addEventListener(
-      "DOMContentLoaded",
-      init
-    );
-
+    document.addEventListener("DOMContentLoaded", init);
   } else {
-
     init();
   }
 
