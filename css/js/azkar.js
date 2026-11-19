@@ -516,7 +516,7 @@
       "text-align:center;margin:20px 0;color:#16b8a6;";
 
     section.appendChild(heading);
-
+section.appendChild(heading);
     const progressContainer = document.createElement("div");
     progressContainer.style.cssText =
       "height:9px;background:rgba(128,128,128,.18);border-radius:20px;overflow:hidden;margin:15px 0;";
