@@ -36,7 +36,7 @@ const AUDIO_BASE = new URL("./assets/audio/", document.baseURI).href;
 
     naqshbandi: {
       name: "الشيخ النقشبندي",
-     file: "اذان.mp4"
+ file: "اذان.mp4"
     }
   };
 
