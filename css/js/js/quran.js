@@ -659,11 +659,11 @@ reader.appendChild(licenseNotice);
       ayahs.forEach(function (ayah) {
         const span = document.createElement("span");
 
-        span.textContent =
-          ayah.text_uthmani +
-          " ﴿" +
-          ayah.number +
-          "﴾ ";
+     span.textContent =
+  ayah.text +
+  " ﴿" +
+  ayah.id +
+  "﴾ ";
 
         textContainer.appendChild(span);
       });
