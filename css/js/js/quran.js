@@ -661,7 +661,25 @@
       });
 
       reader.appendChild(textContainer);
+const sourceNotice = document.createElement("p");
 
+sourceNotice.textContent =
+  "مصدر نص القرآن الكريم: مشروع Tanzil. النص منقول كما هو دون تغيير، وفق ترخيص المشاع الإبداعي CC BY 3.0.";
+
+sourceNotice.style.cssText =
+  "text-align:center;font-size:13px;color:var(--gold);padding:15px;line-height:2;";
+
+const sourceLink = document.createElement("a");
+
+sourceLink.textContent = "زيارة موقع Tanzil";
+sourceLink.href = "https://tanzil.net/";
+sourceLink.target = "_blank";
+sourceLink.rel = "noopener noreferrer";
+
+sourceNotice.appendChild(sourceLink);
+
+reader.appendChild(sourceNotice);
+      
       setStatus("تم تحميل " + name + " بنجاح");
 
       reader.scrollIntoView({
