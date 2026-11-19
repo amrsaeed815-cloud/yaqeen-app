@@ -1,0 +1,9 @@
+
+{
+  "appId": "com.yaqeen.app",
+  "appName": "يقين",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  }
+}
