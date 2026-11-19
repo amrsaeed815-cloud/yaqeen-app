@@ -601,11 +601,12 @@
     const session = currentAudioSession;
 
     try {
-      const response = await fetch(
-        TEXT_API +
-        "/surah/" +
-        number
-      );
+     const response = await fetch(
+  TEXT_API +
+  "/" +
+  number +
+  ".json"
+);
 
       if (!response.ok) {
         throw new Error("تعذر تحميل نص السورة");
