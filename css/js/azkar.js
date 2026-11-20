@@ -236,8 +236,9 @@
       audio.style.cssText = "width:100%;max-width:100%;";
 
       audio.src = category === "morning"
-        ? "./assets/audio/أذكار_الصباح.mp3%20(1).mp3"
-     : "./اذكار%20المساء%20(1).mp3";
+        ? "https://raw.githubusercontent.com/amrsaeed815-cloud/yaqeen-app/refs/heads/main/%D8%A3%D8%B0%D9%83%D8%A7%D8%B1_%D8%A7%D9%84%D8%B5%D8%A8%D8%A7%D8%AD.mp3%20(1).mp3"
+        : "https://raw.githubusercontent.com/amrsaeed815-cloud/yaqeen-app/refs/heads/main/%D8%A7%D8%B0%D9%83%D8%A7%D8%B1%20%D8%A7%D9%84%D9%85%D8%B3%D8%A7%D8%A1%20(1).mp3";
+
       audioBox.appendChild(audioTitle);
       audioBox.appendChild(audio);
       section.appendChild(audioBox);
@@ -337,7 +338,6 @@
       card.appendChild(counter);
       card.appendChild(button);
       card.appendChild(resetButton);
-: "https://raw.githubusercontent.com/amrsaeed815-cloud/yaqeen-app/refs/heads/main/%D8%A7%D8%B0%D9%83%D8%A7%D8%B1%20%D8%A7%D9%84%D9%85%D8%B3%D8%A7%D8%A1%20(1).mp3";
       section.appendChild(card);
       refresh();
     });
