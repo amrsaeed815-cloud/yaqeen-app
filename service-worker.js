@@ -1,9 +1,10 @@
 
-const CACHE_NAME = "yaqeen-v8";
+const CACHE_NAME = "yaqeen-v9";
 
 const FILES_TO_CACHE = [
   "./",
   "./index.html",
+  "./manifest.json",
   "./css/style.css",
 
   "./css/js/app.js",
@@ -18,7 +19,6 @@ const FILES_TO_CACHE = [
   "./duas.js",
   "./ruqyah.js",
 
-  "./assets/icon-192.png",
   "./assets/icon-512 (1).png"
 ];
 
@@ -57,46 +57,51 @@ self.addEventListener("fetch", event => {
   // عدم تخزين الملفات الخارجية
   if (url.origin !== self.location.origin) return;
 
-  // ملفات JavaScript: الشبكة أولاً
-  if (url.pathname.endsWith(".js")) {
-    event.respondWith(
-      fetch(request)
-        .then(response => {
-          if (response && response.ok) {
-            const copy = response.clone();
-            caches.open(CACHE_NAME).then(cache => {
-              cache.put(request, copy);
-            });
-          }
-          return response;
-        })
-        .catch(() =>
-          caches.match(request).then(cached => {
-            if (cached) return cached;
-            return new Response("تعذر تحميل الملف", {
-              status: 503,
-              headers: { "Content-Type": "text/plain; charset=utf-8" }
-            });
-          })
-        )
-    );
-    return;
-  }
-
   // صفحات التطبيق: الشبكة أولاً
   if (request.mode === "navigate") {
     event.respondWith(
       fetch(request)
         .then(response => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put("./index.html", copy);
-          });
+          if (response.status === 200) {
+            event.waitUntil(
+              caches.open(CACHE_NAME).then(cache =>
+                cache.put("./index.html", response.clone())
+              )
+            );
+          }
           return response;
         })
         .catch(() =>
           caches.match(request).then(cached =>
             cached || caches.match("./index.html")
+          )
+        )
+    );
+    return;
+  }
+
+  // ملفات JavaScript: الشبكة أولاً
+  if (url.pathname.endsWith(".js")) {
+    event.respondWith(
+      fetch(request)
+        .then(response => {
+          if (response.status === 200) {
+            event.waitUntil(
+              caches.open(CACHE_NAME).then(cache =>
+                cache.put(request, response.clone())
+              )
+            );
+          }
+          return response;
+        })
+        .catch(() =>
+          caches.match(request).then(cached =>
+            cached || new Response("تعذر تحميل الملف", {
+              status: 503,
+              headers: {
+                "Content-Type": "text/plain; charset=utf-8"
+              }
+            })
           )
         )
     );
@@ -109,11 +114,12 @@ self.addEventListener("fetch", event => {
       if (cached) return cached;
 
       return fetch(request).then(response => {
-        if (response && response.ok) {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put(request, copy);
-          });
+        if (response.status === 200) {
+          event.waitUntil(
+            caches.open(CACHE_NAME).then(cache =>
+              cache.put(request, response.clone())
+            )
+          );
         }
         return response;
       });
