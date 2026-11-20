@@ -1,115 +1,122 @@
 
-"use strict";
-
-// إصدار جديد للكاش
-const CACHE_NAME = "yaqeen-v7";
+const CACHE_NAME = "yaqeen-v8";
 
 const FILES_TO_CACHE = [
   "./",
   "./index.html",
   "./css/style.css",
+
   "./css/js/app.js",
   "./css/js/azkar.js",
   "./css/js/js/quran.js",
   "./css/js/js/js/timezone.js",
+
   "./prayer.js",
   "./ramadan.js",
-  "./icon-192.png",
-  "./icon-512.png",
+  "./tasbeeh.js",
+  "./qibla.js",
+  "./duas.js",
+  "./ruqyah.js",
 
-  // ملفات الصوت
-  "./assets/audio/اذان.mp4",
-  "./assets/audio/الشعراوي.mp4",
-  "./assets/audio/محمد رفعت.mp4",
-  "./assets/audio/مدافع.mp4"
+  "./assets/icon-192.png",
+  "./assets/icon-512 (1).png"
 ];
 
-// تثبيت الملفات الأساسية دون فشل التثبيت
-// إذا كان أحد الملفات غير موجود
-self.addEventListener("install", (event) => {
+// تثبيت الملفات الأساسية
+self.addEventListener("install", event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(async (cache) => {
-      await Promise.allSettled(
-        FILES_TO_CACHE.map((file) => cache.add(file))
-      );
-    })
-  );
-
-  self.skipWaiting();
-});
-
-// تفعيل النسخة الجديدة وحذف نسخ يقين القديمة
-self.addEventListener("activate", (event) => {
-  event.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys
-          .filter((key) =>
-            key.startsWith("yaqeen-") && key !== CACHE_NAME
-          )
-          .map((key) => caches.delete(key))
-      );
-    }).then(() => self.clients.claim())
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(FILES_TO_CACHE))
+      .then(() => self.skipWaiting())
   );
 });
 
-// التعامل مع طلبات الملفات
-self.addEventListener("fetch", (event) => {
+// حذف النسخ القديمة
+self.addEventListener("activate", event => {
+  event.waitUntil(
+    caches.keys()
+      .then(keys =>
+        Promise.all(
+          keys
+            .filter(key => key.startsWith("yaqeen-") && key !== CACHE_NAME)
+            .map(key => caches.delete(key))
+        )
+      )
+      .then(() => self.clients.claim())
+  );
+});
+
+// التعامل مع الطلبات
+self.addEventListener("fetch", event => {
   const request = event.request;
 
   if (request.method !== "GET") return;
 
   const url = new URL(request.url);
 
-  // عدم تخزين طلبات المواقع الخارجية وواجهات API
+  // عدم تخزين الملفات الخارجية
   if (url.origin !== self.location.origin) return;
 
-  // صفحات التطبيق: الإنترنت أولاً ثم النسخة المحفوظة
-  if (request.mode === "navigate") {
+  // ملفات JavaScript: الشبكة أولاً
+  if (url.pathname.endsWith(".js")) {
     event.respondWith(
       fetch(request)
-        .then((response) => {
-          if (response.ok) {
+        .then(response => {
+          if (response && response.ok) {
             const copy = response.clone();
-
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(
-                new URL("./index.html", self.registration.scope),
-                copy
-              );
+            caches.open(CACHE_NAME).then(cache => {
+              cache.put(request, copy);
             });
           }
-
           return response;
         })
-        .catch(async () => {
-          const cached = await caches.match(
-            new URL("./index.html", self.registration.scope)
-          );
-
-          return cached || Response.error();
-        })
+        .catch(() =>
+          caches.match(request).then(cached => {
+            if (cached) return cached;
+            return new Response("تعذر تحميل الملف", {
+              status: 503,
+              headers: { "Content-Type": "text/plain; charset=utf-8" }
+            });
+          })
+        )
     );
-
     return;
   }
 
-  // الملفات: النسخة المحفوظة أولاً ثم الإنترنت
+  // صفحات التطبيق: الشبكة أولاً
+  if (request.mode === "navigate") {
+    event.respondWith(
+      fetch(request)
+        .then(response => {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put("./index.html", copy);
+          });
+          return response;
+        })
+        .catch(() =>
+          caches.match(request).then(cached =>
+            cached || caches.match("./index.html")
+          )
+        )
+    );
+    return;
+  }
+
+  // باقي الملفات: الكاش أولاً
   event.respondWith(
-    caches.match(request).then((cached) => {
+    caches.match(request).then(cached => {
       if (cached) return cached;
 
-      return fetch(request).then((response) => {
-        if (response.ok && response.type === "basic") {
+      return fetch(request).then(response => {
+        if (response && response.ok) {
           const copy = response.clone();
-
-          caches.open(CACHE_NAME).then((cache) => {
+          caches.open(CACHE_NAME).then(cache => {
             cache.put(request, copy);
           });
         }
-
         return response;
-      })
+      });
     })
   );
 });
