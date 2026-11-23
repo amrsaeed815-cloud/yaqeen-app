@@ -47,9 +47,8 @@
   let currentAudio = null;
   let timer = null;
   let isLoading = false;
-let lastCheckedMinute = "";
-let lastDate = todayKey();
-let duaAfterAdhan = false;
+  let lastCheckedMinute = "";
+  let lastDate = todayKey();
 
   // ==========================================
   // أدوات مساعدة
@@ -80,12 +79,18 @@ let duaAfterAdhan = false;
     const hour = Number(parts[0]);
     const minute = Number(parts[1]);
 
-    if (!Number.isFinite(hour) || !Number.isFinite(minute)) {
+    if (
+      !Number.isFinite(hour) ||
+      !Number.isFinite(minute) ||
+      hour < 0 ||
+      hour > 23 ||
+      minute < 0 ||
+      minute > 59
+    ) {
       return null;
     }
 
     const date = new Date();
-
     date.setHours(hour, minute, 0, 0);
 
     return date;
@@ -103,7 +108,6 @@ let duaAfterAdhan = false;
     }
 
     const date = new Date();
-
     date.setHours(hour, minute, 0, 0);
 
     return date.toLocaleTimeString("ar-EG", {
@@ -116,7 +120,9 @@ let duaAfterAdhan = false;
   function setText(id, value) {
     const element = document.getElementById(id);
 
-    if (element) element.textContent = value;
+    if (element) {
+      element.textContent = value;
+    }
   }
 
   // ==========================================
@@ -172,8 +178,13 @@ let duaAfterAdhan = false;
           s.adhanVoice = "rifaat";
         }
 
-        s.adhanVolume = clampNumber(s.adhanVolume, 0, 100, 80);
-        s.duaVolume = clampNumber(s.duaVolume, 0, 100, 80);
+        s.adhanVolume = clampNumber(
+          s.adhanVolume, 0, 100, 80
+        );
+
+        s.duaVolume = clampNumber(
+          s.duaVolume, 0, 100, 80
+        );
 
         s.timeOffsetMinutes = clampNumber(
           s.timeOffsetMinutes, -60, 60, 0
@@ -194,6 +205,7 @@ let duaAfterAdhan = false;
       });
 
       return defaults;
+
     } catch (error) {
       console.error("خطأ في إعدادات الصلاة:", error);
       return defaults;
@@ -234,6 +246,7 @@ let duaAfterAdhan = false;
           city: saved.city || "الموقع المحفوظ"
         };
       }
+
     } catch (error) {
       console.error("خطأ في قراءة الموقع:", error);
     }
@@ -291,6 +304,7 @@ let duaAfterAdhan = false;
 
     if (document.getElementById("yaqeen-prayer-settings")) {
       renderPrayerCards();
+      connectLegacyPrayerSettings();
       return;
     }
 
@@ -355,6 +369,7 @@ let duaAfterAdhan = false;
     `);
 
     renderPrayerCards();
+    connectLegacyPrayerSettings();
 
     document.getElementById("refresh-prayer-location")
       ?.addEventListener("click", async event => {
@@ -369,7 +384,9 @@ let duaAfterAdhan = false;
         button.textContent = "تحديث الموقع";
 
         if (!success) {
-          alert("تعذر تحديد موقعك. اسمح بالوصول للموقع من إعدادات الجهاز.");
+          alert(
+            "تعذر تحديد موقعك. اسمح بالوصول للموقع من إعدادات الجهاز."
+          );
           return;
         }
 
@@ -392,11 +409,51 @@ let duaAfterAdhan = false;
     updateNotificationStatus();
     updateLocationLabel();
   }
-function updateLocationLabel() {
-  setText("prayer-location-name", locationData.city);
-  setText("prayer-city", locationData.city);
-  setText("city-name", locationData.city);
-}
+
+  function updateLocationLabel() {
+    setText("prayer-location-name", locationData.city);
+    setText("prayer-city", locationData.city);
+    setText("city-name", locationData.city);
+  }
+
+  // ==========================================
+  // ربط مفاتيح الإعدادات القديمة
+  // ==========================================
+
+  function connectLegacyPrayerSettings() {
+    const adhanToggle = document.getElementById("adhan-enabled");
+    const iqamaToggle = document.getElementById("iqama-enabled");
+
+    if (adhanToggle) {
+      adhanToggle.checked = PRAYERS.every(
+        prayer => settings[prayer.id].adhanEnabled
+      );
+
+      adhanToggle.onchange = () => {
+        PRAYERS.forEach(prayer => {
+          settings[prayer.id].adhanEnabled = adhanToggle.checked;
+        });
+
+        saveSettings();
+        renderPrayerCards();
+      };
+    }
+
+    if (iqamaToggle) {
+      iqamaToggle.checked = PRAYERS.every(
+        prayer => settings[prayer.id].iqamaEnabled
+      );
+
+      iqamaToggle.onchange = () => {
+        PRAYERS.forEach(prayer => {
+          settings[prayer.id].iqamaEnabled = iqamaToggle.checked;
+        });
+
+        saveSettings();
+        renderPrayerCards();
+      };
+    }
+  }
 
   // ==========================================
   // بطاقات إعدادات الصلوات
@@ -454,7 +511,8 @@ function updateLocationLabel() {
           </label>
 
           <label>
-            مستوى صوت الأذان: <span data-volume-label="adhanVolume">${s.adhanVolume}</span>%
+            مستوى صوت الأذان:
+            <span data-volume-label="adhanVolume">${s.adhanVolume}</span>%
             <input type="range"
                    min="0" max="100"
                    value="${s.adhanVolume}"
@@ -525,7 +583,10 @@ function updateLocationLabel() {
       .forEach(button => {
         button.addEventListener("click", event => {
           const card = event.currentTarget.closest("[data-prayer]");
-          if (card) playAdhan(card.dataset.prayer, true);
+
+          if (card) {
+            playAdhan(card.dataset.prayer, true);
+          }
         });
       });
   }
@@ -545,7 +606,10 @@ function updateLocationLabel() {
 
     if (input.type === "checkbox") {
       value = input.checked;
-    } else if (input.type === "number" || input.type === "range") {
+    } else if (
+      input.type === "number" ||
+      input.type === "range"
+    ) {
       value = Number(input.value);
     } else {
       value = input.value;
@@ -564,16 +628,23 @@ function updateLocationLabel() {
     }
 
     settings[prayerId][key] = value;
+
     saveSettings();
 
     const label = card.querySelector(
       `[data-volume-label="${key}"]`
     );
 
-    if (label) label.textContent = value;
+    if (label) {
+      label.textContent = value;
+    }
 
     if (key === "timeOffsetMinutes") {
       renderPrayerTimes();
+    }
+
+    if (key === "adhanEnabled" || key === "iqamaEnabled") {
+      connectLegacyPrayerSettings();
     }
   }
 
@@ -620,23 +691,31 @@ function updateLocationLabel() {
         CACHE_KEY,
         JSON.stringify({
           date: todayKey(),
+          latitude: locationData.latitude,
+          longitude: locationData.longitude,
           timings: prayerTimes
         })
       );
 
       renderPrayerTimes();
 
-      setText("prayer-audio-status", "تم تحديث مواقيت الصلاة بنجاح");
+      setText(
+        "prayer-audio-status",
+        "تم تحديث مواقيت الصلاة بنجاح"
+      );
 
     } catch (error) {
       console.error("خطأ تحميل المواقيت:", error);
 
-      loadCachedPrayerTimes();
+      const hasCache = loadCachedPrayerTimes();
 
       setText(
         "prayer-audio-status",
-        "تعذر تحديث المواقيت. جارٍ استخدام البيانات المحفوظة إن وجدت."
+        hasCache
+          ? "تعذر تحديث المواقيت. يتم استخدام المواقيت المحفوظة."
+          : "تعذر تحميل المواقيت. تحقق من اتصال الإنترنت."
       );
+
     } finally {
       isLoading = false;
     }
@@ -648,11 +727,18 @@ function updateLocationLabel() {
         localStorage.getItem(CACHE_KEY) || "null"
       );
 
-      if (cached && cached.timings) {
+      if (
+        cached &&
+        cached.timings &&
+        cached.date === todayKey() &&
+        Number(cached.latitude) === Number(locationData.latitude) &&
+        Number(cached.longitude) === Number(locationData.longitude)
+      ) {
         prayerTimes = cached.timings;
         renderPrayerTimes();
         return true;
       }
+
     } catch (error) {
       console.error("خطأ قراءة المواقيت المحفوظة:", error);
     }
@@ -661,7 +747,9 @@ function updateLocationLabel() {
   }
 
   function getAdjustedTime(prayerId) {
-    if (!prayerTimes || !prayerTimes[prayerId]) return null;
+    if (!prayerTimes || !prayerTimes[prayerId]) {
+      return null;
+    }
 
     const original = String(prayerTimes[prayerId]).split(" ")[0];
     const date = getPrayerDateTime(original);
@@ -695,7 +783,7 @@ function updateLocationLabel() {
   }
 
   // ==========================================
-  // الصلاة القادمة
+  // الصلاة القادمة والعد التنازلي
   // ==========================================
 
   function updateNextPrayer() {
@@ -717,20 +805,33 @@ function updateLocationLabel() {
     if (!next) {
       setText("next-prayer-name", "الفجر");
       setText("next-prayer-time", "غدًا");
+      setText("countdown", "غدًا");
+      setText("next-prayer-countdown", "غدًا");
       return;
     }
 
     setText("next-prayer-name", next.name);
     setText("next-prayer-time", formatTime(next.time));
 
-    const remaining = Math.max(0, next.date.getTime() - now.getTime());
-    const hours = Math.floor(remaining / 3600000);
-    const minutes = Math.floor((remaining % 3600000) / 60000);
-
-    setText(
-      "next-prayer-countdown",
-      `${hours} ساعة و ${minutes} دقيقة`
+    const remaining = Math.max(
+      0,
+      next.date.getTime() - now.getTime()
     );
+
+    const hours = Math.floor(remaining / 3600000);
+
+    const minutes = Math.floor(
+      (remaining % 3600000) / 60000
+    );
+
+    const countdownText =
+      `${hours} ساعة و ${minutes} دقيقة`;
+
+    // عنصر العد التنازلي في الصفحة الرئيسية
+    setText("countdown", countdownText);
+
+    // دعم العنصر الآخر إن كان موجودًا
+    setText("next-prayer-countdown", countdownText);
   }
 
   // ==========================================
@@ -738,8 +839,6 @@ function updateLocationLabel() {
   // ==========================================
 
   function stopAudio() {
-    duaAfterAdhan = false;
-
     if (currentAudio) {
       currentAudio.pause();
       currentAudio.currentTime = 0;
@@ -762,7 +861,9 @@ function updateLocationLabel() {
     currentAudio = audio;
 
     audio.addEventListener("ended", () => {
-      if (currentAudio === audio) currentAudio = null;
+      if (currentAudio === audio) {
+        currentAudio = null;
+      }
 
       if (typeof onEnded === "function") {
         onEnded();
@@ -770,7 +871,9 @@ function updateLocationLabel() {
     });
 
     audio.addEventListener("error", () => {
-      if (currentAudio === audio) currentAudio = null;
+      if (currentAudio === audio) {
+        currentAudio = null;
+      }
 
       setText(
         "prayer-audio-status",
@@ -778,7 +881,10 @@ function updateLocationLabel() {
       );
     });
 
-    setText("prayer-audio-status", "جارٍ تشغيل " + label);
+    setText(
+      "prayer-audio-status",
+      "جارٍ تشغيل " + label
+    );
 
     audio.play().catch(error => {
       console.error("خطأ تشغيل الصوت:", error);
@@ -793,10 +899,11 @@ function updateLocationLabel() {
   function playAdhan(prayerId, testMode) {
     const s = settings[prayerId];
 
-    if (!s || (!s.adhanEnabled && !testMode)) return;
+    if (!s || (!s.adhanEnabled && !testMode)) {
+      return;
+    }
 
     const voice = ADHANS[s.adhanVoice] || ADHANS.rifaat;
-
     const shouldPlayDua = !testMode && s.duaEnabled;
 
     playAudio(
@@ -812,7 +919,9 @@ function updateLocationLabel() {
   function playDua(prayerId, testMode) {
     const s = settings[prayerId];
 
-    if (!s || (!s.duaEnabled && !testMode)) return;
+    if (!s || (!s.duaEnabled && !testMode)) {
+      return;
+    }
 
     playAudio(
       DUA_FILE,
@@ -840,8 +949,12 @@ function updateLocationLabel() {
       updateNotificationStatus();
 
       if (permission === "granted") {
-        showNotification("يقين", "تم تفعيل إشعارات الصلاة بنجاح");
+        showNotification(
+          "يقين",
+          "تم تفعيل إشعارات الصلاة بنجاح"
+        );
       }
+
     } catch (error) {
       console.error("خطأ طلب الإشعارات:", error);
     }
@@ -863,7 +976,7 @@ function updateLocationLabel() {
     setText("prayer-notification-status", status);
   }
 
-  function showNotification(title, body) {
+  async function showNotification(title, body) {
     if (
       !("Notification" in window) ||
       Notification.permission !== "granted"
@@ -871,14 +984,29 @@ function updateLocationLabel() {
       return;
     }
 
+    const options = {
+      body,
+      icon: "./assets/icon-512 (1).png",
+      badge: "./assets/icon-512 (1).png",
+      dir: "rtl",
+      lang: "ar"
+    };
+
     try {
-      new Notification(title, {
-        body,
-        icon: "./assets/icon-512 (1).png",
-        badge: "./assets/icon-512 (1).png",
-        dir: "rtl",
-        lang: "ar"
-      });
+      // استخدام Service Worker إن كان متاحًا
+      if ("serviceWorker" in navigator) {
+        const registration =
+          await navigator.serviceWorker.ready;
+
+        if (registration && registration.showNotification) {
+          await registration.showNotification(title, options);
+          return;
+        }
+      }
+
+      // بديل للمتصفحات التي لا تدعم إشعارات Service Worker
+      new Notification(title, options);
+
     } catch (error) {
       console.error("تعذر عرض الإشعار:", error);
     }
@@ -943,7 +1071,6 @@ function updateLocationLabel() {
     if (!prayerTimes) return;
 
     const now = new Date();
-
     const dateKey = todayKey();
 
     const currentMinute =
@@ -951,7 +1078,9 @@ function updateLocationLabel() {
       String(now.getHours()).padStart(2, "0") + ":" +
       String(now.getMinutes()).padStart(2, "0");
 
-    if (lastCheckedMinute === currentMinute) return;
+    if (lastCheckedMinute === currentMinute) {
+      return;
+    }
 
     lastCheckedMinute = currentMinute;
 
@@ -989,16 +1118,24 @@ function updateLocationLabel() {
           playAdhan(prayer.id, false);
         }
 
-        // جدولة تنبيه الإقامة
         if (s.iqamaEnabled) {
-          scheduleIqamaNotification(prayer, s, prayerKey);
+          scheduleIqamaNotification(
+            prayer,
+            s,
+            prayerKey
+          );
         }
       }
     });
   }
 
-  function scheduleIqamaNotification(prayer, settingsForPrayer, prayerKey) {
-    const delay = settingsForPrayer.iqamaMinutes * 60000;
+  function scheduleIqamaNotification(
+    prayer,
+    settingsForPrayer,
+    prayerKey
+  ) {
+    const delay =
+      settingsForPrayer.iqamaMinutes * 60000;
 
     window.setTimeout(() => {
       sendOnce(
@@ -1014,16 +1151,23 @@ function updateLocationLabel() {
   // ==========================================
 
   function startPrayerTimer() {
-    if (timer) clearInterval(timer);
+    if (timer) {
+      clearInterval(timer);
+    }
 
     timer = setInterval(() => {
-      if (todayKey() !== lastDate) {
-        lastDate = todayKey();
+      const currentDate = todayKey();
+
+      if (currentDate !== lastDate) {
+        lastDate = currentDate;
+        lastCheckedMinute = "";
+        prayerTimes = null;
         loadPrayerTimes();
       }
 
       checkPrayerEvents();
       updateNextPrayer();
+
     }, 1000);
   }
 
@@ -1049,16 +1193,19 @@ function updateLocationLabel() {
     if (!hasCache) {
       await loadPrayerTimes();
     } else {
+      // تحديث المواقيت من الإنترنت مع الاحتفاظ بالمحفوظ
       loadPrayerTimes();
     }
 
     updateLocationLabel();
     updateNotificationStatus();
+    connectLegacyPrayerSettings();
 
     startPrayerTimer();
 
-    // تنبيه: هذا المؤقت يعمل أثناء تشغيل صفحة التطبيق فقط.
-    // التشغيل بعد إغلاق التطبيق يحتاج جدولة أصلية في Android.
+    // ملاحظة:
+    // المؤقتات وتشغيل الصوت هنا تعمل أثناء تشغيل صفحة التطبيق.
+    // الأذان بعد إغلاق التطبيق يحتاج تكامل Android أصلي.
   }
 
   if (document.readyState === "loading") {
