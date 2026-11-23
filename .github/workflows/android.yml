@@ -45,6 +45,8 @@ jobs:
 
       - name: Generate Android icons
         run: npm run icons -- --assetPath resources
+      - name: Prepare native prayer system
+        run: node scripts/prepare-android-native.cjs
 
       - name: Sync Android project
         run: npx cap sync android
