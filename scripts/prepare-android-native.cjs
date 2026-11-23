@@ -59,10 +59,21 @@ console.log("Android package:", PACKAGE);
 fs.mkdirSync(RAW, { recursive: true });
 
 const audioFiles = [
-  ["Beautiful_adhan.ogg", "yaqeen_adhan.ogg"],
-  ["adhan.ogg", "yaqeen_adhan_alt.ogg"],
-  ["after-adhan-dua.mp3", "yaqeen_dua.mp3"]
+  ["assets/audio/محمد رفعت.mp4", "yaqeen_rifaat.mp4"],
+  ["assets/audio/اذان.mp4", "yaqeen_naqshbandi.mp4"],
+  ["assets/audio/الشعراوي.mp4", "yaqeen_dua.mp4"]
 ];
+
+for (const [source, destination] of audioFiles) {
+  const from = path.join(ROOT, source);
+
+  if (fs.existsSync(from)) {
+    fs.copyFileSync(from, path.join(RAW, destination));
+    console.log("Audio copied:", source);
+  } else {
+    throw new Error("Required prayer audio file not found: " + source);
+  }
+}
 
 for (const [source, destination] of audioFiles) {
   const from = path.join(ROOT, source);
