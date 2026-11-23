@@ -392,10 +392,11 @@ let duaAfterAdhan = false;
     updateNotificationStatus();
     updateLocationLabel();
   }
-
-  function updateLocationLabel() {
-    setText("prayer-location-name", locationData.city);
-  }
+function updateLocationLabel() {
+  setText("prayer-location-name", locationData.city);
+  setText("prayer-city", locationData.city);
+  setText("city-name", locationData.city);
+}
 
   // ==========================================
   // بطاقات إعدادات الصلوات
