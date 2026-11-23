@@ -44,7 +44,8 @@
 
   let locationData = loadLocation();
   let prayerTimes = null;
-  let tomorrowFajr = null;
+ let tomorrowFajr = null;
+let tomorrowPrayerTimes = null;
   let currentAudio = null;
   let timer = null;
   let lastDate = "";
