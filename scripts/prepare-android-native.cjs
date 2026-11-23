@@ -70,12 +70,176 @@ for (const [source, destination] of audioFiles) {
   fs.copyFileSync(from, path.join(RAW, destination));
   console.log("Copied offline audio:", source);
 }
-
 // Native Capacitor plugin.
 writeFile(
   path.join(packageDir, "YaqeenPrayerPlugin.java"),
   `
 package ${packageName};
+
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
+import android.os.Build;
+import android.provider.Settings;
+
+import com.getcapacitor.Plugin;
+import com.getcapacitor.PluginCall;
+import com.getcapacitor.PluginMethod;
+import com.getcapacitor.annotation.CapacitorPlugin;
+import com.getcapacitor.JSObject;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.util.HashSet;
+import java.util.Set;
+
+@CapacitorPlugin(name = "YaqeenPrayer")
+public class YaqeenPrayerPlugin extends Plugin {
+
+    private static final String PREFS = "yaqeen_prayers";
+    private static final String IDS = "ids";
+
+    @PluginMethod
+    public void schedule(PluginCall call) {
+        JSONArray schedules = call.getArray("schedules");
+
+        if (schedules == null) {
+            call.reject("schedules is required");
+            return;
+        }
+
+        Context context = getContext();
+        AlarmManager manager =
+            (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+            !manager.canScheduleExactAlarms()) {
+            JSObject result = new JSObject();
+            result.put("scheduled", false);
+            result.put("permissionRequired", true);
+            call.resolve(result);
+            return;
+        }
+
+        try {
+            cancelAll(context);
+
+            Set<String> ids = new HashSet<>();
+            int count = 0;
+
+            for (int i = 0; i < schedules.length(); i++) {
+                JSONObject item = schedules.getJSONObject(i);
+                long time = item.getLong("time");
+
+                if (time <= System.currentTimeMillis()) continue;
+
+                String name = item.optString("name", "الصلاة");
+                String sound = item.optString("sound", "yaqeen_adhan");
+
+                int id = (int) (time % Integer.MAX_VALUE);
+                ids.add(String.valueOf(id));
+
+                Intent intent = new Intent(context, YaqeenAlarmReceiver.class);
+                intent.putExtra("name", name);
+                intent.putExtra("sound", sound);
+
+                PendingIntent pending = PendingIntent.getBroadcast(
+                    context,
+                    id,
+                    intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT |
+                    PendingIntent.FLAG_IMMUTABLE
+                );
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    manager.setExactAndAllowWhileIdle(
+                        AlarmManager.RTC_WAKEUP, time, pending
+                    );
+                } else {
+                    manager.setExact(
+                        AlarmManager.RTC_WAKEUP, time, pending
+                    );
+                }
+
+                count++;
+            }
+
+            context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .edit().putStringSet(IDS, ids).apply();
+
+            JSObject result = new JSObject();
+            result.put("scheduled", true);
+            result.put("count", count);
+            call.resolve(result);
+
+        } catch (Exception e) {
+            call.reject("Prayer scheduling failed", e);
+        }
+    }
+
+    @PluginMethod
+    public void requestExactAlarmPermission(PluginCall call) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            AlarmManager manager =
+                (AlarmManager) getContext().getSystemService(Context.ALARM_SERVICE);
+
+            if (!manager.canScheduleExactAlarms()) {
+                Intent intent = new Intent(
+                    Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM
+                );
+                intent.setData(android.net.Uri.parse(
+                    "package:" + getContext().getPackageName()
+                ));
+                getActivity().startActivity(intent);
+            }
+        }
+
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void cancel(PluginCall call) {
+        cancelAll(getContext());
+        call.resolve();
+    }
+
+    private void cancelAll(Context context) {
+        AlarmManager manager =
+            (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+
+        Set<String> ids = context.getSharedPreferences(
+            PREFS, Context.MODE_PRIVATE
+        ).getStringSet(IDS, new HashSet<String>());
+
+        for (String value : new HashSet<>(ids)) {
+            try {
+                int id = Integer.parseInt(value);
+
+                Intent intent = new Intent(context, YaqeenAlarmReceiver.class);
+
+                PendingIntent pending = PendingIntent.getBroadcast(
+                    context,
+                    id,
+                    intent,
+                    PendingIntent.FLAG_NO_CREATE |
+                    PendingIntent.FLAG_IMMUTABLE
+                );
+
+                if (pending != null) {
+                    manager.cancel(pending);
+                    pending.cancel();
+                }
+            } catch (Exception ignored) {}
+        }
+
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit().remove(IDS).apply();
+    }
+}
+`
+);package ${packageName};
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
