@@ -57,9 +57,7 @@ fs.mkdirSync(RAW, { recursive: true });
 
 // Copy offline audio files into Android resources.
 const audioFiles = [
-  ["Beautiful_adhan.ogg", "yaqeen_adhan.ogg"],
-  ["adhan.ogg", "yaqeen_adhan_alt.ogg"],
-  ["after-adhan-dua.mp3", "yaqeen_dua.mp3"]
+  ["Beautiful_adhan.ogg", "yaqeen_adhan.ogg"]
 ];
 
 for (const [source, destination] of audioFiles) {
