@@ -165,9 +165,11 @@ public class YaqeenPrayerPlugin extends Plugin {
 
                 count++;
             }
-
-            context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-                .edit().putStringSet(IDS, ids).apply();
+context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+    .edit()
+    .putStringSet(IDS, ids)
+    .putString("schedules", schedules.toString())
+    .apply();
 
             JSObject result = new JSObject();
             result.put("scheduled", true);
