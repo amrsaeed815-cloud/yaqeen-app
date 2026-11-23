@@ -47,8 +47,9 @@
   let currentAudio = null;
   let timer = null;
   let isLoading = false;
-  let lastCheckedMinute = "";
-  let duaAfterAdhan = false;
+let lastCheckedMinute = "";
+let lastDate = todayKey();
+let duaAfterAdhan = false;
 
   // ==========================================
   // أدوات مساعدة
