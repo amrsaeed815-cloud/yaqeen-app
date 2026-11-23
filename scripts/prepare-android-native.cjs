@@ -378,7 +378,7 @@ public class YaqeenBootReceiver extends BroadcastReceiver {
 );
 
 // Register plugin in MainActivity.
-String activitySource = fs.readFileSync(activityFile, "utf8");
+let activitySource = fs.readFileSync(activityFile, "utf8");
 
 if (!activitySource.includes("YaqeenPrayerPlugin.class")) {
   activitySource = activitySource.replace(
