@@ -50,8 +50,7 @@ jobs:
 
       - name: Sync Android project
         run: npx cap sync android
-      - name: Prepare native prayer system
-        run: node scripts/prepare-android-native.cjs
+     
       - name: Build APK
         run: |
           cd android
