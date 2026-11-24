@@ -1,173 +1,69 @@
-
 (function () {
   "use strict";
 
   // ==========================================
-  // تطبيق يقين - قسم القرآن الكريم
+  // يقين - القرآن الكريم والتخزين دون إنترنت
   // ==========================================
 
   const API = "https://mp3quran.net/api/v3";
-  const TEXT_API =
-    "https://quran-json.risanb.com/text/uthmani/chapters";
+  const TEXT_API = "https://quran-json.risanb.com/text/uthmani/chapters";
+
+  const DB_NAME = "yaqeen-quran-offline";
+  const DB_VERSION = 1;
+  const TEXT_STORE = "texts";
+  const AUDIO_STORE = "audio";
+  const META_STORE = "meta";
+
+  const surahNames = [
+    "الفاتحة","البقرة","آل عمران","النساء","المائدة","الأنعام","الأعراف","الأنفال","التوبة","يونس",
+    "هود","يوسف","الرعد","إبراهيم","الحجر","النحل","الإسراء","الكهف","مريم","طه",
+    "الأنبياء","الحج","المؤمنون","النور","الفرقان","الشعراء","النمل","القصص","العنكبوت","الروم",
+    "لقمان","السجدة","الأحزاب","سبأ","فاطر","يس","الصافات","ص","الزمر","غافر",
+    "فصلت","الشورى","الزخرف","الدخان","الجاثية","الأحقاف","محمد","الفتح","الحجرات","ق",
+    "الذاريات","الطور","النجم","القمر","الرحمن","الواقعة","الحديد","المجادلة","الحشر","الممتحنة",
+    "الصف","الجمعة","المنافقون","التغابن","الطلاق","التحريم","الملك","القلم","الحاقة","المعارج",
+    "نوح","الجن","المزمل","المدثر","القيامة","الإنسان","المرسلات","النبأ","النازعات","عبس",
+    "التكوير","الانفطار","المطففين","الانشقاق","البروج","الطارق","الأعلى","الغاشية","الفجر","البلد",
+    "الشمس","الليل","الضحى","الشرح","التين","العلق","القدر","البينة","الزلزلة","العاديات",
+    "القارعة","التكاثر","العصر","الهمزة","الفيل","قريش","الماعون","الكوثر","الكافرون","النصر",
+    "المسد","الإخلاص","الفلق","الناس"
+  ];
+
+  const readers = {
+    mishary: ["مشاري راشد العفاسي","مشاري العفاسي","Mishary Rashid Alafasy"],
+    husary: ["محمود خليل الحصري","الحصري","Mahmoud Khalil Al-Hussary"],
+    abdulbasit: ["عبدالباسط عبدالصمد","عبد الباسط عبد الصمد","Abdul Basit Abdul Samad"],
+    sudais: ["عبدالرحمن السديس","عبد الرحمن السديس","Abdurrahman As-Sudais"],
+    minshawi: ["محمد صديق المنشاوي","محمد صديق المنشاوى","Mohamed Siddiq El-Minshawi"],
+    shuraim: ["سعود الشريم","Saud Al-Shuraim"],
+    ajamy: ["أحمد بن علي العجمي","احمد العجمي","Ahmed Al-Ajmi"],
+    jibreel: ["محمد جبريل","Mohamed Jebreel"],
+    ayoub: ["محمد أيوب","محمد ايوب","Mohammad Ayyub"],
+    hudhaify: ["علي الحذيفي","علي بن عبدالرحمن الحذيفي","Ali Al-Hudhaify"],
+    abdulrahman_mossad: ["عبدالرحمن مسعد","عبد الرحمن مسعد","Abdulrahman Mossad"]
+  };
+
+  const mossadSurahs = {
+    32: "https://download.tvquran.com/download/recitations/372/303/032.mp3",
+    73: "https://download.tvquran.com/download/recitations/372/303/073.mp3",
+    78: "https://download.tvquran.com/download/recitations/372/303/078.mp3",
+    87: "https://download.tvquran.com/download/recitations/372/303/087.mp3",
+    88: "https://download.tvquran.com/download/recitations/372/303/088.mp3",
+    100: "https://download.tvquran.com/download/recitations/372/303/100.mp3",
+    107: "https://download.tvquran.com/download/recitations/372/303/107.mp3"
+  };
 
   const surahList = document.getElementById("surah-list");
   const readerSelect = document.getElementById("quran-reader");
 
   if (!surahList || !readerSelect) {
-    console.error("لم يتم العثور على عناصر قسم القرآن");
+    console.error("يقين: عناصر قسم القرآن غير موجودة");
     return;
   }
 
-  // ==========================================
-  // بيانات القراء الـ11
-  // ==========================================
-
-  const readers = {
-    mishary: {
-      aliases: [
-        "مشاري راشد العفاسي",
-        "مشاري العفاسي",
-        "Mishary Rashid Alafasy",
-        "ar.alafasy"
-      ]
-    },
-
-    husary: {
-      aliases: [
-        "محمود خليل الحصري",
-        "الحصري",
-        "Mahmoud Khalil Al-Hussary",
-        "ar.husary"
-      ]
-    },
-
-    abdulbasit: {
-      aliases: [
-        "عبدالباسط عبدالصمد",
-        "عبد الباسط عبد الصمد",
-        "Abdul Basit Abdul Samad",
-        "ar.abdulbasit"
-      ]
-    },
-
-    sudais: {
-      aliases: [
-        "عبدالرحمن السديس",
-        "عبد الرحمن السديس",
-        "Abdurrahman As-Sudais",
-        "ar.sudais"
-      ]
-    },
-
-    minshawi: {
-      aliases: [
-        "محمد صديق المنشاوي",
-        "محمد صديق المنشاوى",
-        "Mohamed Siddiq El-Minshawi",
-        "ar.minshawi"
-      ]
-    },
-
-    shuraim: {
-      aliases: [
-        "سعود الشريم",
-        "Saud Al-Shuraim",
-        "ar.shuraim"
-      ]
-    },
-
-    ajamy: {
-      aliases: [
-        "أحمد بن علي العجمي",
-        "احمد العجمي",
-        "Ahmed Al-Ajmi",
-        "ar.ajamy"
-      ]
-    },
-
-    jibreel: {
-      aliases: [
-        "محمد جبريل",
-        "Mohamed Jebreel",
-        "ar.muhammadjibreel"
-      ]
-    },
-
-    ayoub: {
-      aliases: [
-        "محمد أيوب",
-        "محمد ايوب",
-        "Mohammad Ayyub",
-        "ar.muhammadayoub"
-      ]
-    },
-
-    hudhaify: {
-      aliases: [
-        "علي الحذيفي",
-        "علي بن عبدالرحمن الحذيفي",
-        "Ali Al-Hudhaify",
-        "ar.hudhaify"
-      ]
-    },
-
-    abdulrahman_mossad: {
-      aliases: [
-        "عبدالرحمن مسعد",
-        "عبد الرحمن مسعد",
-        "Abdulrahman Mossad",
-        "Abdul Rahman Mossad"
-      ]
-    }
-  };
-
-  // ==========================================
-  // تلاوات عبدالرحمن مسعد
-  // المصدر: TVQuran
-  // ==========================================
-
-  const mossadSurahs = {
-    32: {
-      name: "السجدة",
-      url: "https://download.tvquran.com/download/recitations/372/303/032.mp3"
-    },
-
-    73: {
-      name: "المزمل",
-      url: "https://download.tvquran.com/download/recitations/372/303/073.mp3"
-    },
-
-    78: {
-      name: "النبأ",
-      url: "https://download.tvquran.com/download/recitations/372/303/078.mp3"
-    },
-
-    87: {
-      name: "الأعلى",
-      url: "https://download.tvquran.com/download/recitations/372/303/087.mp3"
-    },
-
-    88: {
-      name: "الغاشية",
-      url: "https://download.tvquran.com/download/recitations/372/303/088.mp3"
-    },
-
-    100: {
-      name: "العاديات",
-      url: "https://download.tvquran.com/download/recitations/372/303/100.mp3"
-    },
-
-    107: {
-      name: "الماعون",
-      url: "https://download.tvquran.com/download/recitations/372/303/107.mp3"
-    }
-  };
-
-  // ==========================================
-  // إنشاء عناصر الصفحة
-  // ==========================================
-
   let status = document.getElementById("quran-status");
+  let audio = document.getElementById("quran-audio");
+  let reader = document.getElementById("quran-text");
 
   if (!status) {
     status = document.createElement("p");
@@ -175,23 +71,13 @@
     surahList.before(status);
   }
 
-  status.style.cssText =
-    "text-align:center;padding:10px;color:inherit;";
-
-  let audio = document.getElementById("quran-audio");
-
   if (!audio) {
     audio = document.createElement("audio");
     audio.id = "quran-audio";
     audio.controls = true;
-    audio.preload = "none";
+    audio.preload = "metadata";
     surahList.after(audio);
   }
-
-  audio.style.cssText =
-    "display:block;width:100%;margin:15px auto;";
-
-  let reader = document.getElementById("quran-text");
 
   if (!reader) {
     reader = document.createElement("div");
@@ -199,30 +85,32 @@
     audio.after(reader);
   }
 
+  status.style.cssText =
+    "text-align:center;padding:10px;line-height:1.8;";
+
+  audio.style.cssText =
+    "display:block;width:100%;margin:15px auto;";
+
   reader.style.cssText =
     "direction:rtl;text-align:justify;line-height:2.5;font-size:22px;padding:15px;";
 
-  // ==========================================
-  // متغيرات التطبيق
-  // ==========================================
-
-  let surahs = [];
+  let dbPromise = null;
   let reciters = [];
-
+  let currentAudioUrl = null;
+  let currentSession = 0;
+  let currentSurah = 0;
   let currentSurahName = "";
-  let currentAudioSession = 0;
 
-  let recitersPromise = null;
-
-  // ==========================================
-  // أدوات مساعدة
-  // ==========================================
+  const surahs = surahNames.map((name, index) => ({
+    number: index + 1,
+    name
+  }));
 
   function setStatus(message) {
     status.textContent = message;
   }
 
-  function normalizeName(value) {
+  function normalize(value) {
     return String(value || "")
       .toLowerCase()
       .replace(/[\u064B-\u065F\u0670]/g, "")
@@ -233,693 +121,690 @@
       .replace(/[^a-z0-9\u0600-\u06FF]/g, "");
   }
 
-  function isMossadSelected() {
+  function selectedReaderKey() {
+    const value = readerSelect.value;
+
+    if (readers[value]) return value;
+
     const option =
       readerSelect.options[readerSelect.selectedIndex];
 
-    return (
-      readerSelect.value === "abdulrahman_mossad" ||
-      normalizeName(option?.textContent).includes(
-        normalizeName("عبدالرحمن مسعد")
-      )
-    );
+    const label = normalize(option ? option.textContent : value);
+
+    for (const key of Object.keys(readers)) {
+      if (readers[key].some(name => normalize(name) === label)) {
+        return key;
+      }
+    }
+
+    return value || "unknown";
+  }
+
+  function isMossad() {
+    return selectedReaderKey() === "abdulrahman_mossad";
+  }
+
+  function openDB() {
+    if (dbPromise) return dbPromise;
+
+    dbPromise = new Promise((resolve, reject) => {
+      if (!window.indexedDB) {
+        reject(new Error("التخزين المحلي غير مدعوم"));
+        return;
+      }
+
+      const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+      request.onupgradeneeded = () => {
+        const db = request.result;
+
+        if (!db.objectStoreNames.contains(TEXT_STORE)) {
+          db.createObjectStore(TEXT_STORE, { keyPath: "id" });
+        }
+
+        if (!db.objectStoreNames.contains(AUDIO_STORE)) {
+          db.createObjectStore(AUDIO_STORE, { keyPath: "id" });
+        }
+
+        if (!db.objectStoreNames.contains(META_STORE)) {
+          db.createObjectStore(META_STORE, { keyPath: "id" });
+        }
+      };
+
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+
+    return dbPromise;
+  }
+
+  async function dbGet(store, id) {
+    const db = await openDB();
+
+    return new Promise((resolve, reject) => {
+      const request = db.transaction(store, "readonly")
+        .objectStore(store).get(id);
+
+      request.onsuccess = () => resolve(request.result || null);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  async function dbPut(store, value) {
+    const db = await openDB();
+
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(store, "readwrite");
+      tx.objectStore(store).put(value);
+
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error);
+      tx.onabort = () => reject(tx.error);
+    });
+  }
+
+  async function dbAllKeys(store) {
+    const db = await openDB();
+
+    return new Promise((resolve, reject) => {
+      const request = db.transaction(store, "readonly")
+        .objectStore(store).getAllKeys();
+
+      request.onsuccess = () => resolve(request.result || []);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  function textId(number) {
+    return "surah:" + number;
+  }
+
+  function audioId(key, number) {
+    return key + ":" + String(number).padStart(3, "0");
   }
 
   function stopAudio() {
-    currentAudioSession++;
-
+    currentSession++;
     audio.pause();
     audio.removeAttribute("src");
     audio.load();
+
+    if (currentAudioUrl) {
+      URL.revokeObjectURL(currentAudioUrl);
+      currentAudioUrl = null;
+    }
   }
 
-  // ==========================================
-  // تحميل بيانات القراء
-  // ==========================================
+  function createButton(label, callback) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = label;
+    button.style.cssText =
+      "margin:5px;padding:9px 12px;border-radius:9px;cursor:pointer;";
+
+    button.addEventListener("click", callback);
+    return button;
+  }
 
   async function loadReciters() {
-    if (reciters.length) return true;
+    const cached = await dbGet(META_STORE, "reciters");
 
-    if (recitersPromise) {
-      return recitersPromise;
+    if (cached && Array.isArray(cached.value)) {
+      reciters = cached.value;
     }
 
-    recitersPromise = (async function () {
-      try {
-        const response = await fetch(
-          API + "/reciters?language=ar"
-        );
+    if (!navigator.onLine) return reciters.length > 0;
 
-        if (!response.ok) {
-          throw new Error("تعذر تحميل قائمة القراء");
-        }
+    try {
+      const response = await fetch(API + "/reciters?language=ar");
 
-        const result = await response.json();
+      if (!response.ok) throw new Error("تعذر تحميل القراء");
 
-        reciters = Array.isArray(result.reciters)
-          ? result.reciters
-          : [];
+      const result = await response.json();
 
-        if (!reciters.length) {
-          throw new Error("قائمة القراء فارغة");
-        }
+      if (Array.isArray(result.reciters) && result.reciters.length) {
+        reciters = result.reciters;
 
-        console.log(
-          "تم تحميل القراء:",
-          reciters.length
-        );
-
-        return true;
-
-      } catch (error) {
-        console.error("Reciters Error:", error);
-        recitersPromise = null;
-        return false;
-      }
-    })();
-
-    return recitersPromise;
-  }
-
-  // ==========================================
-  // تحديد القارئ المختار
-  // ==========================================
-
-  function getSelectedReader() {
-    const selected = readerSelect.value;
-
-    if (readers[selected]) {
-      return readers[selected];
-    }
-
-    const option =
-      readerSelect.options[readerSelect.selectedIndex];
-
-    const optionText = option
-      ? option.textContent
-      : "";
-
-    const selectedNames = [
-      normalizeName(selected),
-      normalizeName(optionText)
-    ].filter(Boolean);
-
-    for (const key in readers) {
-      const aliases = readers[key].aliases.map(
-        normalizeName
-      );
-
-      const matched = aliases.some(function (alias) {
-        return selectedNames.some(function (name) {
-          return (
-            alias === name ||
-            (alias.length >= 6 && name.includes(alias)) ||
-            (name.length >= 6 && alias.includes(name))
-          );
+        await dbPut(META_STORE, {
+          id: "reciters",
+          value: reciters
         });
-      });
-
-      if (matched) {
-        return readers[key];
       }
-    }
 
-    if (optionText) {
-      return {
-        aliases: [optionText]
-      };
+      return reciters.length > 0;
+    } catch (error) {
+      console.warn("Quran reciters:", error);
+      return reciters.length > 0;
     }
-
-    return null;
   }
-
-  // ==========================================
-  // البحث عن القارئ
-  // ==========================================
 
   function findReader() {
-    const config = getSelectedReader();
+    const key = selectedReaderKey();
+    const aliases = readers[key] || [];
 
-    if (!config) return null;
+    return reciters.find(reciter => {
+      const name = normalize(reciter.name);
 
-    const aliases = config.aliases.map(normalizeName);
-
-    return reciters.find(function (reciter) {
-      const name = normalizeName(reciter.name);
-
-      return aliases.some(function (alias) {
-        return (
-          alias === name ||
-          (alias.length >= 6 && name.includes(alias)) ||
-          (name.length >= 6 && alias.includes(name))
-        );
+      return aliases.some(alias => {
+        const normalized = normalize(alias);
+        return name === normalized ||
+          (normalized.length >= 6 && name.includes(normalized)) ||
+          (name.length >= 6 && normalized.includes(name));
       });
     }) || null;
   }
 
-  // ==========================================
-  // معرفة السور المتاحة في المصحف
-  // ==========================================
-
   function getAvailableSurahs(moshaf) {
-    if (!moshaf || !moshaf.server) {
-      return [];
-    }
-
     return String(moshaf.surah_list || "")
       .split(",")
       .map(Number)
-      .filter(function (number) {
-        return (
-          Number.isInteger(number) &&
-          number >= 1 &&
-          number <= 114
-        );
-      });
+      .filter(number => number >= 1 && number <= 114);
   }
 
-  // ==========================================
-  // اختيار المصحف الذي يحتوي على السورة
-  // ==========================================
+  async function getAudioUrl(number) {
+    if (isMossad()) {
+      if (!mossadSurahs[number]) {
+        throw new Error("هذه السورة غير متاحة لهذا القارئ");
+      }
 
-  function findMoshafForSurah(reciter, surahNumber) {
-    if (!reciter || !Array.isArray(reciter.moshaf)) {
-      return null;
+      return mossadSurahs[number];
     }
 
-    return reciter.moshaf.find(function (moshaf) {
-      return getAvailableSurahs(moshaf).includes(
-        Number(surahNumber)
-      );
-    }) || null;
-  }
+    if (!reciters.length) {
+      await loadReciters();
+    }
 
-  // ==========================================
-  // إنشاء رابط صوت السورة
-  // ==========================================
+    const reciter = findReader();
 
-  function getSurahAudioUrl(moshaf, number) {
-    const server = String(moshaf.server).endsWith("/")
+    if (!reciter) {
+      throw new Error("تعذر العثور على القارئ. اتصل بالإنترنت وحاول مجدداً.");
+    }
+
+    const moshaf = (reciter.moshaf || []).find(item =>
+      getAvailableSurahs(item).includes(Number(number))
+    );
+
+    if (!moshaf || !moshaf.server) {
+      throw new Error("السورة غير متاحة لهذا القارئ");
+    }
+
+    const server = moshaf.server.endsWith("/")
       ? moshaf.server
       : moshaf.server + "/";
 
-    const paddedNumber = String(number).padStart(3, "0");
-
-    return server + paddedNumber + ".mp3";
+    return server + String(number).padStart(3, "0") + ".mp3";
   }
 
-  // ==========================================
-  // عرض السور حسب القارئ
-  // ==========================================
+  async function getSurahText(number) {
+    const cached = await dbGet(TEXT_STORE, textId(number));
 
-  function renderSurahs() {
-    surahList.innerHTML = "";
-
-    const mossad = isMossadSelected();
-
-    const availableSurahs = mossad
-      ? surahs.filter(function (surah) {
-          return Boolean(mossadSurahs[surah.number]);
-        })
-      : surahs;
-
-    if (!availableSurahs.length) {
-      setStatus("لا توجد سور متاحة للعرض حالياً");
-      return;
+    if (cached && Array.isArray(cached.verses) && cached.verses.length) {
+      return cached;
     }
 
-    if (mossad) {
-      const info = document.createElement("p");
-
-      info.textContent =
-        "تلاوات عبدالرحمن مسعد المتاحة - 7 سور";
-
-      info.style.cssText =
-        "text-align:center;color:var(--gold);padding:10px;";
-
-      surahList.appendChild(info);
+    if (!navigator.onLine) {
+      throw new Error("نص السورة غير محفوظ. اتصل بالإنترنت لتنزيله أولاً.");
     }
 
-    availableSurahs.forEach(function (surah) {
-      const card = document.createElement("div");
+    const response = await fetch(TEXT_API + "/" + number + ".json");
 
-      card.style.cssText =
-        "padding:12px;margin:8px 0;border:1px solid #999;border-radius:12px;";
+    if (!response.ok) throw new Error("تعذر تحميل نص السورة");
 
-      const name = document.createElement("h3");
+    const data = await response.json();
 
-      name.textContent =
-        surah.name || ("سورة رقم " + surah.number);
+    if (!Array.isArray(data.verses) || !data.verses.length) {
+      throw new Error("بيانات السورة غير مكتملة");
+    }
 
-      const readButton = document.createElement("button");
-
-      readButton.textContent = "📖 قراءة السورة";
-      readButton.style.cssText = "margin:5px;padding:9px;";
-
-      readButton.addEventListener("click", function () {
-        loadSurahText(
-          surah.number,
-          name.textContent
-        );
-      });
-
-      const playButton = document.createElement("button");
-
-      playButton.textContent = "🎧 استماع للسورة";
-      playButton.style.cssText = "margin:5px;padding:9px;";
-
-      playButton.addEventListener("click", function () {
-        playSurah(
-          surah.number,
-          name.textContent
-        );
-      });
-
-      card.appendChild(name);
-      card.appendChild(readButton);
-      card.appendChild(playButton);
-
-      surahList.appendChild(card);
+    await dbPut(TEXT_STORE, {
+      id: textId(number),
+      number,
+      verses: data.verses,
+      notice: data.notice || ""
     });
 
-    setStatus(
-      mossad
-        ? "اختر سورة للاستماع بصوت عبدالرحمن مسعد"
-        : "تم تحميل 114 سورة بنجاح"
-    );
+    return data;
+  }
+    async function saveLastPosition(surah, ayah) {
+    await dbPut(META_STORE, {
+      id: "last-position",
+      surah,
+      ayah,
+      updatedAt: Date.now()
+    });
   }
 
-  // ==========================================
-  // تحميل السور الـ114 من MP3Quran
-  // ==========================================
+  function addSourceNotice(data) {
+    const notice = document.createElement("p");
 
-  async function loadSurahs() {
-    setStatus("جاري تحميل سور القرآن الكريم...");
-    surahList.innerHTML = "";
+    notice.textContent = data.notice ||
+      "مصدر نص القرآن الكريم: مشروع Tanzil.";
 
-    try {
-      const response = await fetch(
-        API + "/suwar?language=ar"
-      );
+    notice.style.cssText =
+      "direction:rtl;text-align:right;font-size:12px;line-height:2;padding:12px;white-space:pre-wrap;";
 
-      if (!response.ok) {
-        throw new Error(
-          "فشل تحميل قائمة السور: " + response.status
-        );
-      }
+    const link = document.createElement("a");
+    link.href = "https://tanzil.net/";
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.textContent = "موقع Tanzil";
 
-      const result = await response.json();
-
-      if (result.Errors && result.Errors.length) {
-        throw new Error(
-          "مصدر السور أعاد رسالة خطأ"
-        );
-      }
-
-      if (!Array.isArray(result.suwar)) {
-        throw new Error(
-          "بيانات السور غير صحيحة"
-        );
-      }
-
-      surahs = result.suwar.map(function (surah) {
-        return {
-          number: Number(surah.id),
-          name: String(surah.name || "").trim()
-        };
-      });
-
-      if (
-        surahs.length !== 114 ||
-        surahs.some(function (surah) {
-          return (
-            !Number.isInteger(surah.number) ||
-            surah.number < 1 ||
-            surah.number > 114 ||
-            !surah.name
-          );
-        })
-      ) {
-        surahs = [];
-        throw new Error("قائمة السور غير مكتملة");
-      }
-
-      surahs.sort(function (a, b) {
-        return a.number - b.number;
-      });
-
-      console.log(
-        "تم تحميل السور بنجاح:",
-        surahs.length
-      );
-
-      renderSurahs();
-
-    } catch (error) {
-      console.error("Surah Loading Error:", error);
-
-      surahs = [];
-
-      setStatus(
-        "تعذر تحميل السور. تحقق من الإنترنت وحاول مرة أخرى."
-      );
-    }
+    notice.appendChild(document.createElement("br"));
+    notice.appendChild(link);
+    reader.appendChild(notice);
   }
 
-  // ==========================================
-  // إشعار مصدر القرآن وترخيص Tanzil
-  // ==========================================
-
-  function addQuranSourceNotices(result) {
-    const licenseNotice = document.createElement("p");
-
-    licenseNotice.textContent = result.notice || "";
-
-    licenseNotice.style.cssText =
-      "direction:ltr;text-align:left;font-size:12px;line-height:1.8;padding:12px;margin:10px;border:1px solid #888;border-radius:10px;white-space:pre-wrap;";
-
-    reader.appendChild(licenseNotice);
-
-    const sourceNotice = document.createElement("p");
-
-    sourceNotice.textContent =
-      "مصدر نص القرآن الكريم: مشروع Tanzil. النص منقول كما هو دون تغيير، وفق ترخيص المشاع الإبداعي CC BY 3.0.";
-
-    sourceNotice.style.cssText =
-      "text-align:center;font-size:13px;color:var(--gold);padding:15px;line-height:2;";
-
-    const sourceLink = document.createElement("a");
-
-    sourceLink.textContent = "زيارة موقع Tanzil";
-    sourceLink.href = "https://tanzil.net/";
-    sourceLink.target = "_blank";
-    sourceLink.rel = "noopener noreferrer";
-
-    sourceNotice.appendChild(sourceLink);
-
-    reader.appendChild(sourceNotice);
-  }
-
-  // ==========================================
-  // قراءة السورة نصياً - مصدر Tanzil
-  // ==========================================
-
-  async function loadSurahText(number, name) {
+  async function readSurah(number, verseToRestore) {
     stopAudio();
+
+    const session = currentSession;
+
+    currentSurah = number;
+    currentSurahName = surahNames[number - 1];
 
     reader.innerHTML = "";
 
-    currentSurahName = name;
-
-    setStatus("جاري تحميل " + name + "...");
-
-    const session = currentAudioSession;
+    setStatus("جاري تجهيز سورة " + currentSurahName);
 
     try {
-      const response = await fetch(
-        TEXT_API +
-        "/" +
-        number +
-        ".json"
-      );
+      const data = await getSurahText(number);
 
-      if (!response.ok) {
-        throw new Error(
-          "تعذر تحميل نص السورة: " + response.status
-        );
-      }
-
-      const result = await response.json();
-
-      if (session !== currentAudioSession) return;
-
-      const ayahs = result.verses || [];
-
-      if (!Array.isArray(ayahs) || !ayahs.length) {
-        throw new Error(
-          "لا توجد آيات في بيانات السورة"
-        );
-      }
+      if (session !== currentSession) return;
 
       const heading = document.createElement("h2");
-
-      heading.textContent = name;
-
+      heading.textContent = currentSurahName;
       heading.style.cssText =
-        "text-align:center;margin:15px 0;color:var(--gold);";
+        "text-align:center;color:var(--gold);";
 
       reader.appendChild(heading);
 
-      if (Number(number) !== 1 && Number(number) !== 9) {
-        const basmala = document.createElement("p");
-
-        basmala.textContent =
-          "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ";
-
-        basmala.style.cssText =
-          "text-align:center;font-size:23px;margin:20px 0;";
-
-        reader.appendChild(basmala);
-      }
-
-      const textContainer = document.createElement("div");
-
-      textContainer.style.cssText =
+      const container = document.createElement("div");
+      container.style.cssText =
         "direction:rtl;text-align:justify;line-height:2.6;font-size:23px;";
 
-      ayahs.forEach(function (ayah) {
+      data.verses.forEach((ayah, index) => {
         const span = document.createElement("span");
 
-        span.textContent =
-          ayah.text +
-          " ﴿" +
-          ayah.id +
-          "﴾ ";
+        span.id = "quran-ayah-" + number + "-" + (index + 1);
+        span.textContent = ayah.text + " ﴿" + (ayah.id || index + 1) + "﴾ ";
+        span.style.cursor = "pointer";
+        span.title = "اضغط لحفظ موضع القراءة";
 
-        textContainer.appendChild(span);
+        span.addEventListener("click", async () => {
+          try {
+            await saveLastPosition(number, index + 1);
+            setStatus(
+              "تم حفظ موضع القراءة: " +
+              currentSurahName + " - الآية " + (index + 1)
+            );
+          } catch (error) {
+            setStatus("تعذر حفظ موضع القراءة");
+          }
+        });
+
+        container.appendChild(span);
       });
 
-      reader.appendChild(textContainer);
+      reader.appendChild(container);
+      addSourceNotice(data);
 
-      // إضافة نص الترخيص والمصدر أسفل الآيات
-      addQuranSourceNotices(result);
+      const ayahNumber = Math.max(
+        1,
+        Math.min(Number(verseToRestore) || 1, data.verses.length)
+      );
 
-      setStatus("تم تحميل " + name + " بنجاح");
+      await saveLastPosition(number, ayahNumber);
 
-      reader.scrollIntoView({
-        behavior: "smooth",
-        block: "start"
-      });
+      if (session !== currentSession) return;
 
+      setStatus(
+        "تم فتح سورة " + currentSurahName +
+        (navigator.onLine ? "" : " - دون إنترنت")
+      );
+
+      if (ayahNumber > 1) {
+        const target = document.getElementById(
+          "quran-ayah-" + number + "-" + ayahNumber
+        );
+
+        if (target) {
+          target.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+          });
+        }
+      } else {
+        reader.scrollIntoView({
+          behavior: "smooth",
+          block: "start"
+        });
+      }
     } catch (error) {
-      if (session !== currentAudioSession) return;
+      if (session !== currentSession) return;
 
-      console.error("Quran Reading Error:", error);
-
-      setStatus("تعذر تحميل آيات السورة.");
+      console.error("Quran text:", error);
+      setStatus(error.message || "تعذر فتح السورة");
     }
   }
 
-  // ==========================================
-  // تشغيل سورة عبدالرحمن مسعد
-  // ==========================================
+  async function resumeLastPosition() {
+    try {
+      const last = await dbGet(META_STORE, "last-position");
 
-  async function playMossadSurah(number, name, session) {
-    const recitation = mossadSurahs[number];
+      if (!last || !last.surah) {
+        setStatus("لا يوجد موضع قراءة محفوظ حتى الآن");
+        return;
+      }
 
-    if (!recitation) {
-      throw new Error(
-        "هذه السورة غير متاحة للقارئ عبدالرحمن مسعد"
-      );
+      await readSurah(last.surah, last.ayah || 1);
+    } catch (error) {
+      setStatus("تعذر استعادة آخر موضع قراءة");
     }
+  }
 
-    audio.src = recitation.url;
-    audio.load();
-
-    setStatus(
-      "جاري تشغيل سورة " +
-      name +
-      " بصوت عبدالرحمن مسعد"
-    );
-
-    await audio.play();
-
-    if (session !== currentAudioSession) {
-      audio.pause();
+  async function downloadAllTexts() {
+    if (!navigator.onLine) {
+      setStatus("اتصل بالإنترنت لتنزيل القرآن أول مرة");
       return;
     }
 
-    console.log(
-      "تم طلب تشغيل تلاوة عبدالرحمن مسعد:",
-      recitation.name
-    );
-  }
-
-  // ==========================================
-  // تشغيل السورة لباقي القراء
-  // ==========================================
-
-  async function playSurah(number, name) {
-    stopAudio();
-
-    const session = currentAudioSession;
-
-    currentSurahName = name;
-
-    reader.innerHTML = "";
-
-    setStatus("جاري تجهيز صوت " + name + "...");
+    const button = document.getElementById("quran-download-texts");
+    if (button) button.disabled = true;
 
     try {
-      // عبدالرحمن مسعد
+      for (let number = 1; number <= 114; number++) {
+        const cached = await dbGet(TEXT_STORE, textId(number));
 
-      if (isMossadSelected()) {
-        await playMossadSurah(
-          number,
-          name,
-          session
-        );
+        if (!cached) {
+          const response = await fetch(TEXT_API + "/" + number + ".json");
 
-        return;
-      }
+          if (!response.ok) {
+            throw new Error("تعذر تنزيل سورة " + surahNames[number - 1]);
+          }
 
-      // تحميل بيانات القراء
+          const data = await response.json();
 
-      if (!reciters.length) {
-        const loaded = await loadReciters();
+          if (!Array.isArray(data.verses) || !data.verses.length) {
+            throw new Error("بيانات السورة غير مكتملة");
+          }
 
-        if (!loaded) {
-          throw new Error(
-            "تعذر تحميل بيانات القراء. حاول مرة أخرى."
-          );
+          await dbPut(TEXT_STORE, {
+            id: textId(number),
+            number,
+            verses: data.verses,
+            notice: data.notice || ""
+          });
         }
-      }
 
-      if (session !== currentAudioSession) return;
-
-      // البحث عن القارئ
-
-      const reciter = findReader();
-
-      if (!reciter) {
-        throw new Error(
-          "لم يتم العثور على القارئ في مكتبة الصوتيات. تحقق من اسم القارئ."
+        setStatus(
+          "حفظ نص القرآن: " + number + " من 114 سورة"
         );
       }
 
-      // البحث عن مصحف يحتوي على السورة المطلوبة
-
-      const moshaf = findMoshafForSurah(
-        reciter,
-        number
-      );
-
-      if (!moshaf) {
-        throw new Error(
-          "هذه السورة غير متاحة في المصحف الصوتي لهذا القارئ."
-        );
-      }
-
-      // إنشاء الرابط
-
-      const audioUrl = getSurahAudioUrl(
-        moshaf,
-        number
-      );
-
-      audio.src = audioUrl;
-      audio.load();
-
-      setStatus(
-        "جاري تشغيل سورة " +
-        name +
-        " بصوت " +
-        reciter.name
-      );
-
-      reader.scrollIntoView({
-        behavior: "smooth",
-        block: "start"
-      });
-
-      await audio.play();
-
-      if (session !== currentAudioSession) {
-        audio.pause();
-        return;
-      }
-
+      setStatus("تم حفظ نص القرآن الكريم كاملاً على الجهاز");
+      await renderSurahs();
     } catch (error) {
-      if (session !== currentAudioSession) return;
-
-      console.error("Quran Audio Error:", error);
-
       setStatus(
-        error.message ||
-        "تعذر تشغيل السورة. حاول مرة أخرى."
+        (error.message || "تعذر تنزيل النصوص") +
+        " — يمكنك إعادة المحاولة لاستكمال التنزيل"
       );
+    } finally {
+      if (button) button.disabled = false;
     }
   }
 
-  // ==========================================
-  // أحداث مشغل الصوت
-  // ==========================================
-
-  audio.addEventListener("ended", function () {
-    setStatus(
-      "انتهى الاستماع لسورة " + currentSurahName
-    );
-  });
-
-  audio.addEventListener("error", function () {
-    if (!audio.src) return;
-
-    console.error("Audio Error:", audio.error);
-
-    setStatus(
-      "تعذر تحميل ملف الصوت. تحقق من اتصال الإنترنت أو جرّب قارئاً آخر."
-    );
-  });
-
-  audio.addEventListener("play", function () {
-    if (currentSurahName) {
-      setStatus(
-        "يتم الآن الاستماع لسورة " + currentSurahName
-      );
+  async function downloadSurahAudio(number) {
+    if (!navigator.onLine) {
+      throw new Error("اتصل بالإنترنت لتنزيل التلاوة أول مرة");
     }
-  });
 
-  // ==========================================
-  // تغيير القارئ
-  // ==========================================
+    const key = selectedReaderKey();
+    const id = audioId(key, number);
 
-  readerSelect.addEventListener("change", function () {
+    const saved = await dbGet(AUDIO_STORE, id);
+
+    if (saved && saved.blob) {
+      setStatus("التلاوة محفوظة بالفعل على الجهاز");
+      return;
+    }
+
+    const url = await getAudioUrl(number);
+
+    setStatus("جاري تنزيل سورة " + surahNames[number - 1]);
+
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error("تعذر تنزيل الصوت من الخادم");
+    }
+
+    const blob = await response.blob();
+
+    if (!blob.size) {
+      throw new Error("ملف الصوت فارغ");
+    }
+
+    await dbPut(AUDIO_STORE, {
+      id,
+      readerKey: key,
+      surah: number,
+      blob,
+      size: blob.size,
+      savedAt: Date.now()
+    });
+
+    setStatus("تم تنزيل وحفظ التلاوة على الجهاز");
+    await renderSurahs();
+  }
+
+  async function playSurah(number) {
     stopAudio();
 
-    reader.innerHTML = "";
+    const session = currentSession;
 
-    if (surahs.length) {
-      renderSurahs();
+    currentSurah = number;
+    currentSurahName = surahNames[number - 1];
+
+    try {
+      const key = selectedReaderKey();
+
+      const saved = await dbGet(
+        AUDIO_STORE,
+        audioId(key, number)
+      );
+
+      if (session !== currentSession) return;
+
+      if (saved && saved.blob) {
+        currentAudioUrl = URL.createObjectURL(saved.blob);
+        audio.src = currentAudioUrl;
+
+        setStatus("تشغيل التلاوة المحفوظة دون إنترنت");
+      } else {
+        if (!navigator.onLine) {
+          throw new Error("التلاوة غير محفوظة. نزّلها أولاً أثناء الاتصال.");
+        }
+
+        audio.src = await getAudioUrl(number);
+
+        if (session !== currentSession) return;
+
+        setStatus("جاري تشغيل سورة " + currentSurahName);
+      }
+
+      audio.load();
+      await audio.play();
+
+      if (session !== currentSession) {
+        audio.pause();
+      }
+    } catch (error) {
+      if (session === currentSession) {
+        setStatus(error.message || "تعذر تشغيل التلاوة");
+      }
+    }
+  }
+
+  async function renderSurahs() {
+    surahList.innerHTML = "";
+
+    const toolbar = document.createElement("div");
+    toolbar.style.cssText =
+      "display:flex;flex-wrap:wrap;gap:6px;margin:10px 0;";
+
+    const downloadTexts = createButton(
+      "⬇️ تنزيل نص القرآن كاملاً",
+      downloadAllTexts
+    );
+
+    downloadTexts.id = "quran-download-texts";
+
+    toolbar.appendChild(downloadTexts);
+
+    toolbar.appendChild(
+      createButton("↩️ متابعة آخر قراءة", resumeLastPosition)
+    );
+
+    surahList.appendChild(toolbar);
+
+    const key = selectedReaderKey();
+
+    const savedAudio = new Set(
+      (await dbAllKeys(AUDIO_STORE)).map(String)
+    );
+
+    const savedTexts = new Set(
+      (await dbAllKeys(TEXT_STORE)).map(String)
+    );
+
+    const info = document.createElement("p");
+
+    info.textContent =
+      "النصوص المحفوظة: " + savedTexts.size +
+      " / 114 سورة";
+
+    info.style.cssText =
+      "text-align:center;color:var(--gold);padding:10px;";
+
+    surahList.appendChild(info);
+
+    const available = isMossad()
+      ? surahs.filter(s => mossadSurahs[s.number])
+      : surahs;
+
+    if (isMossad()) {
+      const message = document.createElement("p");
+      message.textContent =
+        "التلاوات المتاحة لعبدالرحمن مسعد: 7 سور";
+      message.style.textAlign = "center";
+      surahList.appendChild(message);
     }
 
-    if (isMossadSelected()) {
-      setStatus(
-        "اختر سورة من السور السبعة المتاحة لعبدالرحمن مسعد"
+    available.forEach(surah => {
+      const card = document.createElement("div");
+
+      card.style.cssText =
+        "padding:12px;margin:8px 0;border:1px solid rgba(190,165,95,.35);border-radius:12px;";
+
+      const heading = document.createElement("h3");
+      heading.textContent =
+        surah.number + ". سورة " + surah.name;
+
+      const actions = document.createElement("div");
+      actions.style.cssText =
+        "display:flex;flex-wrap:wrap;gap:5px;";
+
+      actions.appendChild(
+        createButton("📖 قراءة", () => readSurah(surah.number, 1))
       );
-    } else {
-      setStatus(
-        "تم تغيير القارئ. اختر السورة للاستماع."
+
+      actions.appendChild(
+        createButton("🎧 استماع", () => playSurah(surah.number))
       );
+
+      const id = audioId(key, surah.number);
+      const isSaved = savedAudio.has(id);
+
+      const download = createButton(
+        isSaved ? "✓ محفوظة على الجهاز" : "⬇️ تنزيل الصوت",
+        async () => {
+          download.disabled = true;
+
+          try {
+            await downloadSurahAudio(surah.number);
+          } catch (error) {
+            setStatus(
+              error.message || "تعذر تنزيل التلاوة"
+            );
+          } finally {
+            download.disabled = false;
+          }
+        }
+      );
+
+      download.disabled = isSaved;
+
+      actions.appendChild(download);
+
+      card.appendChild(heading);
+      card.appendChild(actions);
+
+      surahList.appendChild(card);
+    });
+  }
+
+  audio.addEventListener("ended", () => {
+    setStatus("انتهى الاستماع لسورة " + currentSurahName);
+  });
+
+  audio.addEventListener("error", () => {
+    if (audio.src) {
+      setStatus("تعذر تشغيل الصوت. تحقق من الاتصال أو جرّب قارئاً آخر.");
     }
   });
 
-  // ==========================================
-  // بدء التطبيق
-  // ==========================================
+  readerSelect.addEventListener("change", () => {
+    stopAudio();
+    reader.innerHTML = "";
 
-  Promise.all([
-    loadReciters(),
-    loadSurahs()
-  ]);
+    renderSurahs().catch(error => {
+      setStatus(error.message);
+    });
+  });
+
+  window.addEventListener("online", () => {
+    setStatus("عاد الاتصال بالإنترنت");
+  });
+
+  window.addEventListener("offline", () => {
+    setStatus("أنت الآن دون اتصال — المحتوى المحفوظ متاح");
+  });
+
+  window.addEventListener("beforeunload", () => {
+    if (currentAudioUrl) {
+      URL.revokeObjectURL(currentAudioUrl);
+    }
+  });
+
+  async function init() {
+    try {
+      setStatus("جاري تجهيز مكتبة القرآن الكريم...");
+
+      await openDB();
+      await loadReciters();
+      await renderSurahs();
+
+      setStatus(
+        navigator.onLine
+          ? "اختر سورة للقراءة أو الاستماع أو التنزيل"
+          : "وضع عدم الاتصال: المحتوى المحفوظ متاح"
+      );
+    } catch (error) {
+      console.error("Quran initialization:", error);
+      setStatus("تعذر تشغيل مكتبة القرآن. حاول إعادة فتح التطبيق.");
+    }
+  }
+
+  init();
 
 })();
