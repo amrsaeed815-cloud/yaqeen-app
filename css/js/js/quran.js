@@ -374,26 +374,59 @@
     });
   }
 
-  function addSourceNotice(data) {
-    const notice = document.createElement("p");
-
-    notice.textContent = data.notice ||
-      "مصدر نص القرآن الكريم: مشروع Tanzil.";
-
-    notice.style.cssText =
-      "direction:rtl;text-align:right;font-size:12px;line-height:2;padding:12px;white-space:pre-wrap;";
-
-    const link = document.createElement("a");
-    link.href = "https://tanzil.net/";
-    link.target = "_blank";
-    link.rel = "noopener noreferrer";
-    link.textContent = "موقع Tanzil";
-
-    notice.appendChild(document.createElement("br"));
-    notice.appendChild(link);
-    reader.appendChild(notice);
+ async function downloadSurahAudio(number) {
+  if (!navigator.onLine) {
+    throw new Error("اتصل بالإنترنت لتنزيل التلاوة أولاً");
   }
 
+  const key = selectedReaderKey();
+  const id = audioId(key, number);
+
+  const saved = await dbGet(AUDIO_STORE, id);
+
+  if (saved && saved.blob && saved.blob.size > 0) {
+    setStatus("التلاوة محفوظة بالفعل على الجهاز");
+    return;
+  }
+
+  const url = await getAudioUrl(number);
+
+  setStatus("جاري تنزيل سورة " + surahNames[number - 1]);
+
+  let response;
+
+  try {
+    response = await fetch(url);
+  } catch (error) {
+    throw new Error(
+      "الخادم منع تنزيل الصوت داخل التطبيق بسبب CORS. " +
+      "يمكنك الاستماع أونلاين، لكن لم يتم حفظ الملف دون إنترنت."
+    );
+  }
+
+  if (!response.ok) {
+    throw new Error("تعذر تنزيل الصوت من الخادم");
+  }
+
+  const blob = await response.blob();
+
+  if (!blob.size) {
+    throw new Error("ملف الصوت فارغ");
+  }
+
+  await dbPut(AUDIO_STORE, {
+    id,
+    readerKey: key,
+    surah: number,
+    blob,
+    size: blob.size,
+    savedAt: Date.now()
+  });
+
+  setStatus("تم تنزيل التلاوة وحفظها على الجهاز");
+
+  await renderSurahs();
+}
   async function readSurah(number, verseToRestore) {
     stopAudio();
 
